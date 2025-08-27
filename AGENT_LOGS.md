@@ -159,3 +159,16 @@ This file documents the implementation of the Django 5.2 LTS Starter Kit.
 
 - Integrated `ruff` and `mypy` into the CI pipeline via `Makefile` commands.
 - Added Docker image build to the CI pipeline, with deployment steps as placeholders (commented out as per user's instruction for CI-only).
+
+## OpenTelemetry Integration
+
+- Added comprehensive OpenTelemetry instrumentation for Django, database, Redis, HTTP requests, logging, system metrics, asyncio, and threading
+- Created detailed documentation in `OPENTELEMETRY.md` with instructions for using with SigNoz and other OpenTelemetry-compatible backends
+- Added environment variables to `.env` to enable OpenTelemetry by default
+- Updated README to include OpenTelemetry in the Developer Tools section
+
+## What Changed Recently
+
+- **Background Jobs**: Switched from Celery to Dramatiq for simpler job processing
+- **Better DX**: Improved development commands and logging
+- **Hot Reloading**: Code changes automatically reload in your browser

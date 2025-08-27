@@ -29,6 +29,7 @@ This is a complete Django development environment that gives you everything you 
 - **uv** - Ultra-fast Python package manager
 - **Ruff** - Code formatting and linting
 - **Pytest** - Testing framework
+- **OpenTelemetry** - Distributed tracing and monitoring (see [OPENTELEMETRY.md](OPENTELEMETRY.md))
 
 ## Quick Start
 
@@ -126,12 +127,6 @@ make dev-shell   # Get a command line inside the Django container
 ├── templates/     # HTML templates
 └── dev/           # Docker development files
 ```
-
-## What Changed Recently
-
-- **Background Jobs**: Switched from Celery to Dramatiq for simpler job processing
-- **Better DX**: Improved development commands and logging
-- **Hot Reloading**: Code changes automatically reload in your browser
 
 ## Learn More
 

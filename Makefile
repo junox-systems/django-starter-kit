@@ -30,12 +30,11 @@ format:
 
 .PHONY: test
 test:
-	uv run pytest
-
+	DJANGO_SETTINGS_MODULE=config.settings.test uv run pytest
 
 #### DOCKER DEV #### -----------------------------------------------------------------------------
-.PHONY: dev-up
-dev-up:
+.PHONY: dev-up dev
+dev-up dev:
 	docker compose -f dev/docker-compose.dev.yml up --build -d
 
 .PHONY: dev-down dev-stop
@@ -46,8 +45,8 @@ dev-down dev-stop stop:
 dev-clean:
 	docker compose -f dev/docker-compose.dev.yml down -v
 
-.PHONY: dev-restart
-dev-restart:
+.PHONY: dev-restart restart
+dev-restart restart:
 	make dev-down
 	make dev-up
 
@@ -59,20 +58,21 @@ dev-logs logs:
 dev-ps ps:
 	docker compose -f dev/docker-compose.dev.yml ps
 
-.PHONY: dev-shell
-dev-shell shell:
+.PHONY: dev-bash bash
+dev-bash bash:
 	docker compose -f dev/docker-compose.dev.yml exec app bash
+
+.PHONY: dev-shell shell
+dev-shell shell:
+	docker compose -f dev/docker-compose.dev.yml exec app uv run python manage.py shell -v 2
 
 ## - END DOCKER DEV - ## -------------------------------------------------------------------------
 
-#### - LOCAL DEV - #### ---------------------------------------------------------------------------
-.PHONY: dev
-dev: django-dev vite-dev worker-dev
-
+#### - DEV commands - #### ---------------------------------------------------------------------------
 .PHONY: django-dev
 django-dev:
 	uv run granian --reload \
-		--interface asgi \
+		--interface asginl \
 		--workers 2 \
 		--runtime-mode mt \
 		--loop uvloop \
@@ -88,7 +88,15 @@ vite-dev:
 .PHONY: worker-dev
 worker-dev:
 	uv run python manage.py rundramatiq --reload-use-polling
-## - END LOCAL DEV - ## ---------------------------------------------------------------------------
+
+.PHONY: makemigrations make migrations
+makemigrations make migrations:
+	uv run python manage.py makemigrations
+
+.PHONY: migrate 
+migrate:
+	uv run python manage.py migrate
+## - END DEV - ## ---------------------------------------------------------------------------
 
 #### - BUILD - #### ------------------------------------------------------------------------------
 .PHONY: vite-build

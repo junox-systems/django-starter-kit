@@ -75,6 +75,8 @@ services:
       - redis
       - rabbitmq
       - s3
+    env_file:
+      - .env
     environment:
       - ENVIRONMENT=development
       - DATABASE_URL=postgresql://postgres:postgres@db:5432/db
