@@ -1,5 +1,7 @@
 import { defineConfig } from "vite";
 import tailwindcss from "@tailwindcss/vite"; /* instead of @tailwindcss/postcss */
+import { svelte } from "@sveltejs/vite-plugin-svelte";
+import { fileURLToPath, URL } from "node:url";
 
 // https://vitejs.dev/config/
 export default defineConfig({
@@ -18,5 +20,18 @@ export default defineConfig({
     port: 5173,
     cors: true,
   },
-  plugins: [tailwindcss()],
+  resolve: {
+    alias: {
+      $lib: fileURLToPath(new URL("./src/js/svelte/library", import.meta.url)),
+    },
+  },
+  plugins: [
+    tailwindcss(),
+    svelte({
+      configFile: false,
+      compilerOptions: {
+        dev: process.env.NODE_ENV !== "production",
+      },
+    }),
+  ],
 });

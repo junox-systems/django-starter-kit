@@ -1,6 +1,7 @@
 {
   "name": "django-starter-kit-frontend",
   "version": "1.0.0",
+  "type": "module",
   "description": "Frontend dependencies for the Django Starter Kit",
   "main": "./src/js/main.js",
   "scripts": {
@@ -11,15 +12,17 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "vite": "^5.4.19",
     "@hotwired/stimulus": "^3.2.2",
-    "@hotwired/turbo": "^8.0.13",
-    "gsap": "^3.13.0"
+    "@hotwired/turbo": "^8.0.20",
+    "gsap": "^3.13.0",
+    "svelte": "^5.43.2",
+    "vite": "^7.1.12"
   },
   "devDependencies": {
-    "@tailwindcss/typography": "^0.5.16",
-    "@tailwindcss/vite": "^4.1.12",
-    "daisyui": "^5.0.50",
-    "tailwindcss": "^4.1.12"
+    "@sveltejs/vite-plugin-svelte": "^6.2.1",
+    "@tailwindcss/typography": "^0.5.19",
+    "@tailwindcss/vite": "^4.1.16",
+    "daisyui": "^5.4.2",
+    "tailwindcss": "^4.1.16"
   }
 }
