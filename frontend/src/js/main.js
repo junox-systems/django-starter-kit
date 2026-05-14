@@ -7,16 +7,14 @@ import "../css/styles.css";
 // Import GSAP
 import { gsap } from "gsap";
 
-// Import Turbo
-import "@hotwired/turbo";
-
-// Disable Turbo Drive by default globally
-// Turbo.session.drive = false;
+// Import htmx
+import htmx from "htmx.org";
+window.htmx = htmx;
 
 // Import Stimulus
 import { Application } from "@hotwired/stimulus";
 
-// start Stimulus application
+// Start Stimulus application
 const app = Application.start();
 
 // Auto-register Stimulus controllers
@@ -25,7 +23,7 @@ const modules = import.meta.glob("./controllers/**/*.js", { eager: true });
 Object.entries(modules).forEach(([filename, module]) => {
   // Convert the filename to a controller name
   const controllerName = filename
-    // Remove the leading "./controllers/"
+    // Remove the leading "./" and "controllers/"
     .replace(/^\.\//, "")
     .replace(/^controllers\//, "")
     // Remove the ".js" extension

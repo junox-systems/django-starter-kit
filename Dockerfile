@@ -15,17 +15,18 @@ RUN pip install uv
 COPY pyproject.toml .
 RUN uv pip install --system --no-cache-dir .
 
-# Install Bun and frontend dependencies
-RUN apt-get update && apt-get install -y curl
-RUN curl -fsSL https://bun.sh/install | bash
-ENV PATH="/root/.bun/bin:$PATH"
-COPY frontend/package.json frontend/bun.lockb ./frontend/
-RUN cd frontend && bun install --frozen-lockfile
+# Install Node 24 + pnpm and frontend dependencies
+RUN apt-get update && apt-get install -y curl && \
+    curl -fsSL https://deb.nodesource.com/setup_24.x | bash - && \
+    apt-get install -y nodejs && \
+    npm install -g pnpm
+COPY frontend/package.json frontend/pnpm-lock.yaml ./frontend/
+RUN cd frontend && pnpm install --frozen-lockfile
 
 # Build frontend assets
 COPY frontend/src ./frontend/src
-COPY frontend/postcss.config.js frontend/vite.config.js ./frontend/
-RUN cd frontend && bun run build
+COPY frontend/vite.config.mjs ./frontend/
+RUN cd frontend && pnpm run build
 
 # Copy remaining project files
 COPY . .

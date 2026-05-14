@@ -5,58 +5,53 @@ description = "A modern, high-performance Django 5.2 LTS starter kit with best p
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
+    # Core
     "django==5.2",
-    "djangorestframework>=3.15.0",
     "django-environ>=0.11.2",
-    "django-allauth[idp-oidc,socialaccount]>=65.11.0",
-    "django-vite>=3.1.0",
-    "django-imagekit>=5.0.0",
-    "django-storages>=1.14.0",
-    "django-anymail>=10.0",
-    "django-actioncable>=1.0.4",
-    "django-cors-headers>=4.3.0",
-    "django-redis>=5.3.0",
-    "whitenoise>=6.6.0",
-    "dj-database-url>=3.0.1",
     "granian[reload,uvloop]>=2.5.1",
-    "ruff>=0.12.0",
+    "psycopg[binary]>=3.2.9",
+    "whitenoise>=6.6.0",
+    # Auth
+    "django-allauth[idp-oidc,socialaccount]>=65.11.0",
+    # API (TODO: replace with django-modern-rest)
+    "djangorestframework>=3.15.0",
+    # Frontend
+    "django-vite>=3.1.0",
+    "django-htmx>=1.0.0",
+    # Storage & Media
+    "django-storages>=1.14.0",
+    "django-imagekit>=5.0.0",
+    "pillow>=10.0.0",
+    "boto3>=1.30.0",
+    # Email
+    "django-anymail>=10.0",
+    # Cache
+    "django-redis>=5.3.0",
+    "django-cacheops>=7.0",
+    # Background Tasks
+    "django-dramatiq>=0.14.0",
+    "dramatiq[redis,watch]>=1.18.0",
+    # Real-time
+    "channels>=4.0.0",
+    "channels-redis>=4.0.0",
+    # CORS
+    "django-cors-headers>=4.3.0",
+    # Observability
     "sentry-sdk>=1.40.0",
     "opentelemetry-sdk>=1.36.0",
     "opentelemetry-exporter-otlp>=1.36.0",
     "opentelemetry-instrumentation-django>=0.57b0",
-    "opentelemetry-instrumentation-logging>=0.57b0",
     "opentelemetry-instrumentation-psycopg>=0.57b0",
     "opentelemetry-instrumentation-redis>=0.57b0",
-    "opentelemetry-instrumentation-requests>=0.57b0",
-    "opentelemetry-instrumentation-system-metrics>=0.57b0",
-    "opentelemetry-instrumentation-urllib>=0.57b0",
-    "opentelemetry-instrumentation-urllib3>=0.57b0",
-    "opentelemetry-instrumentation-asyncio>=0.57b0",
-    "opentelemetry-instrumentation-dbapi>=0.57b0",
-    "opentelemetry-instrumentation-threading>=0.57b0",
-    "opentelemetry-instrumentation-asgi>=0.57b0",
-    "opentelemetry-instrumentation-jinja2>=0.57b0",
-    "opentelemetry-instrumentation-sqlite3>=0.57b0",
+    # Audit
+    "django-auditlog>=3.0.0",
+    # Dev & Testing
+    "ruff>=0.12.0",
     "pytest>=7.4.0",
     "pytest-django>=4.5.0",
-    "psycopg[binary]>=3.2.9",
-    "pillow>=10.0.0",
-    "boto3>=1.30.0",
-    "requests>=2.31.0",
-    "channels-redis>=4.0.0",
     "django-debug-toolbar>=6.0.0",
-    "pyjwt>=2.10.0",
-    "cryptography>=45.0.6",
-    "django-turbo-helper>=2.1.4",
-    "django-dramatiq>=0.14.0",
-    "dramatiq[rabbitmq,watch]>=1.18.0",
-    "opentelemetry-distro>=0.57b0",
-    "opentelemetry-semantic-conventions>=0.57b0",
-    "opentelemetry-instrumentation-pika>=0.57b0",
-    "opentelemetry-instrumentation-grpc>=0.57b0",
-    "opentelemetry-instrumentation-click>=0.57b0",
-    "opentelemetry-instrumentation-botocore>=0.57b0",
-    "opentelemetry-instrumentation-boto3sqs>=0.57b0",
+    # Utilities
+    "requests>=2.31.0",
 ]
 
 [tool.ruff]

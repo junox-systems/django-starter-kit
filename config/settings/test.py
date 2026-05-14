@@ -16,6 +16,7 @@ DATABASES = {
     }
 }
 
+
 # Disable migrations for faster tests
 class DisableMigrations:
     def __contains__(self, item):
@@ -23,6 +24,7 @@ class DisableMigrations:
 
     def __getitem__(self, item):
         return None
+
 
 MIGRATION_MODULES = DisableMigrations()
 
@@ -38,12 +40,11 @@ CACHES = {
     }
 }
 
+# Disable cacheops during tests
+CACHEOPS_ENABLED = False
+
 # Disable logging during tests for cleaner output
 LOGGING_CONFIG = None
-
-# Disable sentry during tests
-import sentry_sdk
-sentry_sdk.init(dsn="")
 
 # Use console email backend for tests
 EMAIL_BACKEND = "django.core.mail.backends.locmem.EmailBackend"
@@ -55,16 +56,16 @@ WHITENOISE_USE_FINDERS = True
 # Test-specific settings
 SECRET_KEY = "test-secret-key-for-testing-only"
 DEBUG = False
-TEMPLATE_DEBUG = False
 
-# Disable CSRF for tests
+# Disable CSRF and non-essential middleware for tests
 MIDDLEWARE = [
     middleware
-    for middleware in MIDDLEWARE
+    for middleware in MIDDLEWARE  # noqa: F405
     if middleware
     not in [
         "django.middleware.csrf.CsrfViewMiddleware",
         "corsheaders.middleware.CorsMiddleware",
+        "django_htmx.middleware.HtmxMiddleware",
     ]
 ]
 
@@ -89,9 +90,3 @@ DRAMATIQ_BROKER = {
         "dramatiq.middleware.Retries",
     ],
 }
-
-# Speed up tests by disabling migrations and using faster storage
-import os
-
-# Ensure we're using the test settings
-os.environ["DJANGO_SETTINGS_MODULE"] = "config.settings.test"

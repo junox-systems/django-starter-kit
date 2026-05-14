@@ -1,5 +1,5 @@
 import { Controller } from "@hotwired/stimulus";
-import { mount } from "svelte";
+import { mount, unmount } from "svelte";
 import { Components as C } from "$lib/components";
 
 export default class extends Controller {
@@ -19,7 +19,7 @@ export default class extends Controller {
 
   disconnect() {
     if (this.component) {
-      this.component.$destroy();
+      unmount(this.component);
     }
   }
 }

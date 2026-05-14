@@ -30,20 +30,6 @@ services:
     volumes:
       - redis_dev:/data
 
-  rabbitmq:
-    image: rabbitmq:4-management-alpine
-    container_name: django-rabbitmq
-    hostname: "rabbitmq"
-    restart: unless-stopped
-    environment:
-      - RABBITMQ_DEFAULT_USER=guest
-      - RABBITMQ_DEFAULT_PASS=guest
-    volumes:
-      - rabbitmq_data:/var/lib/rabbitmq
-    ports:
-      - "5672:5672" # AMQP port
-      - "15672:15672" # Management UI
-
   s3:
     image: bitnami/minio:2025.4.22 ### !minio removed console ui in newer version; keep this version for DEV ###
     container_name: minio
@@ -73,7 +59,6 @@ services:
     depends_on:
       - db
       - redis
-      - rabbitmq
       - s3
     env_file:
       - ../.env
@@ -81,7 +66,6 @@ services:
       - ENVIRONMENT=development
       - DATABASE_URL=postgresql://postgres:postgres@db:5432/db
       - REDIS_URL=redis://redis:6379
-      - RABBITMQ_URL=amqp://guest:guest@rabbitmq:5672/
     volumes:
       - ..:/app
       - django_venv:/app/.venv
@@ -95,7 +79,6 @@ services:
 volumes:
   postgres_data:
   redis_dev:
-  rabbitmq_data:
   minio_data:
   django_venv:
   frontend_node_modules:

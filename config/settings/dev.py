@@ -29,7 +29,6 @@ EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
 
 # Debug Toolbar Configuration
 DEBUG_TOOLBAR_CONFIG = {
-    "ROOT_TAG_EXTRA_ATTRS": "data-turbo-permanent",
     "SHOW_TOOLBAR_CALLBACK": lambda request: DEBUG,
 }
 

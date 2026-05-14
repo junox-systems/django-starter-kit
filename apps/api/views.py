@@ -7,5 +7,5 @@ class UserViewSet(viewsets.ReadOnlyModelViewSet):
     """
     A simple ViewSet for viewing users.
     """
-    queryset = User.objects.select_related('profile').all()
+    queryset = User.objects.all()
     serializer_class = UserSerializer

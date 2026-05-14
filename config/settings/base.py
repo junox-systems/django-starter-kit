@@ -1,14 +1,13 @@
 ### config/settings/base.py
 
+import logging
 import os
 import re
 from pathlib import Path
-import environ
-import dj_database_url
-import sentry_sdk
-from sentry_sdk.integrations.django import DjangoIntegration
 
-from sentry_sdk.integrations.redis import RedisIntegration
+import environ
+
+logger = logging.getLogger(__name__)
 
 # Initialize django-environ with default values
 env = environ.Env(
@@ -18,7 +17,7 @@ env = environ.Env(
     ALLOWED_HOSTS=(list, []),
     DATABASE_URL=(str, "postgresql://postgres:postgres@db:5432/db"),
     REDIS_URL=(str, "redis://redis:6379"),
-    RABBITMQ_URL=(str, "amqp://guest:guest@rabbitmq:5672/"),
+
     AWS_ACCESS_KEY_ID=(str, ""),
     AWS_SECRET_ACCESS_KEY=(str, ""),
     AWS_STORAGE_BUCKET_NAME=(str, ""),
@@ -53,7 +52,6 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     # Third Party
-    "turbo_helper",
     "allauth",
     "allauth.account",
     "allauth.socialaccount",
@@ -65,9 +63,12 @@ INSTALLED_APPS = [
     "rest_framework.authtoken",
     "corsheaders",
     "django_vite",
+    "django_htmx",
     "imagekit",
     "channels",
     "anymail",
+    "auditlog",
+    "cacheops",
 ]
 
 MIDDLEWARE = [
@@ -80,8 +81,9 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
-    "turbo_helper.middleware.TurboMiddleware",
+    "django_htmx.middleware.HtmxMiddleware",
     "allauth.account.middleware.AccountMiddleware",  # Allauth
+    "auditlog.middleware.AuditlogMiddleware",
 ]
 
 # Django REST Framework Settings
@@ -95,7 +97,7 @@ REST_FRAMEWORK = {
 }
 
 ROOT_URLCONF = "config.urls"
-WSGI_APPLICATION = "config.wsgi.application"
+
 ASGI_APPLICATION = "config.asgi.application"
 
 CHANNEL_LAYERS = {
@@ -125,12 +127,10 @@ TEMPLATES = [
 
 # Database
 DATABASES = {
-    "default": dj_database_url.config(
-        default=env("DATABASE_URL"),
-        conn_max_age=600,
-        conn_health_checks=True,
-    )
+    "default": env.db("DATABASE_URL", default="postgresql://postgres:postgres@db:5432/db"),
 }
+DATABASES["default"]["CONN_MAX_AGE"] = 600
+DATABASES["default"]["CONN_HEALTH_CHECKS"] = True
 
 # Authentication
 AUTH_USER_MODEL = "users.User"
@@ -235,12 +235,11 @@ CACHES = {
 # Dramatiq
 # ------------------------------------------------------------------------------
 DRAMATIQ_BROKER = {
-    "BROKER": "dramatiq.brokers.rabbitmq.RabbitmqBroker",
+    "BROKER": "dramatiq.brokers.redis.RedisBroker",
     "OPTIONS": {
-        "url": env("RABBITMQ_URL"),
+        "url": env("REDIS_URL"),
     },
     "MIDDLEWARE": [
-        "dramatiq.middleware.Prometheus",
         "dramatiq.middleware.AgeLimit",
         "dramatiq.middleware.TimeLimit",
         "dramatiq.middleware.Callbacks",
@@ -260,18 +259,20 @@ ANYMAIL = {
     "POSTMARK_SERVER_TOKEN": env("POSTMARK_SERVER_TOKEN"),
 }
 
-# Sentry & OpenTelemetry
+# Sentry
 # ------------------------------------------------------------------------------
+_sentry_dsn = env("SENTRY_DSN")
+if _sentry_dsn:
+    import sentry_sdk
+    from sentry_sdk.integrations.django import DjangoIntegration
+    from sentry_sdk.integrations.redis import RedisIntegration
 
-sentry_sdk.init(
-    dsn=env("SENTRY_DSN"),
-    integrations=[
-        DjangoIntegration(),
-        RedisIntegration(),
-    ],
-    traces_sample_rate=1.0,
-    send_default_pii=True,
-)
+    sentry_sdk.init(
+        dsn=_sentry_dsn,
+        integrations=[DjangoIntegration(), RedisIntegration()],
+        traces_sample_rate=0.1,
+        send_default_pii=False,
+    )
 
 # ------------------------------------------------------------------------------
 
@@ -282,3 +283,15 @@ IMAGEKIT_DEFAULT_CACHEFILE_STRATEGY = "imagekit.cachefiles.strategies.Optimistic
 # Default primary key field type
 # https://docs.djangoproject.com/en/stable/ref/settings/#default-auto-field
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+# Cacheops
+# ------------------------------------------------------------------------------
+CACHEOPS_REDIS = env("REDIS_URL")
+CACHEOPS_DEFAULTS = {
+    "timeout": 60 * 15,  # 15 minutes default
+}
+CACHEOPS = {
+    "users.User": {"ops": "get", "timeout": 60 * 15},
+    "auth.*": {"ops": ("fetch", "get"), "timeout": 60 * 15},
+}
+CACHEOPS_DEGRADE_ON_FAILURE = True

@@ -1,137 +1,211 @@
 # Django 5.2 LTS Starter Kit
 
-A modern, production-ready Django starter kit that helps you build web applications faster.
+A modern, production-ready Django starter kit — opinionated, lean, and ready to build on.
 
-## What is this?
-
-This is a complete Django development environment that gives you everything you need to start building web applications right away. Think of it as your project's foundation - all the boring setup work is already done.
-
-## What's Inside?
+## What's Inside
 
 ### Backend
 
-- **Django 5.2 LTS** - The latest stable version of the popular Python web framework
-- **PostgreSQL 17** - A reliable database (with ParadeDB for search features)
-- **Redis 7 (valkey)** - For caching and session storage
-- **RabbitMQ 4** - Message broker for background tasks
-- **MinIO** - S3-compatible file storage for dev
+| Package | Purpose |
+|---------|---------|
+| **Django 5.2 LTS** | Core framework |
+| **ParadeDB** (PostgreSQL 17) | Database + BM25 full-text search |
+| **Redis / Valkey 7** | Cache (`django-cacheops`) + sessions |
+| **RabbitMQ 4** | Message broker for Dramatiq background tasks |
+| **MinIO** | S3-compatible local object storage |
+| **Granian** | Production ASGI server (Rust-based, async-native) |
+| **Whitenoise** | Static file serving |
+| **django-allauth** | Auth — local accounts, OIDC/SSO, social login |
+| **django-auditlog** | Automatic model change tracking |
+| **django-imagekit** | On-demand image processing (avatar thumbnails) |
+| **django-storages** | S3-compatible media file backend |
+| **django-anymail** | Transactional email (Postmark / AWS SES) |
+| **Dramatiq** | Background task queue |
+| **Sentry SDK** | Error tracking + performance monitoring (opt-in) |
+| **OpenTelemetry** | Distributed tracing — Django, psycopg, Redis (opt-in) |
 
 ### Frontend
 
-- **Hotwire (Turbo 8 + Stimulus 3)** - Make your pages feel fast and modern without complex JavaScript
-- **Vite 5** - Super fast development server and build tool
-- **Tailwind CSS v4** - Utility-first CSS framework for styling
-- **Daisy UI 5** - Beautiful UI components that work with Tailwind
+| Package | Purpose |
+|---------|---------|
+| **htmx 2** | In-place HTML updates, partial page swaps |
+| **Stimulus 3** | Controller glue — mounts components, handles DOM behaviour |
+| **Svelte 5** | Interactive islands (for high-interactivity UI) |
+| **GSAP 3** | Animations and transitions |
+| **Tailwind CSS v4** | Utility-first styling |
+| **DaisyUI v5** | Component library |
+| **Vite** | Asset bundler with HMR |
 
 ### Developer Tools
 
-- **Docker** - Consistent development environment that works everywhere
-- **uv** - Ultra-fast Python package manager
-- **Ruff** - Code formatting and linting
-- **Pytest** - Testing framework
-- **OpenTelemetry** - Distributed tracing and monitoring (see [OPENTELEMETRY.md](OPENTELEMETRY.md))
+| Tool | Purpose |
+|------|---------|
+| **uv** | Fast Python package manager |
+| **pnpm** | Fast JS package manager (Node 24) |
+| **ruff** | Linter + formatter |
+| **pytest** | Testing framework |
+| **django-debug-toolbar** | Query analysis in development |
+| **Docker + mise** | Reproducible dev environment |
+
+---
 
 ## Quick Start
 
 ### Prerequisites
 
-- Docker and Docker Compose
-- [OrbStack](https://orbstack.dev/) (recommended for macOS) or Docker Desktop
+- Docker and Docker Compose ([OrbStack](https://orbstack.dev/) recommended on macOS)
 
-### Get Started
-
-1. **Clone the repository:**
-
-   ```bash
-   git clone <repository-url>
-   cd django-starter-kit
-   ```
-
-2. **Start everything:**
-
-   ```bash
-   make dev-up
-   ```
-
-3. **Watch the logs:**
-
-   ```bash
-   make dev-logs
-   ```
-
-4. **Open your browser:**
-
-   - Django app: http://localhost:8000
-   - Frontend dev server: http://localhost:5173
-
-5. **Set up the database (first time only):**
-   ```bash
-   make dev-shell
-   # Inside the container:
-   python manage.py migrate
-   python manage.py createsuperuser
-   ```
-
-## How It Works
-
-```
-┌─────────────────────────────────────────────────────────────┐
-│                                                             │
-│     http://localhost:8000    http://localhost:5173          │
-└─────────────┬─────────────────────────┬─────────────────────┘
-              │                         │
-    ┌─────────▼──────────┐       ┌───────────▼───────────┐
-    │     Django App     │       │    Vite Dev Server    │
-    │                    │◄─────►│                       │
-    │  - Python Logic    │       │  - Hot Reload CSS/JS  │
-    │  - HTML Templates  │       │  - Fast Updates       │
-    └─────────┬──────────┘       └───────────────────────┘
-              │
-              │                  ┌───────────────────────┐
-              │                  │    Background Jobs    │
-              │◄────────────────►│                       │
-              │                  │     - dramatiq        │
-              │                  │     - RabbitMQ        │
-              │                  └───────────────────────┘
-              │
-    ┌─────────▼──────────┐       ┌───────────────────────┐
-    │      Database      │       │    Cache & Storage    │
-    │                    │       │                       │
-    │    - PostgreSQL    │       │     - Redis           │
-    │    - Search        │       │     - MinIO (S3)      │
-    └────────────────────┘       └───────────────────────┘
-```
-
-Everything runs in Docker containers, so you don't need to install anything on your computer except Docker.
-
-## Development Commands
+### Dockerised (all-in-one)
 
 ```bash
-make dev-up      # Start everything in the background
-make dev-down    # Stop everything
-make dev-logs    # Watch logs from all services
-make dev-clean   # Clean up everything (including data)
-make dev-shell   # Get a command line inside the Django container
+git clone <repository-url>
+cd django-starter-kit
+
+cp .env.example .env   # configure your environment
+
+make dev-up            # starts DB, Redis, MinIO, Django, Vite, worker
+make dev-logs          # follow logs
 ```
+
+First-time setup:
+
+```bash
+make dev-shell
+# inside the container:
+python manage.py migrate
+python manage.py createsuperuser
+```
+
+### Local (services in Docker, app on host)
+
+Run infrastructure only, then start the app processes locally for faster iteration:
+
+```bash
+docker compose -f dev/docker-compose.dev.yml up db redis s3 -d
+
+# Terminal 1 — Django
+make django-dev
+
+# Terminal 2 — Vite (HMR)
+make vite-dev
+
+# Terminal 3 — Dramatiq worker
+make worker-dev
+```
+
+Then:
+
+```bash
+make migrate           # run migrations
+```
+
+---
+
+## Services & Ports
+
+| Service | Port | Notes |
+|---------|------|-------|
+| Django | `8000` | Main app |
+| Vite HMR | `5173` | Dev only — proxied by django-vite |
+| PostgreSQL | `5432` | |
+| Redis | `6379` | |
+| MinIO | `9000` / `9001` | S3 API / Web UI |
+
+---
 
 ## Project Structure
 
 ```
-├── apps/           # Your Django applications
-│   ├── core/      # Shared code (models, utilities)
-│   ├── users/     # User accounts and profiles
-│   ├── api/       # REST API endpoints
-│   └── pages/     # Simple web pages
-├── frontend/      # CSS, JavaScript, images
-├── config/        # Django settings
-├── templates/     # HTML templates
-└── dev/           # Docker development files
+django-starter-kit/
+├── apps/
+│   ├── core/          # BaseModel (UUID + timestamps) — keep lean
+│   ├── users/         # User model (email login, avatar, auditlog)
+│   ├── api/           # API endpoints (DRF placeholder → DMR)
+│   └── pages/         # Static/marketing pages
+├── config/
+│   ├── settings/
+│   │   ├── base.py        # Shared config
+│   │   ├── dev.py         # Development overrides
+│   │   ├── production.py  # Production hardening
+│   │   └── test.py        # Test isolation
+│   ├── asgi.py            # ASGI entry point (Channels boilerplate)
+│   └── otel.py            # OpenTelemetry setup (opt-in)
+├── frontend/
+│   └── src/
+│       ├── css/styles.css # Tailwind v4 + DaisyUI
+│       └── js/
+│           ├── main.js                # htmx + Stimulus bootstrap
+│           └── controllers/           # Stimulus controllers (auto-registered)
+├── templates/             # Django templates
+├── dev/                   # Docker dev environment
+│   ├── Dockerfile
+│   ├── docker-compose.dev.yml
+│   ├── supervisord.conf
+│   └── init.sh
+├── Makefile
+└── pyproject.toml         # All Python deps (managed by uv)
 ```
 
-## Learn More
+---
 
-For detailed development guidelines and best practices, see [DEVELOPMENT.md](DEVELOPMENT.md).
+## Common Commands
+
+```bash
+# Dev environment
+make dev-up          # Start Docker services
+make dev-down        # Stop Docker services
+make dev-logs        # Follow logs
+make dev-clean       # Destroy containers + volumes
+
+# Local development
+make django-dev      # Granian ASGI server with reload
+make vite-dev        # Vite HMR dev server
+make worker-dev      # Dramatiq worker with reload
+
+# Database
+make makemigrations  # Generate migrations
+make migrate         # Apply migrations
+
+# Quality
+make lint            # ruff check
+make lint-fix        # ruff check --fix
+make format          # ruff format
+make test            # pytest
+```
+
+---
+
+## Environment Variables
+
+Copy `.env.example` to `.env` and fill in values. Key variables:
+
+```bash
+DJANGO_SETTINGS_MODULE=config.settings.dev   # or .production / .test
+SECRET_KEY=...
+DATABASE_URL=postgresql://postgres:postgres@localhost:5432/db
+REDIS_URL=redis://localhost:6379
+
+# Optional — initialises only if set
+SENTRY_DSN=https://...
+
+# Optional — opt-in distributed tracing
+OTEL_ENABLED=true
+OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:4317
+```
+
+---
+
+## Documentation
+
+| Doc | Contents |
+|-----|---------|
+| [BRIEF.md](BRIEF.md) | Full architecture specification |
+| [DEVELOPMENT.md](DEVELOPMENT.md) | Developer guide — models, frontend patterns, conventions |
+| [AGENT_LOGS.md](AGENT_LOGS.md) | Implementation history |
+| [CHANGELOG.md](CHANGELOG.md) | Release changelog |
+
+---
 
 ## License
 
-MIT License - see LICENSE file for details.
+MIT — see [LICENSE](LICENSE).

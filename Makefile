@@ -10,7 +10,7 @@ deps-django:
 
 .PHONY: deps-frontend
 deps-frontend:
-	cd frontend && bun --bun install
+	cd frontend && pnpm install
 
 .PHONY: clean
 clean:
@@ -83,7 +83,7 @@ django-dev:
 
 .PHONY: vite-dev
 vite-dev:
-	cd frontend && bun --bun run dev --host 0.0.0.0 --port 5173
+	cd frontend && pnpm run dev --host 0.0.0.0 --port 5173
 
 .PHONY: worker-dev
 worker-dev:
@@ -101,7 +101,7 @@ migrate:
 #### - BUILD - #### ------------------------------------------------------------------------------
 .PHONY: vite-build
 vite-build:
-	cd frontend && bun --bun run build
+	cd frontend && pnpm run build
 
 .PHONY: docker-build
 docker-build:

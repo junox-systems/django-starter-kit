@@ -8,67 +8,38 @@ https://docs.djangoproject.com/en/5.2/howto/deployment/asgi/
 """
 
 import os
+import logging
 
-
-from django.urls import path
 from django.core.asgi import get_asgi_application
 from channels.auth import AuthMiddlewareStack
 from channels.routing import ProtocolTypeRouter, URLRouter
 from channels.security.websocket import AllowedHostsOriginValidator
 
-# Print environment variables for debugging
-print(
-    f"DJANGO_SETTINGS_MODULE before: {os.environ.get('DJANGO_SETTINGS_MODULE', 'Not set')}"
-)
-print(f"ENVIRONMENT: {os.environ.get('ENVIRONMENT', 'Not set')}")
+logger = logging.getLogger(__name__)
 
-# Import ActionCableConsumer directly
-try:
-    from actioncable import ActionCableConsumer
-
-    has_actioncable = True
-except ImportError:
-    has_actioncable = False
-
-
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings")
-
-# Print the actual settings module being used
-print(f"DJANGO_SETTINGS_MODULE after: {os.environ.get('DJANGO_SETTINGS_MODULE')}")
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings.dev")
 
 # Initialize OpenTelemetry for the ASGI application
-print("Attempting to initialize OpenTelemetry...")
 try:
     from config.otel import initialize_opentelemetry
-    result = initialize_opentelemetry()
-    print(f"OpenTelemetry initialization result: {result}")
-except ImportError as e:
-    print(f"OpenTelemetry not available or configured: {e}")
-except Exception as e:
-    print(f"Warning: Failed to initialize OpenTelemetry: {e}")
-    import traceback
-    traceback.print_exc()
+
+    initialize_opentelemetry()
+except Exception:
+    logger.exception("Failed to initialize OpenTelemetry")
 
 django_asgi_app = get_asgi_application()
 
-if has_actioncable:
-    application = ProtocolTypeRouter(
-        {
-            "http": django_asgi_app,
-            "websocket": AllowedHostsOriginValidator(
-                AuthMiddlewareStack(
-                    URLRouter(
-                        [
-                            path("cable", ActionCableConsumer.as_asgi()),
-                        ]
-                    )
+application = ProtocolTypeRouter(
+    {
+        "http": django_asgi_app,
+        "websocket": AllowedHostsOriginValidator(
+            AuthMiddlewareStack(
+                URLRouter(
+                    [
+                        # Add WebSocket URL routes here
+                    ]
                 )
-            ),
-        }
-    )
-else:
-    application = ProtocolTypeRouter(
-        {
-            "http": django_asgi_app,
-        }
-    )
+            )
+        ),
+    }
+)
