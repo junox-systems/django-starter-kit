@@ -73,8 +73,7 @@ dev-shell shell:
 django-dev:
 	uv run granian --reload \
 		--interface asginl \
-		--workers 2 \
-		--runtime-mode mt \
+		--workers 1 \
 		--loop uvloop \
 		--log-level debug \
 		--host 0.0.0.0 \
