@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.2.0](https://github.com/junox-systems/django-starter-kit/compare/v0.1.0...v0.2.0) (2026-05-14)
+
+
+### Features
+
+* django-unfold ([67dea2b](https://github.com/junox-systems/django-starter-kit/commit/67dea2b2963b28096c2381732c820e19bcc82f21))
+* replace Django REST Framework with Django Modern REST (DMR) for API development ([317d41e](https://github.com/junox-systems/django-starter-kit/commit/317d41e8411f9bf0070cb998d70e500b98fc1df1))
+* replace Django REST Framework with dmr for API controllers and OpenAPI generation ([2914f38](https://github.com/junox-systems/django-starter-kit/commit/2914f38f558429a642445365436449fda32e63c4))
+* svelte v5 init ([aac2663](https://github.com/junox-systems/django-starter-kit/commit/aac2663cd6cc94dd7cd9fe7cb9095aef11a914fa))
+* update project minimum Python requirement to 3.14 ([af3255f](https://github.com/junox-systems/django-starter-kit/commit/af3255f19b23b3054e3e07d007fda1b8311aacfa))
+* upgrade frontend pkgs ([438351d](https://github.com/junox-systems/django-starter-kit/commit/438351d60df953bb933abfbad417d14c2867dc1f))
+* use uuid v7 ([12184d3](https://github.com/junox-systems/django-starter-kit/commit/12184d32e5d169d211a0c1d0eb275af4d4a0d00b))
+
 ## 0.1.0 (2025-08-27)
 
 
