@@ -44,6 +44,15 @@ INSTALLED_APPS = [
     "apps.users",
     "apps.api",
     "apps.pages",
+    # Unfold admin
+    "unfold",
+    "unfold.contrib.filters",
+    "unfold.contrib.forms",
+    "unfold.contrib.inlines",
+    "unfold.contrib.import_export",
+    "unfold.contrib.guardian",
+    "unfold.contrib.simple_history",
+    "unfold.contrib.constance",
     # Django Built-in
     "django.contrib.admin",
     "django.contrib.auth",
@@ -52,6 +61,10 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     # Third Party
+    "constance",
+    "guardian",
+    "import_export",
+    "simple_history",
     "allauth",
     "allauth.account",
     "allauth.socialaccount",
@@ -83,6 +96,7 @@ MIDDLEWARE = [
     "django_htmx.middleware.HtmxMiddleware",
     "allauth.account.middleware.AccountMiddleware",  # Allauth
     "auditlog.middleware.AuditlogMiddleware",
+    "simple_history.middleware.HistoryRequestMiddleware",
 ]
 
 # Django Modern REST (DMR) Settings
@@ -138,6 +152,7 @@ AUTH_USER_MODEL = "users.User"
 AUTHENTICATION_BACKENDS = (
     "django.contrib.auth.backends.ModelBackend",
     "allauth.account.auth_backends.AuthenticationBackend",
+    "guardian.backends.ObjectPermissionBackend",
 )
 LOGIN_REDIRECT_URL = "/"
 LOGOUT_REDIRECT_URL = "/"

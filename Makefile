@@ -66,6 +66,9 @@ dev-bash bash:
 dev-shell shell:
 	docker compose -f dev/docker-compose.dev.yml exec app uv run python manage.py shell -v 2
 
+dev-createsuperuser:
+	docker compose -f dev/docker-compose.dev.yml exec app env DJANGO_SUPERUSER_PASSWORD=admin uv run python manage.py createsuperuser --noinput --username admin --email admin@example.com
+
 ## - END DOCKER DEV - ## -------------------------------------------------------------------------
 
 #### - DEV commands - #### ---------------------------------------------------------------------------

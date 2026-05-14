@@ -55,6 +55,11 @@ dependencies = [
     # Utilities
     "requests>=2.31.0",
     "uuid-utils>=0.15.0",
+    "django-unfold>=0.93.0",
+    "django-constance>=4.3.5",
+    "django-guardian>=3.3.1",
+    "django-import-export>=4.4.1",
+    "django-simple-history>=3.11.0",
 ]
 
 [tool.ruff]
