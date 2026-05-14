@@ -466,3 +466,4 @@ $RECYCLE.BIN/
 
 # Environment variables
 .env
+.pnpm-store/
