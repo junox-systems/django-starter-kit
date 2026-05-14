@@ -1,27 +1,20 @@
-# OpenTelemetry Integration with SigNoz
+# OpenTelemetry Integration
 
-This Django starter kit includes built-in OpenTelemetry support for distributed tracing and monitoring. The integration works with SigNoz and other OpenTelemetry-compatible backends.
+This Django starter kit includes opt-in OpenTelemetry support for distributed tracing. The integration works with any OTLP-compatible backend (SigNoz, Grafana Tempo, Jaeger, Datadog, etc.).
 
-## Prerequisites
+## Packages
 
-1. Ensure you have the required OpenTelemetry packages installed (already included in pyproject.toml):
-   - opentelemetry-sdk
-   - opentelemetry-exporter-otlp
-   - opentelemetry-instrumentation-django
-   - opentelemetry-instrumentation-logging
-   - opentelemetry-instrumentation-psycopg
-   - opentelemetry-instrumentation-redis
-   - opentelemetry-instrumentation-requests
-   - opentelemetry-instrumentation-system-metrics
-   - opentelemetry-instrumentation-urllib
-   - opentelemetry-instrumentation-urllib3
-   - opentelemetry-instrumentation-asyncio
-   - opentelemetry-instrumentation-threading
-   - opentelemetry-instrumentation-sqlite3
+Only the essential instrumentors are included:
+
+- `opentelemetry-sdk`
+- `opentelemetry-exporter-otlp`
+- `opentelemetry-instrumentation-django`
+- `opentelemetry-instrumentation-psycopg`
+- `opentelemetry-instrumentation-redis`
 
 ## Configuration
 
-The OpenTelemetry integration is configured through environment variables in your `.env` file:
+OpenTelemetry is **disabled by default**. Enable it by setting environment variables in your `.env` file:
 
 ```env
 OTEL_ENABLED=true
@@ -30,63 +23,50 @@ OTEL_SERVICE_NAME=django-starter-kit
 OTEL_SERVICE_VERSION=1.0.0
 ```
 
+Initialization happens in `config/otel.py`, called from `config/asgi.py` at startup.
+
+## What's Instrumented
+
+When enabled, the following are automatically traced:
+
+- **Django** — HTTP requests and responses
+- **psycopg** — PostgreSQL database queries
+- **Redis** — cache and broker operations
+
+That's it. No extra instrumentors for urllib, threading, asyncio, system metrics, etc. — add them only if you need them.
+
 ## Using with SigNoz
 
-For instructions on how to set up SigNoz with this Django application, please refer to the official SigNoz documentation:
-[https://signoz.io/docs/install/self-host/](https://signoz.io/docs/install/self-host/)
+For self-hosted SigNoz setup, see: [signoz.io/docs/install/self-host](https://signoz.io/docs/install/self-host/)
 
-## Using with other OpenTelemetry backends
+## Using with Other Backends
 
-To use with other OpenTelemetry-compatible backends like Jaeger, Zipkin, or New Relic:
+Update `OTEL_EXPORTER_OTLP_ENDPOINT` to point to your backend. If authentication is required:
 
-1. Update the `OTEL_EXPORTER_OTLP_ENDPOINT` in your `.env` file to point to your backend
-2. If your backend requires authentication, add the appropriate headers:
-   ```env
-   OTEL_EXPORTER_OTLP_HEADERS=authorization=Bearer your-token-here
-   ```
+```env
+OTEL_EXPORTER_OTLP_HEADERS=authorization=Bearer your-token-here
+```
 
-## Instrumenting your code
+## Custom Spans
 
-The OpenTelemetry integration automatically instruments:
-- Django HTTP requests and responses
-- Database queries (PostgreSQL via psycopg3)
-- Redis operations
-- Outgoing HTTP requests
-- System metrics (CPU, memory, disk usage)
-- Async operations
-- Threading operations
-
-To add custom spans to your code:
+Add manual tracing to your own code:
 
 ```python
 from opentelemetry import trace
 
-# Get a tracer
 tracer = trace.get_tracer(__name__)
 
-# Create spans manually
 with tracer.start_as_current_span("my-operation"):
-    # Your code here
+    # your code here
     pass
 ```
 
-## Disabling OpenTelemetry
+## Disabling
 
-To disable OpenTelemetry, simply set `OTEL_ENABLED=false` in your `.env` file or remove the variable entirely.
+Set `OTEL_ENABLED=false` or remove the variable entirely. When disabled, no OTel code runs — the instrumentors are only imported and activated when `OTEL_ENABLED=true`.
 
 ## Troubleshooting
 
-1. If you're not seeing traces in SigNoz, check that:
-   - The SigNoz services are running
-   - The `OTEL_EXPORTER_OTLP_ENDPOINT` points to the correct address
-   - Your Django application is running with `OTEL_ENABLED=true`
-
-2. If you're getting connection errors, ensure that:
-   - The ports are correctly mapped in your Docker configuration
-   - Your firewall isn't blocking the connections
-   - The services are healthy
-
-3. For debugging, you can enable debug logging by setting:
-   ```env
-   OTEL_LOG_LEVEL=DEBUG
-```
+1. **No traces appearing** — check that `OTEL_ENABLED=true` is set and the endpoint is reachable.
+2. **Connection errors** — verify the OTLP endpoint port (default `4317` for gRPC) and that the backend is running.
+3. **Debug logging** — set `OTEL_LOG_LEVEL=DEBUG` in your environment.

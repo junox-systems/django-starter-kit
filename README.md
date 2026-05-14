@@ -10,8 +10,7 @@ A modern, production-ready Django starter kit — opinionated, lean, and ready t
 |---------|---------|
 | **Django 5.2 LTS** | Core framework |
 | **ParadeDB** (PostgreSQL 17) | Database + BM25 full-text search |
-| **Redis / Valkey 7** | Cache (`django-cacheops`) + sessions |
-| **RabbitMQ 4** | Message broker for Dramatiq background tasks |
+| **Redis / Valkey 7** | Cache (`django-cacheops`) + sessions + Dramatiq broker |
 | **MinIO** | S3-compatible local object storage |
 | **Granian** | Production ASGI server (Rust-based, async-native) |
 | **Whitenoise** | Static file serving |
