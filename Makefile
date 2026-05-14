@@ -71,7 +71,7 @@ dev-shell shell:
 #### - DEV commands - #### ---------------------------------------------------------------------------
 .PHONY: django-dev
 django-dev:
-	uv run granian --reload \
+	DJANGO_SETTINGS_MODULE=config.settings.dev uv run granian --reload \
 		--interface asginl \
 		--workers 1 \
 		--loop uvloop \
