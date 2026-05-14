@@ -3,7 +3,7 @@ name = "django-starter-kit"
 version = "0.1.0"
 description = "A modern, high-performance Django 5.2 LTS starter kit with best practices"
 readme = "README.md"
-requires-python = ">=3.12"
+requires-python = ">=3.14"
 dependencies = [
     # Core
     "django==5.2",
