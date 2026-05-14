@@ -52,6 +52,7 @@ dependencies = [
     "django-debug-toolbar>=6.0.0",
     # Utilities
     "requests>=2.31.0",
+    "uuid-utils>=0.15.0",
 ]
 
 [tool.ruff]
