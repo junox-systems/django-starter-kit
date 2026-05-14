@@ -1,5 +1,15 @@
 from .base import *  # noqa: F403
-from .base import env
+from .base import env, DMR_SETTINGS
+
+from dmr.settings import Settings
+
+# Disable DMR response validation in production for performance.
+# Docs: "Keep it on in development, but disable it in production
+# to get the best of both worlds."
+DMR_SETTINGS = {
+    **DMR_SETTINGS,
+    Settings.validate_responses: False,
+}
 
 # Production-specific settings
 # ------------------------------------------------------------------------------

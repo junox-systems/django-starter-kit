@@ -59,8 +59,7 @@ INSTALLED_APPS = [
     "allauth.socialaccount.providers.google",
     "allauth.socialaccount.providers.apple",
     "allauth.socialaccount.providers.microsoft",
-    "rest_framework",
-    "rest_framework.authtoken",
+    "dmr",
     "corsheaders",
     "django_vite",
     "django_htmx",
@@ -86,14 +85,16 @@ MIDDLEWARE = [
     "auditlog.middleware.AuditlogMiddleware",
 ]
 
-# Django REST Framework Settings
+# Django Modern REST (DMR) Settings
 # ------------------------------------------------------------------------------
-REST_FRAMEWORK = {
-    "DEFAULT_AUTHENTICATION_CLASSES": (
-        "rest_framework.authentication.TokenAuthentication",
-        "rest_framework.authentication.SessionAuthentication",
+from dmr.settings import Settings
+from dmr.openapi import OpenAPIConfig
+
+DMR_SETTINGS: dict = {
+    Settings.openapi_config: OpenAPIConfig(
+        title="Django Starter Kit API",
+        version="0.1.0",
     ),
-    "DEFAULT_PERMISSION_CLASSES": ("rest_framework.permissions.IsAuthenticated",),
 }
 
 ROOT_URLCONF = "config.urls"
