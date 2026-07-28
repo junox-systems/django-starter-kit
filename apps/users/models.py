@@ -55,13 +55,15 @@ class User(AbstractUser, BaseModel):
 
     USERNAME_FIELD = "email"
     REQUIRED_FIELDS = ["username"]
+    # username kept here for django-allauth signup form compatibility.
+    # Removing it breaks allauth's default signup flow.
 
     class Meta:
         verbose_name = _("User")
         verbose_name_plural = _("Users")
 
     def save(self, *args, **kwargs):
-        self.email = self.email.lower().strip()
+        self.email = self.email.lower().strip()  # NOTE: allauth also normalizes; this is belt-and-suspenders
         self.username = self.username.strip()
         super().save(*args, **kwargs)
 
