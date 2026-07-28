@@ -7,10 +7,6 @@ import "../css/styles.css";
 // Import GSAP
 import { gsap } from "gsap";
 
-// Import htmx
-import htmx from "htmx.org";
-window.htmx = htmx;
-
 // Import Stimulus
 import { Application } from "@hotwired/stimulus";
 
