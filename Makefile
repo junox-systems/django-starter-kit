@@ -117,7 +117,7 @@ collectstatic:
 
 .PHONY: prod-start
 prod-start:
-	env ENVIRONMENT=production uv run granian \
+	env DJANGO_SETTINGS_MODULE=config.settings.production ENVIRONMENT=production uv run granian \
 		--interface asginl \
 		--workers 3 \
 		--runtime-mode mt \

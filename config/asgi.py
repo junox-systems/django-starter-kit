@@ -19,6 +19,17 @@ logger = logging.getLogger(__name__)
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings.dev")
 
+# Warn if production environment but settings still at dev default
+if (
+    os.environ.get("ENVIRONMENT") == "production"
+    and "config.settings.dev" in os.environ.get("DJANGO_SETTINGS_MODULE", "")
+):
+    logger.warning(
+        "DJANGO_SETTINGS_MODULE is '%s' but ENVIRONMENT=production. "
+        "Set DJANGO_SETTINGS_MODULE=config.settings.production explicitly.",
+        os.environ["DJANGO_SETTINGS_MODULE"],
+    )
+
 # Initialize OpenTelemetry for the ASGI application
 try:
     from config.otel import initialize_opentelemetry
