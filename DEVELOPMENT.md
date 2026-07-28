@@ -53,7 +53,7 @@ Settings are split by environment. Select the active file via `DJANGO_SETTINGS_M
 
 | Value | Use |
 |-------|-----|
-| `config.settings.dev` | Local development (default in `manage.py` and `asgi.py`) |
+| `config.settings.dev` | Local development (default in `manage.py` and `asgi.py`; logs warning if `ENVIRONMENT=production`) |
 | `config.settings.production` | Production |
 | `config.settings.test` | Automated testing (set in `pyproject.toml`) |
 
@@ -181,16 +181,15 @@ CACHEOPS = {
 
 ### Paradigm
 
-Three complementary layers — no overlap:
+Two complementary layers — no overlap:
 
 | Layer | Tool | Use case |
 |-------|------|----------|
-| In-place HTML | **htmx 2** | Form submissions, partial swaps, server-rendered fragments |
 | Controller glue | **Stimulus 3** | Mounting Svelte components, minor DOM behaviour |
 | Interactive islands | **Svelte 5** | Complex client-side UI with state (calls the API) |
 | Animations | **GSAP 3** | Transitions, entrance/exit effects |
 
-**Do not mix paradigms.** If a page section needs Svelte, mount it via a Stimulus controller. If it just needs a form to submit in-place, use htmx.
+**Standard Django forms + full page loads handle the rest.** If a page section needs Svelte, mount it via a Stimulus controller. If it's a simple form, let Django handle it.
 
 ### Vite Build
 
@@ -218,7 +217,22 @@ export default class extends Controller {
 
 Controllers are auto-registered via `import.meta.glob` in `main.js`. Filename `my-feature.js` → `data-controller="my-feature"`.
 
-### Mounting a Svelte Component
+### Mounting a Svelte Component (Generic Bridge)
+
+Use the built-in `svelte-bridge` controller for most cases:
+
+```html
+<div data-controller="svelte-bridge"
+     data-svelte-bridge-component-value="YourComponent"
+     data-svelte-bridge-props-value='{"key": "value"}'>
+</div>
+```
+
+The bridge dynamically imports `frontend/src/js/svelte/YourComponent.svelte`, mounts it with the given props, and unmounts on disconnect.
+
+### Per-Component Pattern (Alternative)
+
+For controllers that need additional logic beyond mount/unmount, create a dedicated Stimulus controller:
 
 ```javascript
 // frontend/src/js/controllers/my-island.js
@@ -236,11 +250,7 @@ export default class extends Controller {
 }
 ```
 
-In your template:
-
-```html
-<div data-controller="my-island"></div>
-```
+See `frontend/src/js/controllers/welcome-svelte.js` for a working example.
 
 ---
 
