@@ -146,6 +146,8 @@ DATABASES = {
 }
 DATABASES["default"]["CONN_MAX_AGE"] = 600
 DATABASES["default"]["CONN_HEALTH_CHECKS"] = True
+# For psycopg 3 connection recycling strategy (uncomment when needed):
+# DATABASES["default"]["CONN_MAX_AGE_STRATEGY"] = "max_lifetime"
 
 # Authentication
 AUTH_USER_MODEL = "users.User"
@@ -187,7 +189,7 @@ STATICFILES_DIRS = [
 # http://whitenoise.evans.io/en/stable/django.html#WHITENOISE_IMMUTABLE_FILE_TEST
 def immutable_file_test(path, url):
     # Match vite (rollup)-generated hashes, à la, `some_file-CSliV9zW.js`
-    return re.match(r"^.+[.-][0-9a-zA-Z_-]{8,12}\..+$", url)
+    return re.match(r"^.+[.-][0-9a-zA-Z_-]{8,}\..+$", url)
 
 
 WHITENOISE_IMMUTABLE_FILE_TEST = immutable_file_test
@@ -232,6 +234,15 @@ STORAGES = {
 # Override default storage for media files if AWS credentials are provided
 if AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY and AWS_STORAGE_BUCKET_NAME:
     STORAGES["default"]["BACKEND"] = "storages.backends.s3boto3.S3Boto3Storage"
+else:
+    _aws_vars_set = sum([
+        1 for v in [AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_STORAGE_BUCKET_NAME] if v
+    ])
+    if _aws_vars_set not in (0, 3):
+        logger.warning(
+            "Partial S3 config (%d of 3 vars set). Falling back to local filesystem.",
+            _aws_vars_set,
+        )
 
 # Email
 # ------------------------------------------------------------------------------
