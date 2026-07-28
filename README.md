@@ -27,8 +27,7 @@ A modern, production-ready Django starter kit — opinionated, lean, and ready t
 
 | Package | Purpose |
 |---------|---------|
-| **htmx 2** | In-place HTML updates, partial page swaps |
-| **Stimulus 3** | Controller glue — mounts components, handles DOM behaviour |
+| **Stimulus 3** | Controller glue — mounts Svelte components, handles DOM behaviour |
 | **Svelte 5** | Interactive islands (for high-interactivity UI) |
 | **GSAP 3** | Animations and transitions |
 | **Tailwind CSS v4** | Utility-first styling |
@@ -100,6 +99,25 @@ make migrate           # run migrations
 
 ---
 
+## Frontend Architecture
+
+**Primary rendering: Django templates + HTML forms.** Standard full-page loads for most interactions.
+
+**Interactive islands: Stimulus mounts Svelte 5 components.** Use the generic bridge controller:
+
+```html
+<div data-controller="svelte-bridge"
+     data-svelte-bridge-component-value="YourComponent"
+     data-svelte-bridge-props-value='{"key": "value"}'>
+</div>
+```
+
+Svelte components live in `frontend/src/js/svelte/` and are lazy-loaded via dynamic import. Only components on the page are downloaded.
+
+**Animations: GSAP 3** for transitions and micro-interactions in both Stimulus controllers and Svelte components.
+
+---
+
 ## Services & Ports
 
 | Service | Port | Notes |
@@ -119,7 +137,7 @@ django-starter-kit/
 ├── apps/
 │   ├── core/          # BaseModel (UUID + timestamps) — keep lean
 │   ├── users/         # User model (email login, avatar, auditlog)
-│   ├── api/           # API endpoints (DRF placeholder → DMR)
+│   ├── api/           # API endpoints (DMR)
 │   └── pages/         # Static/marketing pages
 ├── config/
 │   ├── settings/
@@ -133,7 +151,7 @@ django-starter-kit/
 │   └── src/
 │       ├── css/styles.css # Tailwind v4 + DaisyUI
 │       └── js/
-│           ├── main.js                # htmx + Stimulus bootstrap
+│           ├── main.js                # Stimulus + GSAP bootstrap
 │           └── controllers/           # Stimulus controllers (auto-registered)
 ├── templates/             # Django templates
 ├── dev/                   # Docker dev environment
@@ -191,6 +209,28 @@ SENTRY_DSN=https://...
 OTEL_ENABLED=true
 OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:4317
 ```
+
+---
+
+## Production Checklist
+
+Before deploying:
+
+1. **Set environment:** `ENVIRONMENT=production` + `DJANGO_SETTINGS_MODULE=config.settings.production`
+2. **SSL/TLS:** Configure reverse proxy; then enable `SECURE_PROXY_SSL_HEADER`, `SECURE_SSL_REDIRECT`, and HSTS in `production.py`
+3. **Static files:** `make vite-build && python manage.py collectstatic --no-input`
+4. **Database:** `python manage.py migrate`
+5. **Sentry:** Set `SENTRY_DSN` for error tracking
+6. **Email:** Set `POSTMARK_SERVER_TOKEN` (or swap `EMAIL_BACKEND`)
+
+### Known Caveats
+
+| Caveat | Detail |
+|--------|--------|
+| **Python 3.14** | Bleeding-edge. Some packages may lack pre-built wheels. `uv` handles source builds. |
+| **DMR 0.x** | API framework pre-1.0. Pin version in `pyproject.toml` for stability. |
+| **Granian** | Rust ASGI server — mature but smaller ecosystem than Gunicorn+Uvicorn. |
+| **Redis single-node** | Cache, sessions, broker, Channels share one Redis. Shard for high traffic. |
 
 ---
 
