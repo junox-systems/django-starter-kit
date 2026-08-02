@@ -1,38 +1,92 @@
 # syntax=docker/dockerfile:1
 
-FROM python:3.14-slim
+#### Builder stage
+FROM almalinux:10-kitten-minimal AS builder
 
-ENV PYTHONDONTWRITEBYTECODE 1
-ENV PYTHONUNBUFFERED 1
+ENV UV_NO_CACHE=1 \
+    PYTHONUNBUFFERED=1 \
+    UV_COMPILE_BYTECODE=1 \
+    UV_SYSTEM_PYTHON=1
+
+RUN microdnf install -y dnf dnf-plugins-core \
+    && dnf install -y \
+    gcc \
+    make \
+    openssl-devel \
+    libffi-devel \
+    && dnf config-manager --add-repo https://mise.jdx.dev/rpm/mise.repo \
+    && dnf install -y --nodocs mise \
+    && dnf clean all \
+    && rm -rf /var/cache/dnf
 
 WORKDIR /app
 
-COPY pyproject.toml .
+SHELL ["/bin/bash", "-c"]
 
-RUN pip install uv
-
-# Install Python dependencies
-COPY pyproject.toml .
-RUN uv pip install --system --no-cache-dir .
-
-# Install Node 24 + pnpm and frontend dependencies
-RUN apt-get update && apt-get install -y curl && \
-    curl -fsSL https://deb.nodesource.com/setup_24.x | bash - && \
-    apt-get install -y nodejs && \
-    npm install -g pnpm
+COPY mise.toml /app/mise.toml
+COPY pyproject.toml uv.lock /app/
 COPY frontend/package.json frontend/pnpm-lock.yaml ./frontend/
-RUN cd frontend && pnpm install --frozen-lockfile
 
-# Build frontend assets
-COPY frontend/src ./frontend/src
-COPY frontend/vite.config.mjs ./frontend/
-RUN cd frontend && pnpm run build
+RUN mise trust && mise install
 
-# Copy remaining project files
+ENV PATH="/root/.local/share/mise/shims:${PATH}"
+
+RUN uv sync --frozen && \
+    cd frontend && pnpm install --frozen-lockfile
+
 COPY . .
 
-# Expose port
+RUN make vite-build && \
+    make collectstatic
+
+#### Runtime stage
+FROM almalinux:10-kitten-minimal AS runtime
+
+ENV ENVIRONMENT=production \
+    PYTHONUNBUFFERED=1 \
+    UV_NO_CACHE=1 \
+    MISE_DATA_DIR=/opt/mise \
+    MISE_CONFIG_DIR=/opt/mise
+
+RUN microdnf install -y dnf dnf-plugins-core \
+    && dnf config-manager --add-repo https://mise.jdx.dev/rpm/mise.repo \
+    && dnf install -y --nodocs mise \
+    && dnf clean all \
+    && rm -rf /var/cache/dnf
+
+RUN useradd --create-home --shell /bin/bash django_user && \
+    mkdir -p /opt/mise && \
+    chown -R root:django_user /opt/mise && \
+    chmod -R 775 /opt/mise
+
+WORKDIR /app
+
+SHELL ["/bin/bash", "-c"]
+
+COPY mise.toml /app/mise.toml
+COPY pyproject.toml uv.lock /app/
+
+RUN mise trust && mise install
+
+ENV PATH="/opt/mise/shims:${PATH}"
+
+RUN uv sync --frozen --no-dev
+
+COPY --from=builder /app/staticfiles /app/staticfiles
+COPY --from=builder /app/frontend/dist /app/frontend/dist
+COPY --chown=django_user:django_user . .
+
+COPY prod/init.sh /init.sh
+RUN chmod +x /init.sh
+
+RUN chown -R django_user:django_user /app /init.sh
+
+USER django_user
+
+HEALTHCHECK --interval=30s --timeout=5s --retries=3 \
+    CMD python -c "import socket; s=socket.create_connection(('localhost',8000),timeout=2); s.close()" || exit 1
+
 EXPOSE 8000
 
-# Run the application
-CMD ["uv", "run", "granian", "--interface", "asgi", "--log-level", "info", "config.asgi:application"]
+ENTRYPOINT ["/init.sh"]
+CMD ["uv", "run", "granian", "--interface", "asginl", "--workers", "3", "--runtime-mode", "mt", "--loop", "uvloop", "--host", "0.0.0.0", "--port", "8000", "config.asgi:application"]
