@@ -50,7 +50,7 @@ services:
       retries: 3
 
   clickstack:
-    image: clickhouse/clickstack-local:2.24.0
+    image: clickhouse/clickstack-local:2.33.0
     container_name: django-clickstack
     profiles:
       - analytics
