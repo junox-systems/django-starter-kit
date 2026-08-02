@@ -257,6 +257,7 @@ Required env vars:
 - `SECRET_KEY` — Django secret
 - `IMAGE_NAME` — Docker image for stack
 - `POSTGRES_PASSWORD` — DB password
+- `RUSTFS_SECRET_KEY` — S3 secret key
 
 ### Known Caveats
 

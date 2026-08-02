@@ -72,17 +72,10 @@ services:
     depends_on:
       - db
       - redis
-      - s3
-    env_file:
-      - ../.env
     environment:
       - ENVIRONMENT=development
       - DATABASE_URL=postgresql://postgres:postgres@db:5432/db
       - REDIS_URL=redis://redis:6379
-      - AWS_ACCESS_KEY_ID=rustfsadmin
-      - AWS_SECRET_ACCESS_KEY=rustfsadmin
-      - AWS_STORAGE_BUCKET_NAME=devbucket
-      - AWS_S3_ENDPOINT_URL=http://s3:9000
       - OTEL_EXPORTER_OTLP_ENDPOINT=http://clickstack:4317
       - OTEL_ENABLED=true
     volumes:
