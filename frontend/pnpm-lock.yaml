@@ -14,9 +14,6 @@ importers:
       gsap:
         specifier: ^3.15.0
         version: 3.15.0
-      htmx.org:
-        specifier: ^2.0.10
-        version: 2.0.10
       svelte:
         specifier: ^5.55.5
         version: 5.55.5
@@ -528,9 +525,6 @@ packages:
 
   gsap@3.15.0:
     resolution: {integrity: sha512-dMW4CWBTUK1AEEDeZc1g4xpPGIrSf9fJF960qbTZmN/QwZIWY5wgliS6JWl9/25fpTGJrMRtSjGtOmPnfjZB+A==}
-
-  htmx.org@2.0.10:
-    resolution: {integrity: sha512-kdeJe7ZVwaS6QMz/ebBIVtZdpwen6L0OQ5GOhPV9MKBb196TCZeZu4yA7ZIQsaLKv7EpXz+So7KSXNuHXhj7Cw==}
 
   is-reference@3.0.3:
     resolution: {integrity: sha512-ixkJoqQvAP88E6wLydLGGqCJsrFUnqoH6HnaczB8XmDH1oaWU+xxdptvikTgaEhtZ53Ky6YXiBuUI2WXLMCwjw==}
@@ -1067,8 +1061,6 @@ snapshots:
   graceful-fs@4.2.11: {}
 
   gsap@3.15.0: {}
-
-  htmx.org@2.0.10: {}
 
   is-reference@3.0.3:
     dependencies:

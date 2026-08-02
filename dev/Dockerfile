@@ -8,7 +8,7 @@ ENV ENVIRONMENT=development \
 # This includes build tools and runtime tools for convenience in dev
 # enable copr repository for mise https://copr.fedorainfracloud.org/coprs/jdxcode/mise
 RUN dnf install -y dnf-plugins-core && \
-    dnf copr enable -y jdxcode/mise && \ 
+    dnf copr enable -y jdxcode/mise && \
     dnf install -y --nodocs \
     mise \
     curl \
