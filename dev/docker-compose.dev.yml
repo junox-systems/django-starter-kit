@@ -1,4 +1,3 @@
-# docker-compose.yml
 # For development environment
 
 services:
@@ -30,25 +29,25 @@ services:
     volumes:
       - redis_dev:/data
 
-  # s3:
-  #   image: bitnami/minio:2025.4.22 ### !minio removed console ui in newer version; keep this version for DEV ###
-  #   container_name: minio
-  #   restart: unless-stopped
-  #   volumes:
-  #     - minio_data:/bitnami/minio/data
-  #   ports:
-  #     - "9000:9000"
-  #     - "9001:9001"
-  #   environment:
-  #     MINIO_ROOT_USER: admin
-  #     MINIO_ROOT_PASSWORD: password
-  #     MINIO_DEFAULT_BUCKETS: bucket
-  #     MINIO_SCHEME: http
-  #   healthcheck:
-  #     test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
-  #     interval: 30s
-  #     timeout: 20s
-  #     retries: 3
+  s3:
+    image: rustfs/rustfs:1.0.0-alpha.86
+    container_name: django-s3
+    restart: unless-stopped
+    volumes:
+      - rustfs_data:/data
+    ports:
+      - "9000:9000"
+    environment:
+      RUSTFS_ACCESS_KEY: rustfsadmin
+      RUSTFS_SECRET_KEY: rustfsadmin
+      RUSTFS_ADDRESS: 0.0.0.0:9000
+      RUSTFS_EXTERNAL_ADDRESS: ":9000"
+      RUSTFS_CORS_ALLOWED_ORIGINS: "*"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
 
   app:
     build:
@@ -59,13 +58,17 @@ services:
     depends_on:
       - db
       - redis
-      # - s3
+      - s3
     env_file:
       - ../.env
     environment:
       - ENVIRONMENT=development
       - DATABASE_URL=postgresql://postgres:postgres@db:5432/db
       - REDIS_URL=redis://redis:6379
+      - AWS_ACCESS_KEY_ID=rustfsadmin
+      - AWS_SECRET_ACCESS_KEY=rustfsadmin
+      - AWS_STORAGE_BUCKET_NAME=devbucket
+      - AWS_S3_ENDPOINT_URL=http://s3:9000
     volumes:
       - ..:/app
       - django_venv:/app/.venv
@@ -79,6 +82,6 @@ services:
 volumes:
   postgres_data:
   redis_dev:
-  # minio_data:
+  rustfs_data:
   django_venv:
   frontend_node_modules:
