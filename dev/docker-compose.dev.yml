@@ -49,6 +49,20 @@ services:
       timeout: 5s
       retries: 3
 
+  clickstack:
+    image: clickhouse/clickstack-all-in-one:2.21.0
+    container_name: django-clickstack
+    profiles:
+      - analytics
+    ports:
+      - "8080:8080"
+      - "4317:4317"
+      - "4318:4318"
+    volumes:
+      - clickstack_db:/data/db
+      - clickstack_ch_data:/var/lib/clickhouse
+      - clickstack_ch_logs:/var/log/clickhouse-server
+
   app:
     build:
       context: ..
@@ -69,6 +83,7 @@ services:
       - AWS_SECRET_ACCESS_KEY=rustfsadmin
       - AWS_STORAGE_BUCKET_NAME=devbucket
       - AWS_S3_ENDPOINT_URL=http://s3:9000
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://clickstack:4317
     volumes:
       - ..:/app
       - django_venv:/app/.venv
@@ -85,3 +100,6 @@ volumes:
   rustfs_data:
   django_venv:
   frontend_node_modules:
+  clickstack_db:
+  clickstack_ch_data:
+  clickstack_ch_logs:
