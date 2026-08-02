@@ -105,7 +105,7 @@ Start dev stack with ClickStack observability:
 make dev-up-analytics
 ```
 
-ClickStack UI: http://localhost:8080
+ClickStack UI: http://localhost:8080 (no login — local mode)
 OTLP endpoint: http://localhost:4318 (HTTP) / http://localhost:4317 (gRPC)
 
 Without analytics:
