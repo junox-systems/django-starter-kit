@@ -37,6 +37,10 @@ test:
 dev-up dev:
 	docker compose -f dev/docker-compose.dev.yml up --build -d
 
+.PHONY: dev-up-analytics
+dev-up-analytics:
+	docker compose -f dev/docker-compose.dev.yml --profile analytics up --build -d
+
 .PHONY: dev-down dev-stop
 dev-down dev-stop stop:
 	docker compose -f dev/docker-compose.dev.yml down
@@ -127,6 +131,28 @@ prod-start:
 		config.asgi:application 
 
 ## - END PROD - ## -------------------------------------------------------------------------------
+
+#### - STACK - #### ------------------------------------------------------------------------------
+.PHONY: stack-build
+stack-build:
+	docker build -t django-starter-kit .
+
+.PHONY: stack-deploy
+stack-deploy:
+	IMAGE_NAME=django-starter-kit docker stack deploy -c docker-stack.yml django-starter-kit
+
+.PHONY: stack-rm
+stack-rm:
+	docker stack rm django-starter-kit
+
+.PHONY: stack-logs
+stack-logs:
+	docker service logs -f django-starter-kit_web
+
+.PHONY: stack-ps
+stack-ps:
+	docker stack services django-starter-kit
+## - END STACK - ##
 
 # deploy:
 # 	# This target is for deployment, which is not part of the automated CI/CD pipeline.
