@@ -5,8 +5,7 @@ FROM almalinux:10-kitten-minimal AS builder
 
 ENV UV_NO_CACHE=1 \
     PYTHONUNBUFFERED=1 \
-    UV_COMPILE_BYTECODE=1 \
-    UV_SYSTEM_PYTHON=1
+    UV_COMPILE_BYTECODE=1
 
 RUN microdnf install -y dnf dnf-plugins-core \
     && dnf install -y \
@@ -63,7 +62,7 @@ WORKDIR /app
 
 SHELL ["/bin/bash", "-c"]
 
-COPY mise.toml /app/mise.toml
+COPY prod/mise.runtime.toml /app/mise.toml
 COPY pyproject.toml uv.lock /app/
 
 RUN mise trust && mise install
@@ -75,11 +74,14 @@ RUN uv sync --frozen --no-dev
 COPY --from=builder /app/staticfiles /app/staticfiles
 COPY --from=builder /app/frontend/dist /app/frontend/dist
 COPY --chown=django_user:django_user . .
+COPY prod/mise.runtime.toml /app/mise.toml
 
 COPY prod/init.sh /init.sh
 RUN chmod +x /init.sh
 
 RUN chown -R django_user:django_user /app /init.sh
+
+RUN dnf remove -y --setopt="protected_packages=" dnf dnf-plugins-core
 
 USER django_user
 
