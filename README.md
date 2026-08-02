@@ -97,6 +97,24 @@ Then:
 make migrate           # run migrations
 ```
 
+### Development with Analytics
+
+Start dev stack with ClickStack observability:
+
+```bash
+make dev-up-analytics
+```
+
+ClickStack UI: http://localhost:8080
+OTLP endpoint: http://localhost:4318 (HTTP) / http://localhost:4317 (gRPC)
+
+Without analytics:
+```bash
+make dev-up
+```
+
+Note: dev compose requires a root `.env` file (referenced by `env_file: ../.env`). An empty one works; create it with `touch .env` if missing.
+
 ---
 
 ## Frontend Architecture
@@ -222,6 +240,23 @@ Before deploying:
 4. **Database:** `python manage.py migrate`
 5. **Sentry:** Set `SENTRY_DSN` for error tracking
 6. **Email:** Set `POSTMARK_SERVER_TOKEN` (or swap `EMAIL_BACKEND`)
+
+### Production (Docker Swarm)
+
+Build image and deploy stack:
+
+```bash
+export IMAGE_NAME=your-registry/django-starter-kit:latest
+make stack-build
+docker tag django-starter-kit $IMAGE_NAME
+docker push $IMAGE_NAME
+make stack-deploy
+```
+
+Required env vars:
+- `SECRET_KEY` — Django secret
+- `IMAGE_NAME` — Docker image for stack
+- `POSTGRES_PASSWORD` — DB password
 
 ### Known Caveats
 
