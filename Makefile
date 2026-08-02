@@ -139,7 +139,7 @@ stack-build:
 
 .PHONY: stack-deploy
 stack-deploy:
-	IMAGE_NAME=django-starter-kit docker stack deploy -c docker-stack.yml django-starter-kit
+	docker stack deploy -c docker-stack.yml django-starter-kit
 
 .PHONY: stack-rm
 stack-rm:

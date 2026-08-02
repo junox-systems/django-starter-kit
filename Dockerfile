@@ -44,6 +44,7 @@ FROM almalinux:10-kitten-minimal AS runtime
 ARG MISE_VERSION=2026.8.0
 
 ENV ENVIRONMENT=production \
+    DJANGO_SETTINGS_MODULE=config.settings.production \
     PYTHONUNBUFFERED=1 \
     UV_NO_CACHE=1 \
     MISE_DATA_DIR=/opt/mise \
@@ -84,6 +85,7 @@ USER root
 COPY --from=builder /app/staticfiles /app/staticfiles
 COPY --from=builder /app/frontend/dist /app/frontend/dist
 COPY --chown=django_user:django_user . .
+# Re-copy runtime-scoped config: COPY . . clobbers the runtime mise.toml with the dev-scoped one
 COPY prod/mise.runtime.toml /app/mise.toml
 
 COPY prod/init.sh /init.sh

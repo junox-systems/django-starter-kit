@@ -22,10 +22,8 @@ services:
       ALLOWED_HOSTS: ${ALLOWED_HOSTS:-localhost}
       SECRET_KEY: ${SECRET_KEY:?SECRET_KEY required}
     depends_on:
-      db:
-        condition: service_healthy
-      cache:
-        condition: service_healthy
+      - db
+      - cache
     healthcheck:
       test: ["CMD", "python", "-c", "import socket; s=socket.create_connection(('localhost',8000),timeout=2); s.close()"]
       interval: 30s
@@ -56,10 +54,10 @@ services:
       POSTMARK_SERVER_TOKEN: ${POSTMARK_SERVER_TOKEN:-}
       SECRET_KEY: ${SECRET_KEY:?SECRET_KEY required}
     depends_on:
-      db:
-        condition: service_healthy
-      cache:
-        condition: service_healthy
+      - db
+      - cache
+    healthcheck:
+      disable: true
     networks:
       - backend
 
@@ -71,7 +69,7 @@ services:
         condition: any
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-django}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-django}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD required}
       POSTGRES_DB: ${POSTGRES_DB:-django}
     volumes:
       - postgres_data:/var/lib/postgresql/data
@@ -105,7 +103,7 @@ services:
         condition: any
     environment:
       RUSTFS_ACCESS_KEY: ${RUSTFS_ACCESS_KEY:-rustfsadmin}
-      RUSTFS_SECRET_KEY: ${RUSTFS_SECRET_KEY:-rustfsadmin}
+      RUSTFS_SECRET_KEY: ${RUSTFS_SECRET_KEY:?RUSTFS_SECRET_KEY required}
       RUSTFS_ADDRESS: 0.0.0.0:9000
       RUSTFS_EXTERNAL_ADDRESS: ":9000"
       RUSTFS_CORS_ALLOWED_ORIGINS: "*"
