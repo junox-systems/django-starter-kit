@@ -1,6 +1,6 @@
 # Harden & Slim Implementation Plan
 
-> **For agentic workers:** Sub-tasks use checkbox (`- [ ]`) syntax for tracking. Each task is independent and commit-worthy.
+> **For agentic workers:** Sub-tasks use checkbox (`- [x]`) syntax for tracking. Each task is independent and commit-worthy.
 
 **Goal:** Fix production-blocking issues, remove htmx, add generic Stimulus+Svelte bridge, update README.
 
@@ -45,7 +45,7 @@
 - Consumes: nothing
 - Produces: working Docker build on Python 3.14
 
-- [ ] **Step 1: Change base image**
+- [x] **Step 1: Change base image**
 
 In `Dockerfile`, change `FROM python:3.12-slim` to `FROM python:3.14-slim`:
 
@@ -54,14 +54,14 @@ In `Dockerfile`, change `FROM python:3.12-slim` to `FROM python:3.14-slim`:
 + FROM python:3.14-slim
 ```
 
-- [ ] **Step 2: Verify**
+- [x] **Step 2: Verify**
 
 ```bash
 docker build --no-cache -t django-starter-kit-test .
 ```
 Expected: Build succeeds, Python 3.14 reported.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add Dockerfile
@@ -80,7 +80,7 @@ git commit -m "fix: update Dockerfile to python:3.14-slim"
 - Consumes: nothing
 - Produces: warning log when dev settings used in production context
 
-- [ ] **Step 1: Add warning guard to asgi.py**
+- [x] **Step 1: Add warning guard to asgi.py**
 
 After `os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings.dev")` in `config/asgi.py`, add:
 
@@ -97,7 +97,7 @@ if (
     )
 ```
 
-- [ ] **Step 2: Fix Makefile prod-start**
+- [x] **Step 2: Fix Makefile prod-start**
 
 In `Makefile` line ~119-127, change the `prod-start` target:
 
@@ -107,13 +107,13 @@ In `Makefile` line ~119-127, change the `prod-start` target:
 +	env DJANGO_SETTINGS_MODULE=config.settings.production ENVIRONMENT=production uv run granian \
 ```
 
-- [ ] **Step 3: Verify**
+- [x] **Step 3: Verify**
 
 ```bash
 python -c "import config.asgi"  # should not error
 ```
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add config/asgi.py Makefile
@@ -131,7 +131,7 @@ git commit -m "fix: add settings guard in asgi.py and fix Makefile prod-start"
 - Consumes: base.py settings
 - Produces: clean production settings without DMR_SETTINGS duplication
 
-- [ ] **Step 1: Fix DMR_SETTINGS override**
+- [x] **Step 1: Fix DMR_SETTINGS override**
 
 Replace the current full re-declaration in `config/settings/production.py`:
 
@@ -155,7 +155,7 @@ Replace the current full re-declaration in `config/settings/production.py`:
 + DMR_SETTINGS.update({Settings.validate_responses: False})
 ```
 
-- [ ] **Step 2: Add SSL/HSTS documentation comment**
+- [x] **Step 2: Add SSL/HSTS documentation comment**
 
 After the security settings block (after `CSRF_COOKIE_SECURE = True`), add:
 
@@ -170,14 +170,14 @@ After the security settings block (after `CSRF_COOKIE_SECURE = True`), add:
 # SECURE_HSTS_PRELOAD = True
 ```
 
-- [ ] **Step 3: Verify**
+- [x] **Step 3: Verify**
 
 ```bash
 python -c "from config.settings.production import *; print(DMR_SETTINGS)"
 ```
 Expected: No import error, validate_responses is False.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add config/settings/production.py
@@ -195,7 +195,7 @@ git commit -m "fix: clean DMR_SETTINGS override, document SSL/HSTS setup"
 - Consumes: nothing
 - Produces: S3 warning log, fixed regex, CONN_MAX_AGE comment
 
-- [ ] **Step 1: Add S3 partial config warning**
+- [x] **Step 1: Add S3 partial config warning**
 
 After the S3 storage conditional block (around line 233-234), add:
 
@@ -209,7 +209,7 @@ if bool(AWS_ACCESS_KEY_ID) + bool(AWS_SECRET_ACCESS_KEY) + bool(AWS_STORAGE_BUCK
     )
 ```
 
-- [ ] **Step 2: Widen immutable_file_test regex**
+- [x] **Step 2: Widen immutable_file_test regex**
 
 Change the regex in `immutable_file_test`:
 
@@ -218,7 +218,7 @@ Change the regex in `immutable_file_test`:
 + return re.match(r"^.+[.-][0-9a-zA-Z_-]{8,}\..+$", url)
 ```
 
-- [ ] **Step 3: Add CONN_MAX_AGE strategy comment**
+- [x] **Step 3: Add CONN_MAX_AGE strategy comment**
 
 After `DATABASES["default"]["CONN_HEALTH_CHECKS"] = True`, add:
 
@@ -227,14 +227,14 @@ After `DATABASES["default"]["CONN_HEALTH_CHECKS"] = True`, add:
 # DATABASES["default"]["CONN_MAX_AGE_STRATEGY"] = "max_lifetime"
 ```
 
-- [ ] **Step 4: Verify**
+- [x] **Step 4: Verify**
 
 ```bash
 python -c "from config.settings.base import *; print('OK')"
 ```
 Expected: No errors.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add config/settings/base.py
@@ -252,7 +252,7 @@ git commit -m "fix: add S3 partial config warning, widen hash regex, document CO
 - Consumes: nothing
 - Produces: clearer intent in User model
 
-- [ ] **Step 1: Add comment for username REQUIRED_FIELDS**
+- [x] **Step 1: Add comment for username REQUIRED_FIELDS**
 
 After line 57 (`REQUIRED_FIELDS = ["username"]`), add:
 
@@ -261,7 +261,7 @@ After line 57 (`REQUIRED_FIELDS = ["username"]`), add:
 # Removing it breaks allauth's default signup form.
 ```
 
-- [ ] **Step 2: Add comment for email normalization**
+- [x] **Step 2: Add comment for email normalization**
 
 After line 64 (`self.email = self.email.lower().strip()`), add:
 
@@ -269,7 +269,7 @@ After line 64 (`self.email = self.email.lower().strip()`), add:
 # NOTE: django-allauth also normalizes email. This is belt-and-suspenders.
 ```
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add apps/users/models.py
@@ -288,14 +288,14 @@ git commit -m "docs: document username/email normalization rationale in User mod
 - Consumes: nothing
 - Produces: htmx-free frontend bundle
 
-- [ ] **Step 1: Remove htmx from package.json**
+- [x] **Step 1: Remove htmx from package.json**
 
 In `frontend/package.json`, remove the line:
 ```diff
 -     "htmx.org": "^2.0.10",
 ```
 
-- [ ] **Step 2: Remove htmx import from main.js**
+- [x] **Step 2: Remove htmx import from main.js**
 
 In `frontend/src/js/main.js`, remove lines 10-12:
 ```diff
@@ -304,14 +304,14 @@ In `frontend/src/js/main.js`, remove lines 10-12:
 - window.htmx = htmx;
 ```
 
-- [ ] **Step 3: Verify**
+- [x] **Step 3: Verify**
 
 ```bash
 cd frontend && pnpm install && pnpm run build
 ```
 Expected: No htmx references in output, build succeeds.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add frontend/package.json frontend/src/js/main.js
@@ -330,7 +330,7 @@ git commit -m "feat: remove htmx — Django forms + Stimulus + Svelte islands re
 - Consumes: Svelte components in `frontend/src/js/svelte/`
 - Produces: reusable `data-controller="svelte-bridge"` for templates
 
-- [ ] **Step 1: Create svelte-bridge.js**
+- [x] **Step 1: Create svelte-bridge.js**
 
 ```javascript
 import { Controller } from "@hotwired/stimulus";
@@ -367,7 +367,7 @@ export default class extends Controller {
 }
 ```
 
-- [ ] **Step 2: Update welcome-svelte.js with bridge reference**
+- [x] **Step 2: Update welcome-svelte.js with bridge reference**
 
 Add a comment at the top of `frontend/src/js/controllers/welcome-svelte.js`:
 
@@ -379,14 +379,14 @@ Add a comment at the top of `frontend/src/js/controllers/welcome-svelte.js`:
 + // </div>
 ```
 
-- [ ] **Step 3: Verify**
+- [x] **Step 3: Verify**
 
 ```bash
 cd frontend && pnpm run build
 ```
 Expected: Build succeeds, svelte-bridge.js included in bundle.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add frontend/src/js/controllers/svelte-bridge.js frontend/src/js/controllers/welcome-svelte.js
@@ -404,7 +404,7 @@ git commit -m "feat: add generic Stimulus controller for Svelte mounting"
 - Consumes: all changes from Tasks 1-7
 - Produces: accurate, current project documentation
 
-- [ ] **Step 1: Rewrite README.md**
+- [x] **Step 1: Rewrite README.md**
 
 Replace the README with:
 
@@ -548,14 +548,14 @@ Before deploying to production:
 See [DEVELOPMENT.md](DEVELOPMENT.md) for in-depth guidance on settings, models, frontend workflow, and observability.
 ```
 
-- [ ] **Step 2: Verify**
+- [x] **Step 2: Verify**
 
 ```bash
 # Review reads cleanly
 cat README.md | head -5
 ```
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add README.md
@@ -566,8 +566,8 @@ git commit -m "docs: update README for harden-and-slim changes"
 
 ## Self-Review Checklist
 
-- [ ] Every spec requirement maps to at least one task
-- [ ] No TODOs, TBDs, or placeholders
-- [ ] All file paths are exact
-- [ ] All code blocks are complete
-- [ ] Task boundaries produce independently reviewable commits
+- [x] Every spec requirement maps to at least one task
+- [x] No TODOs, TBDs, or placeholders
+- [x] All file paths are exact
+- [x] All code blocks are complete
+- [x] Task boundaries produce independently reviewable commits
