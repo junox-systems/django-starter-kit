@@ -293,11 +293,16 @@ _sentry_dsn = env("SENTRY_DSN")
 if _sentry_dsn:
     import sentry_sdk
     from sentry_sdk.integrations.django import DjangoIntegration
+    from sentry_sdk.integrations.dramatiq import DramatiqIntegration
     from sentry_sdk.integrations.redis import RedisIntegration
 
     sentry_sdk.init(
         dsn=_sentry_dsn,
-        integrations=[DjangoIntegration(), RedisIntegration()],
+        integrations=[
+            DjangoIntegration(),
+            DramatiqIntegration(),
+            RedisIntegration(),
+        ],
         traces_sample_rate=0.1,
         send_default_pii=False,
     )

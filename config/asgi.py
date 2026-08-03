@@ -30,14 +30,6 @@ if (
         os.environ["DJANGO_SETTINGS_MODULE"],
     )
 
-# Initialize OpenTelemetry for the ASGI application
-try:
-    from config.otel import initialize_opentelemetry
-
-    initialize_opentelemetry()
-except Exception:
-    logger.exception("Failed to initialize OpenTelemetry")
-
 django_asgi_app = get_asgi_application()
 
 application = ProtocolTypeRouter(

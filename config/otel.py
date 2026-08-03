@@ -1,6 +1,7 @@
 # config/otel.py
-import os
 import logging
+import os
+
 from typing import Optional
 
 logger = logging.getLogger(__name__)
@@ -8,7 +9,10 @@ logger = logging.getLogger(__name__)
 
 def initialize_opentelemetry() -> Optional[object]:
     """
-    Initialize OpenTelemetry tracing for the Django application.
+    Initialize OpenTelemetry tracing and log export for the Django application.
+
+    Called from apps/core/apps.py ready() hook. The SDK's built-in fork-awareness
+    handles worker processes automatically via os.register_at_fork().
 
     Returns:
         TracerProvider: The initialized tracer provider or None if OTel is disabled.
@@ -21,15 +25,20 @@ def initialize_opentelemetry() -> Optional[object]:
 
     try:
         from opentelemetry import trace
-        from opentelemetry.sdk.trace import TracerProvider
-        from opentelemetry.sdk.trace.export import BatchSpanProcessor
+        from opentelemetry.exporter.otlp.proto.grpc._log_exporter import (
+            OTLPLogExporter,
+        )
         from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import (
             OTLPSpanExporter,
         )
-        from opentelemetry.sdk.resources import Resource
         from opentelemetry.instrumentation.django import DjangoInstrumentor
         from opentelemetry.instrumentation.psycopg import PsycopgInstrumentor
         from opentelemetry.instrumentation.redis import RedisInstrumentor
+        from opentelemetry.sdk._logs import LoggerProvider, LoggingHandler
+        from opentelemetry.sdk._logs.export import BatchLogRecordProcessor
+        from opentelemetry.sdk.resources import Resource
+        from opentelemetry.sdk.trace import TracerProvider
+        from opentelemetry.sdk.trace.export import BatchSpanProcessor
 
         resource = Resource.create(
             {
@@ -43,12 +52,13 @@ def initialize_opentelemetry() -> Optional[object]:
             }
         )
 
+        otlp_endpoint = os.environ.get(
+            "OTEL_EXPORTER_OTLP_ENDPOINT", "http://localhost:4317"
+        )
+
+        # Traces
         provider = TracerProvider(resource=resource)
         trace.set_tracer_provider(provider)
-
-        otlp_endpoint = os.environ.get(
-            "OTEL_EXPORTER_OTLP_ENDPOINT", "http://0.0.0.0:4317"
-        )
         otlp_exporter = OTLPSpanExporter(endpoint=otlp_endpoint, insecure=True)
         provider.add_span_processor(BatchSpanProcessor(otlp_exporter))
 
@@ -56,7 +66,19 @@ def initialize_opentelemetry() -> Optional[object]:
         PsycopgInstrumentor().instrument()
         RedisInstrumentor().instrument()
 
-        logger.info("OpenTelemetry initialized with endpoint: %s", otlp_endpoint)
+        # Logs — forward stdlib logging (WARNING and above) to the OTLP endpoint.
+        log_provider = LoggerProvider(resource=resource)
+        log_processor = BatchLogRecordProcessor(
+            OTLPLogExporter(endpoint=otlp_endpoint, insecure=True)
+        )
+        log_provider.add_log_record_processor(log_processor)
+        logging.getLogger().addHandler(
+            LoggingHandler(level=logging.WARNING, logger_provider=log_provider)
+        )
+
+        logger.info(
+            "OpenTelemetry initialized with endpoint: %s", otlp_endpoint
+        )
         return provider
 
     except Exception:
