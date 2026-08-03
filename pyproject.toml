@@ -42,7 +42,6 @@ dependencies = [
     "sentry-sdk>=1.40.0",
     "opentelemetry-sdk>=1.36.0",
     "opentelemetry-exporter-otlp>=1.36.0",
-    "opentelemetry-instrumentation-django>=0.57b0",
     "opentelemetry-instrumentation-psycopg>=0.57b0",
     "opentelemetry-instrumentation-redis>=0.57b0",
     # Audit

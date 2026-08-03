@@ -8,20 +8,20 @@ https://docs.djangoproject.com/en/5.2/howto/deployment/asgi/
 """
 
 import os
-import sys
 
-# Initialize OpenTelemetry BEFORE Django loads
-# DjangoInstrumentor must patch middleware before Django is imported
+# Initialize OpenTelemetry before Django loads so the global tracer
+# provider is available to the ASGI middleware below.
 from config.otel import initialize_opentelemetry
+
 initialize_opentelemetry()
 
-import logging
+import logging  # noqa: E402
 
-from django.core.asgi import get_asgi_application
-from channels.auth import AuthMiddlewareStack
-from channels.routing import ProtocolTypeRouter, URLRouter
-from channels.security.websocket import AllowedHostsOriginValidator
-from opentelemetry.instrumentation.asgi import OpenTelemetryMiddleware
+from django.core.asgi import get_asgi_application  # noqa: E402
+from channels.auth import AuthMiddlewareStack  # noqa: E402
+from channels.routing import ProtocolTypeRouter, URLRouter  # noqa: E402
+from channels.security.websocket import AllowedHostsOriginValidator  # noqa: E402
+from opentelemetry.instrumentation.asgi import OpenTelemetryMiddleware  # noqa: E402
 
 logger = logging.getLogger(__name__)
 
@@ -40,8 +40,6 @@ if (
 
 django_asgi_app = get_asgi_application()
 
-print(f"DEBUG: Django ASGI app created: {django_asgi_app}", file=sys.stderr)
-
 application = ProtocolTypeRouter(
     {
         "http": django_asgi_app,
@@ -57,4 +55,6 @@ application = ProtocolTypeRouter(
     }
 )
 
-print(f"DEBUG: Application created (no OpenTelemetryMiddleware wrapper)", file=sys.stderr)
+# Create one server span per HTTP request and propagate W3C trace context
+# between the browser (HyperDX) and the backend.
+application = OpenTelemetryMiddleware(application)

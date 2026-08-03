@@ -27,7 +27,6 @@ if (hyperdxUrl) {
     initConfig.apiKey = apiKey;
   }
 
-  console.log("[HyperDX] Initializing with config:", initConfig);
   HyperDX.init(initConfig);
 }
 
@@ -62,18 +61,3 @@ Object.entries(modules).forEach(([filename, module]) => {
 
 // Expose Stimulus application globally
 window.Stimulus = app;
-
-// Test trace propagation: make a sample /api/v1/ call after page loads
-// This verifies that HyperDX adds traceparent headers and backend picks them up
-window.addEventListener('load', () => {
-  setTimeout(() => {
-    console.log('[HyperDX Test] Making sample /api/v1/ call to test trace propagation...');
-    fetch('/api/v1/users/')
-      .then(response => {
-        console.log('[HyperDX Test] /api/v1/users/ response:', response.status);
-      })
-      .catch(error => {
-        console.error('[HyperDX Test] /api/v1/users/ error:', error);
-      });
-  }, 1000);
-});

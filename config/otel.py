@@ -1,11 +1,9 @@
 # config/otel.py
 import logging
 import os
-import sys
 
 from typing import Optional
 
-print(f"DEBUG: config/otel.py is being imported, Python: {sys.executable}", file=sys.stderr)
 logger = logging.getLogger(__name__)
 
 
@@ -13,13 +11,12 @@ def initialize_opentelemetry() -> Optional[object]:
     """
     Initialize OpenTelemetry tracing and log export for the Django application.
 
-    Called from apps/core/apps.py ready() hook. The SDK's built-in fork-awareness
-    handles worker processes automatically via os.register_at_fork().
+    Called from asgi.py (before Django loads) and manage.py. The SDK's built-in
+    fork-awareness handles worker processes automatically via os.register_at_fork().
 
     Returns:
         TracerProvider: The initialized tracer provider or None if OTel is disabled.
     """
-    print("DEBUG: initialize_opentelemetry() called", file=sys.stderr)
     otel_enabled = os.environ.get("OTEL_ENABLED", "").lower() in ("true", "1", "yes")
 
     if not otel_enabled:
@@ -34,7 +31,6 @@ def initialize_opentelemetry() -> Optional[object]:
         from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import (
             OTLPSpanExporter,
         )
-        from opentelemetry.instrumentation.django import DjangoInstrumentor
         from opentelemetry.instrumentation.psycopg import PsycopgInstrumentor
         from opentelemetry.instrumentation.redis import RedisInstrumentor
         from opentelemetry.sdk._logs import LoggerProvider, LoggingHandler
@@ -65,17 +61,7 @@ def initialize_opentelemetry() -> Optional[object]:
         otlp_exporter = OTLPSpanExporter(endpoint=otlp_endpoint, insecure=True)
         provider.add_span_processor(BatchSpanProcessor(otlp_exporter))
 
-        DjangoInstrumentor().instrument(tracer_provider=provider)
-        print("DEBUG: DjangoInstrumentor initialized", file=sys.stderr)
-        logger.info("DjangoInstrumentor initialized")
-        
-        # Test export to verify connection
-        from opentelemetry import trace
-        tracer = trace.get_tracer(__name__)
-        with tracer.start_as_current_span("test-connection-span"):
-            pass
-        print("DEBUG: Test span created and exported", file=sys.stderr)
-        
+        # HTTP request spans are created by OpenTelemetryMiddleware in asgi.py.
         PsycopgInstrumentor().instrument()
         RedisInstrumentor().instrument()
 
