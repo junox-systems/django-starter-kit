@@ -1,9 +1,11 @@
 # config/otel.py
 import logging
 import os
+import sys
 
 from typing import Optional
 
+print(f"DEBUG: config/otel.py is being imported, Python: {sys.executable}", file=sys.stderr)
 logger = logging.getLogger(__name__)
 
 
@@ -17,6 +19,7 @@ def initialize_opentelemetry() -> Optional[object]:
     Returns:
         TracerProvider: The initialized tracer provider or None if OTel is disabled.
     """
+    print("DEBUG: initialize_opentelemetry() called", file=sys.stderr)
     otel_enabled = os.environ.get("OTEL_ENABLED", "").lower() in ("true", "1", "yes")
 
     if not otel_enabled:
@@ -62,7 +65,17 @@ def initialize_opentelemetry() -> Optional[object]:
         otlp_exporter = OTLPSpanExporter(endpoint=otlp_endpoint, insecure=True)
         provider.add_span_processor(BatchSpanProcessor(otlp_exporter))
 
-        DjangoInstrumentor().instrument()
+        DjangoInstrumentor().instrument(tracer_provider=provider)
+        print("DEBUG: DjangoInstrumentor initialized", file=sys.stderr)
+        logger.info("DjangoInstrumentor initialized")
+        
+        # Test export to verify connection
+        from opentelemetry import trace
+        tracer = trace.get_tracer(__name__)
+        with tracer.start_as_current_span("test-connection-span"):
+            pass
+        print("DEBUG: Test span created and exported", file=sys.stderr)
+        
         PsycopgInstrumentor().instrument()
         RedisInstrumentor().instrument()
 

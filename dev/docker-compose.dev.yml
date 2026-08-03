@@ -78,6 +78,8 @@ services:
       - REDIS_URL=redis://redis:6379
       - OTEL_EXPORTER_OTLP_ENDPOINT=http://clickstack:4317
       - OTEL_ENABLED=true
+      - VITE_HYPERDX_URL=http://localhost:4318
+      - VITE_HYPERDX_SERVICE=django-starter-kit-frontend
     volumes:
       - ..:/app
       - django_venv:/app/.venv

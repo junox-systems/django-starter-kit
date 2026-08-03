@@ -554,6 +554,7 @@ dependencies = [
     { name = "dramatiq", extra = ["redis", "watch"] },
     { name = "granian", extra = ["reload", "uvloop"] },
     { name = "opentelemetry-exporter-otlp" },
+    { name = "opentelemetry-instrumentation-asgi" },
     { name = "opentelemetry-instrumentation-django" },
     { name = "opentelemetry-instrumentation-psycopg" },
     { name = "opentelemetry-instrumentation-redis" },
@@ -597,6 +598,7 @@ requires-dist = [
     { name = "dramatiq", extras = ["redis", "watch"], specifier = ">=1.18.0" },
     { name = "granian", extras = ["reload", "uvloop"], specifier = ">=2.5.1" },
     { name = "opentelemetry-exporter-otlp", specifier = ">=1.36.0" },
+    { name = "opentelemetry-instrumentation-asgi", specifier = ">=0.62b1" },
     { name = "opentelemetry-instrumentation-django", specifier = ">=0.57b0" },
     { name = "opentelemetry-instrumentation-psycopg", specifier = ">=0.57b0" },
     { name = "opentelemetry-instrumentation-redis", specifier = ">=0.57b0" },
@@ -1059,6 +1061,22 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/52/cb/0523b92c112a6cc70be43724343dc45225d3af134419844d7879a07755d4/opentelemetry_instrumentation-0.62b1.tar.gz", hash = "sha256:90e92a905ba4f84db06ac3aec96701df6c079b2d66e9379f8739f0a1bdcc7f45", size = 34043, upload-time = "2026-04-24T13:22:31.997Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/4d/0f/45adbaea1f81b847cffdcee4f4b5f89297e42facf7fac78c7aaac4c38e75/opentelemetry_instrumentation-0.62b1-py3-none-any.whl", hash = "sha256:976fc6e640f2006599e97429c949e622c108d0c17c2059347d1e6c93c707f257", size = 34163, upload-time = "2026-04-24T13:21:31.722Z" },
+]
+
+[[package]]
+name = "opentelemetry-instrumentation-asgi"
+version = "0.62b1"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "asgiref" },
+    { name = "opentelemetry-api" },
+    { name = "opentelemetry-instrumentation" },
+    { name = "opentelemetry-semantic-conventions" },
+    { name = "opentelemetry-util-http" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/54/43/b2f0703ff46718ff7b17d7fbf8e9d7f20e26a23c7c325092dd762d09cf9d/opentelemetry_instrumentation_asgi-0.62b1.tar.gz", hash = "sha256:7cf5f5d5c493bbb1edd2bd6d51fa879d964e94048904017258a32ffa47329310", size = 26781, upload-time = "2026-04-24T13:22:37.158Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/d0/41/968c1fe12fb90abffca6620e65d4af91451c02ecca8f74a17a62cac490de/opentelemetry_instrumentation_asgi-0.62b1-py3-none-any.whl", hash = "sha256:b7f89be48528512619bd54fa2459f72afb1695ba71d7024d382ad96d467e7fa8", size = 17011, upload-time = "2026-04-24T13:21:38.006Z" },
 ]
 
 [[package]]

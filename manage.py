@@ -6,6 +6,11 @@ import sys
 
 def main():
     """Run administrative tasks."""
+    # Initialize OpenTelemetry BEFORE Django loads
+    # DjangoInstrumentor must patch middleware before Django is imported
+    from config.otel import initialize_opentelemetry
+    initialize_opentelemetry()
+
     os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings.dev")
     try:
         from django.core.management import execute_from_command_line
