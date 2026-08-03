@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+
+{% block title %}Django Starter Kit — SaaS-ready foundation{% endblock %}
+
+{% block content %}
+<section class="hero min-h-[60vh] bg-base-200">
+    <div class="hero-content text-center">
+        <div class="max-w-3xl">
+            <h1 class="text-5xl font-bold">Django Starter Kit</h1>
+            <p class="py-6 text-xl">
+                A modern, production-ready foundation for SaaS and web products:
+                auth, API, admin, background jobs, S3 storage, email, and observability — out of the box.
+            </p>
+            <div class="flex justify-center gap-4">
+                <a class="btn btn-primary" href="{% url 'account_signup' %}">Get started</a>
+                <a class="btn btn-outline" href="{% url 'admin:index' %}">Admin</a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="py-16 max-w-5xl mx-auto">
+    <h2 class="text-3xl font-bold text-center mb-10">What's included</h2>
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div class="card bg-base-100 shadow">
+            <div class="card-body">
+                <h3 class="card-title">Auth &amp; users</h3>
+                <p>django-allauth with email-based login, OIDC, social sign-in, and email verification. Custom UUID user model.</p>
+            </div>
+        </div>
+        <div class="card bg-base-100 shadow">
+            <div class="card-body">
+                <h3 class="card-title">REST API</h3>
+                <p>django-modern-rest with session auth, msgspec serialization, and OpenAPI schema generation.</p>
+            </div>
+        </div>
+        <div class="card bg-base-100 shadow">
+            <div class="card-body">
+                <h3 class="card-title">Admin</h3>
+                <p>Unfold admin with filters, inlines, import/export, object permissions, and change history.</p>
+            </div>
+        </div>
+        <div class="card bg-base-100 shadow">
+            <div class="card-body">
+                <h3 class="card-title">Background jobs</h3>
+                <p>Dramatiq workers on Redis — send email, build exports, and process long-running work off the request path.</p>
+            </div>
+        </div>
+        <div class="card bg-base-100 shadow">
+            <div class="card-body">
+                <h3 class="card-title">S3 storage</h3>
+                <p>django-storages + boto3 for media and static files. Works with any S3-compatible provider.</p>
+            </div>
+        </div>
+        <div class="card bg-base-100 shadow">
+            <div class="card-body">
+                <h3 class="card-title">Observability</h3>
+                <p>Sentry error tracking and OpenTelemetry traces (OTLP) — ready for ClickHouse, Grafana, or any collector.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="py-12 bg-base-200">
+    <div class="max-w-3xl mx-auto text-center">
+        <h2 class="text-3xl font-bold mb-6">Try the Svelte + Stimulus bridge</h2>
+        <div id="welcome-svelte" data-controller="welcome-svelte"></div>
+    </div>
+</section>
+{% endblock %}
