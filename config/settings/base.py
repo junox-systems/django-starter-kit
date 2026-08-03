@@ -101,8 +101,8 @@ MIDDLEWARE = [
 
 # Django Modern REST (DMR) Settings
 # ------------------------------------------------------------------------------
-from dmr.settings import Settings
-from dmr.openapi import OpenAPIConfig
+from dmr.settings import Settings  # noqa: E402
+from dmr.openapi import OpenAPIConfig  # noqa: E402
 
 DMR_SETTINGS: dict = {
     Settings.openapi_config: OpenAPIConfig(

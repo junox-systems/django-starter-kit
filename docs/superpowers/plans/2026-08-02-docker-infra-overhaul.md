@@ -32,7 +32,7 @@
 - Consumes: `env()` from django-environ
 - Produces: `AWS_S3_ENDPOINT_URL` setting for django-storages S3 compatibility
 
-- [ ] **Step 1: Add AWS_S3_ENDPOINT_URL env var read**
+- [x] **Step 1: Add AWS_S3_ENDPOINT_URL env var read**
 
 In `config/settings/base.py`, add after line 216:
 
@@ -43,12 +43,12 @@ AWS_STORAGE_BUCKET_NAME = env("AWS_STORAGE_BUCKET_NAME")
 AWS_S3_ENDPOINT_URL = env("AWS_S3_ENDPOINT_URL", default="")
 ```
 
-- [ ] **Step 2: Verify the change**
+- [x] **Step 2: Verify the change**
 
 Run: `python -c "import django; django.setup()" 2>&1 | head -5` (from project root with env)
 Expected: No import errors related to settings.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add config/settings/base.py
@@ -66,7 +66,7 @@ git commit -m "feat: add AWS_S3_ENDPOINT_URL for S3-compatible storage backends"
 - Consumes: django app service, db service, redis service
 - Produces: `s3` service accessible at `s3:9000`, `AWS_S3_ENDPOINT_URL=http://s3:9000` in app env
 
-- [ ] **Step 1: Add rustfs s3 service block**
+- [x] **Step 1: Add rustfs s3 service block**
 
 After the `redis` service block (after line 31), add:
 
@@ -94,7 +94,7 @@ After the `redis` service block (after line 31), add:
 
 Note: rustfs is minio-compatible. The `/minio/health/live` endpoint works.
 
-- [ ] **Step 2: Add s3 to app depends_on and env**
+- [x] **Step 2: Add s3 to app depends_on and env**
 
 In the `app` service:
 - Add `- s3` to `depends_on` list (line ~61)
@@ -107,7 +107,7 @@ In the `app` service:
       - AWS_S3_ENDPOINT_URL=http://s3:9000
 ```
 
-- [ ] **Step 3: Add rustfs_data volume declaration**
+- [x] **Step 3: Add rustfs_data volume declaration**
 
 In the `volumes:` block at bottom, add:
 
@@ -115,16 +115,16 @@ In the `volumes:` block at bottom, add:
   rustfs_data:
 ```
 
-- [ ] **Step 4: Remove stale comment header**
+- [x] **Step 4: Remove stale comment header**
 
 Remove line 1: `# docker-compose.yml` (stale, file is docker-compose.dev.yml)
 
-- [ ] **Step 5: Verify compose file parses**
+- [x] **Step 5: Verify compose file parses**
 
 Run: `docker compose -f dev/docker-compose.dev.yml config --quiet`
 Expected: Exit 0, no errors.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add dev/docker-compose.dev.yml
@@ -142,7 +142,7 @@ git commit -m "feat: add rustfs S3 service to dev compose"
 - Consumes: nothing (standalone observability service)
 - Produces: `clickstack` service on ports 8080 (UI), 4317/4318 (OTLP), activated via `--profile analytics`
 
-- [ ] **Step 1: Add clickstack service block**
+- [x] **Step 1: Add clickstack service block**
 
 After the `s3` service, add:
 
@@ -162,7 +162,7 @@ After the `s3` service, add:
       - clickstack_ch_logs:/var/log/clickhouse-server
 ```
 
-- [ ] **Step 2: Add OTEL env to app for analytics profile**
+- [x] **Step 2: Add OTEL env to app for analytics profile**
 
 Add to app `environment` block:
 
@@ -172,7 +172,7 @@ Add to app `environment` block:
 
 Note: only effective when clickstack is running (profile active).
 
-- [ ] **Step 3: Add clickstack volume declarations**
+- [x] **Step 3: Add clickstack volume declarations**
 
 In `volumes:` block, add:
 
@@ -182,12 +182,12 @@ In `volumes:` block, add:
   clickstack_ch_logs:
 ```
 
-- [ ] **Step 4: Verify compose with analytics profile**
+- [x] **Step 4: Verify compose with analytics profile**
 
 Run: `docker compose -f dev/docker-compose.dev.yml --profile analytics config --quiet`
 Expected: Exit 0.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add dev/docker-compose.dev.yml
@@ -205,7 +205,7 @@ git commit -m "feat: add clickstack observability to dev compose with analytics 
 - Consumes: DATABASE_URL env var
 - Produces: runs migrations then exec's the CMD (granian for web, rundramatiq for worker)
 
-- [ ] **Step 1: Create prod/init.sh**
+- [x] **Step 1: Create prod/init.sh**
 
 ```bash
 #!/bin/bash
@@ -232,13 +232,13 @@ echo "Starting: $@"
 exec "$@"
 ```
 
-- [ ] **Step 2: Make executable**
+- [x] **Step 2: Make executable**
 
 ```bash
 chmod +x prod/init.sh
 ```
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add prod/init.sh
@@ -256,7 +256,7 @@ git commit -m "feat: add prod entrypoint script with db wait + migrate"
 - Consumes: mise.toml, pyproject.toml, frontend/package.json, source code
 - Produces: production image with built staticfiles, uv-managed .venv, runs as django_user
 
-- [ ] **Step 1: Write the builder stage**
+- [x] **Step 1: Write the builder stage**
 
 Replace `Dockerfile` contents with:
 
@@ -303,7 +303,7 @@ RUN make vite-build && \
     make collectstatic
 ```
 
-- [ ] **Step 2: Write the runtime stage**
+- [x] **Step 2: Write the runtime stage**
 
 Append to the Dockerfile:
 
@@ -364,12 +364,12 @@ CMD ["uv", "run", "granian", "--interface", "asginl", "--workers", "3", "--runti
 
 Note: HEALTHCHECK uses `/-/health/` — adjust if your health endpoint differs. MISE_DATA_DIR=/opt/mise ensures shims are accessible by django_user (not /root/).
 
-- [ ] **Step 3: Verify Dockerfile parses**
+- [x] **Step 3: Verify Dockerfile parses**
 
 Run: `docker build --check .` (or `docker build --no-cache -t test . 2>&1 | tail -20`)
 Expected: No syntax errors.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add Dockerfile
@@ -388,13 +388,13 @@ git commit -m "feat: rewrite prod Dockerfile as multi-stage almalinux:10-kitten-
 - Consumes: prod Dockerfile image, pgvector/pgvector:0.8.6-pg18, valkey/valkey:7-alpine, rustfs
 - Produces: web + worker + db + cache + s3 services with deploy config, healthchecks, shared env
 
-- [ ] **Step 1: Delete old root docker-compose.yml**
+- [x] **Step 1: Delete old root docker-compose.yml**
 
 ```bash
 git rm docker-compose.yml
 ```
 
-- [ ] **Step 2: Create docker-stack.yml**
+- [x] **Step 2: Create docker-stack.yml**
 
 ```yaml
 services:
@@ -527,12 +527,12 @@ networks:
     driver: overlay
 ```
 
-- [ ] **Step 3: Verify stack file parses**
+- [x] **Step 3: Verify stack file parses**
 
 Run: `docker stack deploy --dry-run -c docker-stack.yml test-stack` (or `docker compose -f docker-stack.yml config --quiet` for syntax check)
 Expected: No errors.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add docker-stack.yml
@@ -557,7 +557,7 @@ git commit -m "feat: add docker swarm stack file replacing root compose
 - Consumes: docker-stack.yml, dev/docker-compose.dev.yml
 - Produces: new targets: stack-build, stack-deploy, stack-logs, stack-rm
 
-- [ ] **Step 1: Update docker-build target**
+- [x] **Step 1: Update docker-build target**
 
 Replace existing `docker-build` target:
 
@@ -569,7 +569,7 @@ docker-build:
 
 (No change needed — already points to root Dockerfile, which is now the multi-stage one.)
 
-- [ ] **Step 2: Add swarm stack targets**
+- [x] **Step 2: Add swarm stack targets**
 
 Add after `## - END PROD - ##`:
 
@@ -597,7 +597,7 @@ stack-ps:
 ## - END STACK - ##
 ```
 
-- [ ] **Step 3: Update dev compose commands to support analytics profile**
+- [x] **Step 3: Update dev compose commands to support analytics profile**
 
 Replace existing dev-up:
 
@@ -611,7 +611,7 @@ dev-up-analytics:
 	docker compose -f dev/docker-compose.dev.yml --profile analytics up --build -d
 ```
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add Makefile
@@ -622,7 +622,7 @@ git commit -m "feat: add swarm stack targets and analytics profile shortcut to M
 
 ### Task 8: Verify all changes work together
 
-- [ ] **Step 1: Dev compose — validate full stack**
+- [x] **Step 1: Dev compose — validate full stack**
 
 Run:
 ```bash
@@ -631,7 +631,7 @@ docker compose -f dev/docker-compose.dev.yml --profile analytics config --quiet
 ```
 Expected: Both exit 0.
 
-- [ ] **Step 2: Dev — boot stack**
+- [x] **Step 2: Dev — boot stack**
 
 Run:
 ```bash
@@ -639,7 +639,7 @@ make dev-up-analytics
 ```
 Expected: All services start. `docker compose -f dev/docker-compose.dev.yml --profile analytics ps` shows db, redis, s3, app, clickstack all running.
 
-- [ ] **Step 3: Verify S3 connectivity from app**
+- [x] **Step 3: Verify S3 connectivity from app**
 
 Create the bucket the app expects (rustfs does not auto-create buckets):
 
@@ -654,12 +654,12 @@ print('S3 OK')
 ```
 Expected: "S3 OK" (bucket devbucket created — matches `AWS_STORAGE_BUCKET_NAME=devbucket` in app env)
 
-- [ ] **Step 4: Verify clickstack UI accessible**
+- [x] **Step 4: Verify clickstack UI accessible**
 
 Open: http://localhost:8080
 Expected: HyperDX UI loads.
 
-- [ ] **Step 5: Prod Dockerfile — build**
+- [x] **Step 5: Prod Dockerfile — build**
 
 Run:
 ```bash
@@ -667,7 +667,7 @@ make docker-build
 ```
 Expected: Multi-stage build completes. Image size reasonable (~300-500MB).
 
-- [ ] **Step 6: Stack file — validate**
+- [x] **Step 6: Stack file — validate**
 
 Run:
 ```bash
@@ -675,14 +675,14 @@ docker compose -f docker-stack.yml config --quiet
 ```
 Expected: Exit 0.
 
-- [ ] **Step 7: Clean up dev**
+- [x] **Step 7: Clean up dev**
 
 Run:
 ```bash
 make dev-clean
 ```
 
-- [ ] **Step 8: Final commit (if any fixes needed)**
+- [x] **Step 8: Final commit (if any fixes needed)**
 
 ```bash
 git add -A
@@ -696,7 +696,7 @@ git commit -m "fix: resolve verification issues"
 **Files:**
 - Modify: `README.md`
 
-- [ ] **Step 1: Add dev analytics section**
+- [x] **Step 1: Add dev analytics section**
 
 Add to dev section:
 
@@ -719,7 +719,7 @@ make dev-up
 
 Note: dev compose requires a root `.env` file (referenced by `env_file: ../.env`). An empty one works; create it with `touch .env` if missing.
 
-- [ ] **Step 2: Update prod section**
+- [x] **Step 2: Update prod section**
 
 Replace/update prod deployment docs:
 
@@ -742,7 +742,7 @@ Required env vars:
 - `POSTGRES_PASSWORD` — DB password
 ```
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add README.md
