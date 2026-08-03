@@ -66,14 +66,30 @@ def initialize_opentelemetry() -> Optional[object]:
         PsycopgInstrumentor().instrument()
         RedisInstrumentor().instrument()
 
-        # Logs — forward stdlib logging (WARNING and above) to the OTLP endpoint.
+        # Logs — forward stdlib logging to the OTLP endpoint.
+        # Level: OTEL_LOG_LEVEL env override; defaults to DEBUG in development,
+        # WARNING in production. Accepts TRACE, DEBUG, INFO, WARNING, ERROR.
+        log_level_name = os.environ.get("OTEL_LOG_LEVEL", "").upper()
+        if not log_level_name:
+            log_level_name = (
+                "DEBUG"
+                if os.environ.get("ENVIRONMENT", "development") == "development"
+                else "WARNING"
+            )
+        log_level = getattr(logging, log_level_name, logging.WARNING)
+        if not isinstance(log_level, int):
+            log_level = logging.WARNING
+
         log_provider = LoggerProvider(resource=resource)
         log_processor = BatchLogRecordProcessor(
             OTLPLogExporter(endpoint=otlp_endpoint, insecure=True)
         )
         log_provider.add_log_record_processor(log_processor)
-        logging.getLogger().addHandler(
-            LoggingHandler(level=logging.WARNING, logger_provider=log_provider)
+        root_logger = logging.getLogger()
+        # Root defaults to WARNING — lower it so INFO/DEBUG reach the handler.
+        root_logger.setLevel(log_level)
+        root_logger.addHandler(
+            LoggingHandler(level=log_level, logger_provider=log_provider)
         )
 
         logger.info(
