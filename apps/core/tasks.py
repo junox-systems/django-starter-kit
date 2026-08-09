@@ -1,18 +1,33 @@
 # apps/core/tasks.py
 #
-# Background task examples. Every task is a @dramatiq.actor; enqueue with
-# `task.send(*args)` from anywhere (views, signals, management commands).
-# Workers run in the `worker` container / `python manage.py rundramatiq`.
+# Background task examples. Every task is a @shared_task; enqueue with
+# `task.delay(*args)` or `task.apply_async(args, countdown=...)` from anywhere
+# (views, signals, management commands).
+# Workers run in the `worker` container / `celery -A config worker`.
 
-import dramatiq
+import smtplib
+
+import anymail.exceptions
+from celery import shared_task
 
 from django.conf import settings
 from django.core.mail import send_mail
+from django.db import OperationalError
 
 from apps.users.models import User
 
 
-@dramatiq.actor
+@shared_task(
+    autoretry_for=(
+        smtplib.SMTPException,
+        anymail.exceptions.AnymailAPIError,
+        OSError,
+        TimeoutError,
+    ),
+    max_retries=5,
+    retry_backoff=True,
+    retry_backoff_max=30,
+)
 def send_welcome_email(user_id):
     """Send a welcome email after signup. Example: User post_save signal."""
     try:
@@ -27,18 +42,33 @@ def send_welcome_email(user_id):
     )
 
 
-@dramatiq.actor(max_retries=5, min_backoff=1000, max_backoff=30000)
+@shared_task(
+    autoretry_for=(OperationalError, TimeoutError),
+    max_retries=5,
+    retry_backoff=True,
+    retry_backoff_max=30,
+)
 def export_user_data(user_id):
     """Example long-running job: build an export artifact for a user.
 
-    Uses default retry middleware — failures back off up to 30s, 5 tries.
+    Retries with exponential backoff up to 30s, 5 tries.
     """
     user = User.objects.get(id=user_id)
     # ... build the export ...
     return f"exports/user_{user.id}.csv"
 
 
-@dramatiq.actor
+@shared_task(
+    autoretry_for=(
+        smtplib.SMTPException,
+        anymail.exceptions.AnymailAPIError,
+        OSError,
+        TimeoutError,
+    ),
+    max_retries=5,
+    retry_backoff=True,
+    retry_backoff_max=30,
+)
 def send_test_email(subject, message, recipient_list):
     """Send a test email (used by admin checks / debugging)."""
     send_mail(

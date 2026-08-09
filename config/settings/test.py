@@ -79,14 +79,6 @@ STORAGES = {
     },
 }
 
-# Disable dramatiq during tests
-DRAMATIQ_BROKER = {
-    "BROKER": "dramatiq.brokers.stub.StubBroker",
-    "OPTIONS": {},
-    "MIDDLEWARE": [
-        "dramatiq.middleware.AgeLimit",
-        "dramatiq.middleware.TimeLimit",
-        "dramatiq.middleware.Callbacks",
-        "dramatiq.middleware.Retries",
-    ],
-}
+# Run celery tasks eagerly (synchronously) during tests
+CELERY_TASK_ALWAYS_EAGER = True
+CELERY_TASK_EAGER_PROPAGATES = True

@@ -41,7 +41,7 @@ make django-dev
 # Terminal 2 — Frontend (Vite HMR)
 make vite-dev
 
-# Terminal 3 — Dramatiq worker (auto-reload)
+# Terminal 3 — Celery worker (auto-reload)
 make worker-dev
 ```
 
@@ -268,7 +268,7 @@ See `frontend/src/js/controllers/welcome-svelte.js` for a working example.
 
 Initialises automatically if `SENTRY_DSN` is set. Features:
 
-- Error tracking across Django + Dramatiq
+- Error tracking across Django + Celery
 - Performance tracing at **10% sample rate** (no PII)
 
 ### OpenTelemetry
@@ -287,15 +287,15 @@ The `.github/workflows/ci.yml` pipeline runs on every push and pull request to `
 
 ---
 
-## Task Queue (Dramatiq)
+## Task Queue (Celery)
 
-Background tasks are defined with the `@dramatiq.actor` decorator:
+Background tasks are defined with the `@shared_task` decorator:
 
 ```python
 # apps/myapp/tasks.py
-import dramatiq
+from celery import shared_task
 
-@dramatiq.actor
+@shared_task
 def send_welcome_email(user_id: str):
     # runs asynchronously in the worker process
     ...
@@ -304,7 +304,7 @@ def send_welcome_email(user_id: str):
 Enqueue from a view:
 
 ```python
-send_welcome_email.send(str(user.id))
+send_welcome_email.delay(str(user.id))
 ```
 
 Start the worker:
@@ -313,4 +313,4 @@ Start the worker:
 make worker-dev   # development (with auto-reload)
 ```
 
-> **Broker:** Dramatiq uses Redis as the message broker (same Redis instance as the cache, on a dedicated DB index).
+> **Broker:** Celery uses Redis as the message broker (same Redis instance as the cache, on a dedicated DB index). Results persist to the DB (`django-celery-results`); periodic tasks via `django-celery-beat` (DatabaseScheduler). Monitor workers/tasks/queues in the admin at `/admin/dj-celery-panel/`.

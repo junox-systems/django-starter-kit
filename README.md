@@ -10,7 +10,7 @@ A modern, production-ready Django starter kit — opinionated, lean, and ready t
 |---------|---------|
 | **Django 5.2 LTS** | Core framework |
 | **ParadeDB** (PostgreSQL 17) | Database + BM25 full-text search |
-| **Redis / Valkey 7** | Cache (`django-cacheops`) + sessions + Dramatiq broker |
+| **Redis / Valkey 7** | Cache (`django-cacheops`) + sessions + Celery broker |
 | **MinIO** | S3-compatible local object storage |
 | **Granian** | Production ASGI server (Rust-based, async-native) |
 | **Whitenoise** | Static file serving |
@@ -19,7 +19,7 @@ A modern, production-ready Django starter kit — opinionated, lean, and ready t
 | **django-imagekit** | On-demand image processing (avatar thumbnails) |
 | **django-storages** | S3-compatible media file backend |
 | **django-anymail** | Transactional email (Postmark / AWS SES) |
-| **Dramatiq** | Background task queue |
+| **Celery** | Background task queue (django-celery-results, django-celery-beat) |
 | **Sentry SDK** | Error tracking + performance monitoring (opt-in) |
 | **OpenTelemetry** | Distributed tracing — Django, psycopg, Redis (opt-in) |
 
@@ -87,7 +87,7 @@ make django-dev
 # Terminal 2 — Vite (HMR)
 make vite-dev
 
-# Terminal 3 — Dramatiq worker
+# Terminal 3 — Celery worker
 make worker-dev
 ```
 
@@ -195,7 +195,7 @@ make dev-clean       # Destroy containers + volumes
 # Local development
 make django-dev      # Granian ASGI server with reload
 make vite-dev        # Vite HMR dev server
-make worker-dev      # Dramatiq worker with reload
+make worker-dev      # Celery worker with reload
 
 # Database
 make makemigrations  # Generate migrations

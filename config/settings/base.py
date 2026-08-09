@@ -38,7 +38,6 @@ ALLOWED_HOSTS = env.list("ALLOWED_HOSTS", default=[])
 
 # Application definition
 INSTALLED_APPS = [
-    "django_dramatiq",
     # Local Apps
     "apps.core",
     "apps.users",
@@ -52,6 +51,17 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     # Third Party
+    # DJ Control Room — shared core lib first, then panels, then control room
+    # (so all panels appear under one "DJ Control Room" section in admin)
+    "dj_control_room_base",
+    "dj_redis_panel",
+    "dj_cache_panel",
+    "dj_urls_panel",
+    "dj_celery_panel",
+    "dj_signals_panel",
+    "dj_control_room",
+    "django_celery_results",
+    "django_celery_beat",
     "constance",
     "guardian",
     "import_export",
@@ -251,26 +261,28 @@ CACHES = {
         },
     }
 }
-# Dramatiq
+# Celery
 # ------------------------------------------------------------------------------
-DRAMATIQ_BROKER = {
-    "BROKER": "dramatiq.brokers.redis.RedisBroker",
-    "OPTIONS": {
-        "url": env("REDIS_URL"),
-    },
-    "MIDDLEWARE": [
-        "dramatiq.middleware.AgeLimit",
-        "dramatiq.middleware.TimeLimit",
-        "dramatiq.middleware.Callbacks",
-        "dramatiq.middleware.Retries",
-        "django_dramatiq.middleware.DbConnectionsMiddleware",
-        "django_dramatiq.middleware.AdminMiddleware",
-    ],
-}
+# Broker defaults to the shared Redis instance; set CELERY_BROKER_URL to a
+# dedicated DB index (e.g. redis://cache:6379/1) once message volume grows.
+CELERY_BROKER_URL = env("CELERY_BROKER_URL", default=env("REDIS_URL"))
+CELERY_RESULT_BACKEND = "django-db"
+CELERY_TASK_TRACK_STARTED = True
+CELERY_RESULT_EXTENDED = True
 
-# Defines which database should be used to persist Task objects when the
-# AdminMiddleware is enabled. The default value is "default".
-DRAMATIQ_TASKS_DATABASE = "default"
+CELERY_TASK_DEFAULT_RETRY_DELAY = 1  # seconds before first retry
+CELERY_TASK_TIME_LIMIT = 30 * 60  # seconds, hard limit per task
+CELERY_TASK_SOFT_TIME_LIMIT = 25 * 60  # seconds, raises SoftTimeLimitExceeded
+
+CELERY_BEAT_SCHEDULER = "django_celery_beat.schedulers:DatabaseScheduler"
+
+# DJ Control Room — redis panel instances
+# ------------------------------------------------------------------------------
+DJ_REDIS_PANEL_SETTINGS = {
+    "INSTANCES": {
+        "default": {"url": env("REDIS_URL")},
+    },
+}
 
 # Anymail
 # ------------------------------------------------------------------------------
@@ -283,15 +295,15 @@ ANYMAIL = {
 _sentry_dsn = env("SENTRY_DSN")
 if _sentry_dsn:
     import sentry_sdk
+    from sentry_sdk.integrations.celery import CeleryIntegration
     from sentry_sdk.integrations.django import DjangoIntegration
-    from sentry_sdk.integrations.dramatiq import DramatiqIntegration
     from sentry_sdk.integrations.redis import RedisIntegration
 
     sentry_sdk.init(
         dsn=_sentry_dsn,
         integrations=[
             DjangoIntegration(),
-            DramatiqIntegration(),
+            CeleryIntegration(),
             RedisIntegration(),
         ],
         traces_sample_rate=0.1,

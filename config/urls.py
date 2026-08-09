@@ -14,6 +14,13 @@ schema = build_schema(_api_router)
 
 # Core URL patterns
 urlpatterns = [
+    # DJ Control Room panel URLs — mounted under /admin/
+    path("admin/dj-redis-panel/", include("dj_redis_panel.urls")),
+    path("admin/dj-cache-panel/", include("dj_cache_panel.urls")),
+    path("admin/dj-urls-panel/", include("dj_urls_panel.urls")),
+    path("admin/dj-celery-panel/", include("dj_celery_panel.urls")),
+    path("admin/dj-signals-panel/", include("dj_signals_panel.urls")),
+    path("admin/dj-control-room/", include("dj_control_room.urls")),
     path("admin/", admin.site.urls),
     path("anymail/", include("anymail.urls")),
     path("api/v1/", include("apps.api.urls")),

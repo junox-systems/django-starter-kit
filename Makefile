@@ -93,7 +93,11 @@ vite-dev:
 
 .PHONY: worker-dev
 worker-dev:
-	uv run python manage.py rundramatiq --reload-use-polling
+	DJANGO_SETTINGS_MODULE=config.settings.dev uv run celery -A config worker -l info
+
+.PHONY: beat-dev
+beat-dev:
+	DJANGO_SETTINGS_MODULE=config.settings.dev uv run celery -A config beat -l info
 
 .PHONY: makemigrations make migrations
 makemigrations make migrations:
