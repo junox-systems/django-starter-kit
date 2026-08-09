@@ -12,7 +12,7 @@ Modern Django 5.2 LTS starter kit. Opinionated, lean, production-ready.
 - **Frontend:** Django forms (primary) → Stimulus 3 mounts Svelte 5 islands → GSAP animations
 - **Styling:** Tailwind CSS v4 + DaisyUI v5
 - **Build:** Vite, uv (Python), pnpm (JS)
-- **Admin:** django-unfold (admin theme + extensions: guardian, constance, import_export, simple_history)
+- **Admin:** stock Django admin (with guardian, constance, import_export, simple_history)
 - **Observability:** Sentry (opt-in), OpenTelemetry (opt-in)
 - **Tooling:** ruff (lint/format), pytest, django-debug-toolbar
 

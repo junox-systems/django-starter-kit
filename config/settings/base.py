@@ -44,15 +44,6 @@ INSTALLED_APPS = [
     "apps.users",
     "apps.api",
     "apps.pages",
-    # Unfold admin
-    "unfold",
-    "unfold.contrib.filters",
-    "unfold.contrib.forms",
-    "unfold.contrib.inlines",
-    "unfold.contrib.import_export",
-    "unfold.contrib.guardian",
-    "unfold.contrib.simple_history",
-    "unfold.contrib.constance",
     # Django Built-in
     "django.contrib.admin",
     "django.contrib.auth",
