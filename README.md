@@ -31,7 +31,7 @@ A modern, production-ready Django starter kit — opinionated, lean, and ready t
 | **Svelte 5** | Interactive islands (for high-interactivity UI) |
 | **GSAP 3** | Animations and transitions |
 | **Tailwind CSS v4** | Utility-first styling |
-| **DaisyUI v5** | Component library |
+| **Basecoat CSS** | Component library (shadcn-compatible tokens) |
 | **Vite** | Asset bundler with HMR |
 
 ### Developer Tools
@@ -167,7 +167,7 @@ django-starter-kit/
 │   └── otel.py            # OpenTelemetry setup (opt-in)
 ├── frontend/
 │   └── src/
-│       ├── css/styles.css # Tailwind v4 + DaisyUI
+│       ├── css/styles.css # Tailwind v4 + Basecoat
 │       └── js/
 │           ├── main.js                # Stimulus + GSAP bootstrap
 │           └── controllers/           # Stimulus controllers (auto-registered)

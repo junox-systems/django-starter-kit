@@ -26,7 +26,7 @@ The architecture covers the backend structure, data modeling, frontend integrati
 
 The system is a modular monolithic web application built on the Django framework. While monolithic in codebase, its dependencies (database, cache, message broker) are decoupled services, enabling flexible deployment and scaling.
 
-- **Presentation Layer (Frontend):** Renders the user interface using Django's templating engine, styled with Tailwind CSS v4 + DaisyUI v5, and enhanced with htmx for in-place HTML updates and Svelte 5 for high-interactivity islands. Stimulus acts as the controller glue for mounting components.
+- **Presentation Layer (Frontend):** Renders the user interface using Django's templating engine, styled with Tailwind CSS v4 + Basecoat (shadcn-compatible tokens, per-site `site.css` style pack), and enhanced with Svelte 5 for high-interactivity islands. Stimulus acts as the controller glue for mounting components.
 - **Application Layer (Backend):** Contains the core business logic, managed by Django views. API endpoints will be served by **django-modern-rest (DMR)** (replacing DRF). Asynchronous tasks are handled by Celery.
 - **Data Layer:** Manages data persistence, caching, and search. This includes a primary relational database (**ParadeDB**) for structured data and full-text search, and an in-memory cache (**Redis / Valkey**) for high-speed data access via **django-cacheops**.
 
@@ -46,7 +46,7 @@ All Python dependencies are managed by **`uv`** via a single `pyproject.toml` fi
 - **Authentication:** `django-allauth` (social auth, OIDC, local accounts, email verification)
 - **Audit Logging:** `django-auditlog` (automatic model change tracking)
 - **Frontend Bundler:** Vite (`django-vite`)
-- **Frontend Styling:** Tailwind CSS v4 + DaisyUI v5
+- **Frontend Styling:** Tailwind CSS v4 + Basecoat (shadcn-compatible tokens, per-site `site.css` style pack)
 - **Interactivity:** htmx 2 (in-place HTML) + Stimulus 3 (controller glue) + Svelte 5 (interactive islands) + GSAP 3 (animations)
 - **Real-time/WebSockets:** `django-channels` + `channels-redis` (boilerplate ready; routes added per-app)
 - **Email:** `django-anymail` (Postmark or AWS SES)
@@ -139,7 +139,7 @@ htmx replaces Turbo. Svelte components are mounted via Stimulus controllers usin
 
 #### **7.3. Styling & Static Assets**
 
-- Styling is defined in `frontend/src/css/styles.css`, importing Tailwind CSS v4 via `@import "tailwindcss"` and DaisyUI v5 via `@plugin "daisyui"`.
+- Styling is defined in `frontend/src/css/styles.css`, importing Tailwind CSS v4 via `@import "tailwindcss"`, the Basecoat styleless base via `@import "basecoat-css/base"`, and the per-site style pack via `@import "./site.css"` (a fork of `basecoat-css/styles/vega`). Fonts: Manrope (body) + Space Grotesk (headings) via Fontsource variable packages. Dark mode via the `.dark` class on `<html>`, toggled by the `theme-toggle` Stimulus controller in the navbar.
 - **Vite** processes source files and outputs hashed assets to `frontend/dist/`.
 - `{% vite_hmr_client %}` and `{% vite_asset 'src/js/main.js' %}` handle dev (HMR) and production asset loading automatically.
 

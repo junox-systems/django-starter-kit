@@ -27,6 +27,33 @@ INTERNAL_IPS = ["127.0.0.1", "10.0.2.2"] + [ip[:-1] + "1" for ip in ips]
 # Use console for emails
 EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
 
+# Hot-reload templates (dev only).
+#
+# Since Django 4.1, templates are cached by default even with DEBUG=True —
+# Django wraps the default loaders in the "cached.Loader", which NEVER checks
+# the file's mtime. Result: you edit a .html, save, refresh — nothing changes.
+# Only a process restart picks it up.
+#
+# Django docs bless an override: specify OPTIONS["loaders"] explicitly and the
+# cache wrapper is skipped, so templates re-read from disk on every request.
+#
+# Why TEMPLATES[0]? The TEMPLATES setting is a LIST of engines. base.py defines
+# exactly one entry (the DjangoTemplates engine) — index 0. We mutate that
+# entry in place; production.py inherits base.py untouched, so prod keeps the
+# fast cached loader.
+#
+# Why APP_DIRS = False? "app_dirs" and "loaders" are mutually exclusive —
+# Django raises ImproperlyConfigured if both are set. We flip APP_DIRS off and
+# list the app_directories loader explicitly, keeping identical lookup order:
+# project templates first, then each app's templates/.
+#
+# Reference: https://docs.djangoproject.com/en/5.2/ref/templates/api/#loader-types
+TEMPLATES[0]["APP_DIRS"] = False  # noqa: F405  (was True in base.py)
+TEMPLATES[0]["OPTIONS"]["loaders"] = [  # noqa: F405
+    "django.template.loaders.filesystem.Loader",
+    "django.template.loaders.app_directories.Loader",
+]
+
 # Debug Toolbar Configuration
 DEBUG_TOOLBAR_CONFIG = {
     "SHOW_TOOLBAR_CALLBACK": lambda request: DEBUG,

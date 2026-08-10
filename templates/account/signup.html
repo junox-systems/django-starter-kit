@@ -1,22 +1,20 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="hero min-h-screen bg-base-200">
-  <div class="hero-content flex-col lg:flex-row-reverse">
-    <div class="text-center lg:text-left">
-      <h1 class="text-5xl font-bold">Sign Up now!</h1>
-      <p class="py-6">Join us and start building amazing things!</p>
-    </div>
-    <div class="card flex-shrink-0 w-full max-w-sm shadow-2xl bg-base-100">
-      <div class="card-body">
-        <form method="post">
+<div class="bg-muted/50 flex min-h-dvh items-center justify-center px-4 py-12">
+  <div class="w-full max-w-sm">
+    <div class="card">
+      <header class="p-5">
+        <h2 class="text-3xl font-bold">Sign Up now!</h2>
+        <p class="text-muted-foreground mt-2 text-sm">Join us and start building amazing things!</p>
+      </header>
+      <section class="p-5">
+        <form method="post" class="space-y-4">
           {% csrf_token %}
-          {{ form.as_p }}
-          <div class="form-control mt-6">
-            <button class="btn btn-primary">Sign Up</button>
-          </div>
+          {% include "account/_form_fields.html" %}
+          <button class="btn w-full">Sign Up</button>
         </form>
-      </div>
+      </section>
     </div>
   </div>
 </div>

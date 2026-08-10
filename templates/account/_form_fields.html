@@ -1,0 +1,12 @@
+{% for field in form %}
+    <div role="group" class="field gap-1.5"{% if field.errors %} data-invalid{% endif %}>
+        <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+        {{ field }}
+        {% if field.help_text %}
+            <p class="text-muted-foreground text-sm">{{ field.help_text }}</p>
+        {% endif %}
+        {% if field.errors %}
+            <p class="text-destructive text-sm" role="alert">{{ field.errors }}</p>
+        {% endif %}
+    </div>
+{% endfor %}

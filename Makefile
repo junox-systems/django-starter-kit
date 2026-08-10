@@ -78,14 +78,7 @@ dev-createsuperuser:
 #### - DEV commands - #### ---------------------------------------------------------------------------
 .PHONY: django-dev
 django-dev:
-	DJANGO_SETTINGS_MODULE=config.settings.dev uv run granian --reload \
-		--interface asginl \
-		--workers 1 \
-		--loop uvloop \
-		--log-level debug \
-		--host 0.0.0.0 \
-		--port 8000 \
-		config.asgi:application
+	DJANGO_SETTINGS_MODULE=config.settings.dev uv run python manage.py runserver 0.0.0.0:8000
 
 .PHONY: vite-dev
 vite-dev:

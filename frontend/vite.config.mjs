@@ -18,6 +18,11 @@ export default defineConfig({
   server: {
     host: "localhost",
     port: 5173,
+    // Emit full URLs (e.g. fonts) in dev assets so they resolve against the
+    // Vite dev server, not the Django origin where the page is served.
+    // Keep in sync with DJANGO_VITE.dev_server_port in config/settings/base.py.
+    // https://github.com/MrBin99/django-vite/issues/167
+    origin: process.env.VITE_DEV_SERVER_URL || "http://localhost:5173",
     cors: true,
   },
   resolve: {

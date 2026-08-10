@@ -1,23 +1,55 @@
-<header>
-    <navbar class="navbar bg-base-100" data-controller="navbar">
-        <div class="flex-1">
-            <a class="btn btn-ghost normal-case text-xl" href="{% url 'home' %}">Django Starter Kit</a>
-        </div>
-        <div class="flex-none">
-            <ul class="menu menu-horizontal p-0">
-                <li><a href="{% url 'admin:index' %}">Admin</a></li>
+<header class="border-border bg-background relative border-b" data-controller="navbar">
+    <nav class="mx-auto flex h-16 max-w-5xl items-center justify-between px-4">
+        <div class="flex items-center gap-6">
+            <a class="font-heading text-xl font-semibold tracking-tight" href="{% url 'home' %}">Django Starter Kit</a>
+            <ul class="hidden items-center gap-1 text-sm md:flex">
+                <li><a class="text-muted-foreground hover:text-foreground rounded-md px-3 py-2 transition-colors" href="{% url 'admin:index' %}">Admin</a></li>
                 {% if user.is_authenticated %}
                     <li>
                         <form method="post" action="{% url 'account_logout' %}">
                             {% csrf_token %}
-                            <button type="submit" class="btn btn-ghost">Logout</button>
+                            <button type="submit" class="text-muted-foreground hover:text-foreground cursor-pointer rounded-md px-3 py-2 transition-colors">Logout</button>
                         </form>
                     </li>
                 {% else %}
-                    <li><a href="{% url 'account_login' %}">Login</a></li>
-                    <li><a href="{% url 'account_signup' %}">Sign up</a></li>
+                    <li><a class="text-muted-foreground hover:text-foreground rounded-md px-3 py-2 transition-colors" href="{% url 'account_login' %}">Login</a></li>
                 {% endif %}
             </ul>
         </div>
-    </navbar>
+        <div class="flex items-center gap-2">
+            <button type="button" class="btn size-9" data-variant="ghost" data-size="icon" data-controller="theme-toggle" data-action="click->theme-toggle#toggle" aria-pressed="false" aria-label="Toggle theme">
+                <span class="block dark:hidden">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-sun"><circle cx="12" cy="12" r="4" /><path d="M12 2v2" /><path d="M12 20v2" /><path d="m4.93 4.93 1.41 1.41" /><path d="m17.66 17.66 1.41 1.41" /><path d="M2 12h2" /><path d="M20 12h2" /><path d="m6.34 17.66-1.41 1.41" /><path d="m19.07 4.93-1.41 1.41" /></svg>
+                </span>
+                <span class="hidden dark:block">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-moon"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z" /></svg>
+                </span>
+            </button>
+            {% if not user.is_authenticated %}
+                <a class="btn hidden md:inline-flex" href="{% url 'account_signup' %}">Sign up</a>
+            {% endif %}
+            <button type="button" class="btn size-9 md:hidden" data-variant="ghost" data-size="icon" data-navbar-target="hamburgerIcon" data-action="click->navbar#toggleMenu" aria-expanded="false" aria-controls="mobile-menu" aria-label="Open menu">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-menu"><line x1="4" x2="20" y1="12" y2="12" /><line x1="4" x2="20" y1="6" y2="6" /><line x1="4" x2="20" y1="18" y2="18" /></svg>
+            </button>
+            <button type="button" class="btn size-9 md:hidden" data-variant="ghost" data-size="icon" data-navbar-target="closeIcon" data-action="click->navbar#closeMenu" aria-label="Close menu" hidden>
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-x"><path d="M18 6 6 18" /><path d="m6 6 12 12" /></svg>
+            </button>
+        </div>
+    </nav>
+    <div class="border-border bg-background absolute inset-x-0 top-full border-b shadow-lg md:hidden" id="mobile-menu" data-navbar-target="mobileMenu" hidden>
+        <ul class="mx-auto max-w-5xl space-y-1 px-4 py-4 text-sm">
+            <li><a class="hover:bg-muted block rounded-md px-3 py-2" href="{% url 'admin:index' %}" data-action="click->navbar#closeMenu">Admin</a></li>
+            {% if user.is_authenticated %}
+                <li>
+                    <form method="post" action="{% url 'account_logout' %}">
+                        {% csrf_token %}
+                        <button type="submit" class="hover:bg-muted w-full cursor-pointer rounded-md px-3 py-2 text-left" data-action="click->navbar#closeMenu">Logout</button>
+                    </form>
+                </li>
+            {% else %}
+                <li><a class="hover:bg-muted block rounded-md px-3 py-2" href="{% url 'account_login' %}" data-action="click->navbar#closeMenu">Login</a></li>
+                <li><a class="hover:bg-muted block rounded-md px-3 py-2" href="{% url 'account_signup' %}" data-action="click->navbar#closeMenu">Sign up</a></li>
+            {% endif %}
+        </ul>
+    </div>
 </header>
