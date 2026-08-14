@@ -2,7 +2,7 @@ import { Controller } from "@hotwired/stimulus";
 import { mount, unmount } from "svelte";
 
 // All Svelte components, lazy-loaded. Keys are relative to ../svelte/ (no extension),
-// e.g. "library/components/Welcome" for ../svelte/library/components/Welcome.svelte.
+// e.g. "library/components/Foo" for ../svelte/library/components/Foo.svelte.
 const components = import.meta.glob("../svelte/**/*.svelte");
 
 export default class extends Controller {

@@ -73,8 +73,11 @@
 
 <section class="bg-muted/50 py-12">
     <div class="mx-auto max-w-3xl px-4 text-center">
-        <h2 class="text-3xl font-bold">Try the Svelte + Stimulus bridge</h2>
-        <div class="mt-6" id="welcome-svelte" data-controller="svelte-bridge" data-svelte-bridge-component-value="library/components/Welcome"></div>
+        <h2 class="text-3xl font-bold">The Svelte logo, rebuilt as particles</h2>
+        <!-- Height coupling: h-[420px] on this wrapper + "class": "h-full" on the component.
+             The canvas is absolutely positioned, so the component root needs a sized parent. -->
+        <div class="mx-auto mt-6 h-[420px] w-full max-w-2xl" id="particle-logo" data-controller="svelte-bridge" data-svelte-bridge-component-value="library/components/canvasui/ParticleObject" data-svelte-bridge-props-value='{"class": "h-full", "src": "/static/svelte-logo.svg", "autoRotate": true, "autoRotateSpeed": 1.5, "size": 1.8, "count": 7000, "sizeVariance": 0.35, "radius": 150, "strength": 1.2, "swirl": 0, "spring": 0.5, "damping": 0.15, "drift": 0, "floatIntensity": 0.8, "rotationIntensity": 1.2, "floatSpeed": 3, "fov": 70, "cameraDistance": 4.4}'></div>
+        <p class="text-muted-foreground mt-3 text-xs">Logo © Svelte Contributors (MIT) · Particle effect by Canvas UI © David Haz (MIT + Commons Clause)</p>
     </div>
 </section>
 {% endblock %}
