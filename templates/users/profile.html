@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="bg-muted/50 min-h-dvh px-4 py-12">
+  <div class="mx-auto w-full max-w-2xl space-y-6">
+    <div class="card">
+      <header class="flex items-center gap-4 p-5">
+        <div class="avatar" data-size="lg">
+          {% if user.avatar %}
+            <img src="{{ user.avatar_thumbnail.url }}" alt="{{ user.get_full_name|default:user.email }}" width="40" height="40">
+          {% else %}
+            <span>{% with initial=user.first_name|slice:":1"|add:user.last_name|slice:":1" %}{{ initial|default:user.username|slice:":1"|upper }}{% endwith %}</span>
+          {% endif %}
+        </div>
+        <div class="min-w-0">
+          <h2 class="text-3xl font-bold">{{ user.get_full_name|default:user.email }}</h2>
+          <p class="text-muted-foreground mt-1 text-sm">@{{ user.username }}</p>
+        </div>
+      </header>
+      <section class="border-t p-5">
+        <dl class="grid gap-3 text-sm sm:grid-cols-2">
+          <div>
+            <dt class="text-muted-foreground text-xs font-medium uppercase tracking-wide">Email</dt>
+            <dd class="mt-0.5">{{ user.email }}</dd>
+          </div>
+          <div>
+            <dt class="text-muted-foreground text-xs font-medium uppercase tracking-wide">Member since</dt>
+            <dd class="mt-0.5">{{ user.date_joined|date:"F j, Y" }}</dd>
+          </div>
+          <div>
+            <dt class="text-muted-foreground text-xs font-medium uppercase tracking-wide">Last login</dt>
+            <dd class="mt-0.5">{{ user.last_login|date:"F j, Y, g:i a" }}</dd>
+          </div>
+        </dl>
+      </section>
+    </div>
+
+    <div class="card">
+      <header class="p-5">
+        <h3 class="text-lg font-bold">Account settings</h3>
+        <p class="text-muted-foreground mt-1 text-sm">Manage your password and email addresses.</p>
+      </header>
+      <section class="flex flex-wrap gap-2 p-5">
+        <a href="{% url 'account_change_password' %}" class="btn">Change Password</a>
+        <a href="{% url 'account_email' %}" class="btn" data-variant="secondary">Email Addresses</a>
+        <form method="post" action="{% url 'account_logout' %}">
+          {% csrf_token %}
+          <button type="submit" class="btn" data-variant="ghost">Logout</button>
+        </form>
+      </section>
+    </div>
+  </div>
+</div>
+{% endblock %}

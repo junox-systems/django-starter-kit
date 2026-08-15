@@ -25,6 +25,7 @@ urlpatterns = [
     path("anymail/", include("anymail.urls")),
     path("api/v1/", include("apps.api.urls")),
     path("accounts/", include("allauth.urls")),
+    path("profile/", include("apps.users.urls")),
     path("", include("apps.pages.urls")),
     # OpenAPI docs
     path(

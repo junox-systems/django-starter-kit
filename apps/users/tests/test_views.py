@@ -1,0 +1,70 @@
+from django.test import TestCase
+from django.urls import reverse
+
+from apps.users.models import User
+
+
+class ProfileViewTests(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(
+            email="alice@example.com",
+            username="alice",
+            password="s3cret-pw",
+        )
+
+    def test_profile_requires_login(self):
+        response = self.client.get(reverse("profile"))
+        self.assertEqual(response.status_code, 302)
+        self.assertIn(reverse("account_login"), response.url)
+
+    def test_profile_renders_for_authenticated_user(self):
+        self.client.force_login(self.user)
+        response = self.client.get(reverse("profile"))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "alice@example.com")
+        self.assertContains(response, "@alice")
+        self.assertContains(response, "Change Password")
+
+
+class AllauthPagesTests(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(
+            email="bob@example.com",
+            username="bob",
+            password="s3cret-pw",
+        )
+
+    def test_public_account_pages_render(self):
+        urls = [
+            reverse("account_login"),
+            reverse("account_signup"),
+            reverse("account_reset_password"),
+            reverse("account_reset_password_done"),
+            reverse("account_email_verification_sent"),
+            reverse("account_inactive"),
+        ]
+        for url in urls:
+            with self.subTest(url=url):
+                response = self.client.get(url)
+                self.assertEqual(response.status_code, 200)
+
+    def test_invalid_confirm_and_reset_links_render(self):
+        for url in (
+            reverse("account_confirm_email", args=["invalid-key"]),
+            reverse("account_reset_password_from_key", args=["invalid-uidb36", "invalid-key"]),
+        ):
+            with self.subTest(url=url):
+                response = self.client.get(url)
+                self.assertEqual(response.status_code, 200)
+
+    def test_authenticated_management_pages_render(self):
+        self.client.force_login(self.user)
+        urls = [
+            reverse("account_change_password"),
+            reverse("account_email"),
+            reverse("account_reauthenticate"),
+        ]
+        for url in urls:
+            with self.subTest(url=url):
+                response = self.client.get(url)
+                self.assertEqual(response.status_code, 200)

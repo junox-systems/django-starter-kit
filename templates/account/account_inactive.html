@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="bg-muted/50 flex min-h-dvh items-center justify-center px-4 py-12">
+  <div class="w-full max-w-sm">
+    <div class="card">
+      <header class="p-5">
+        <h2 class="text-3xl font-bold">Account Inactive</h2>
+      </header>
+      <section class="p-5">
+        <p>This account is inactive.</p>
+        <a href="{% url 'account_login' %}" class="btn mt-6 w-full">Login</a>
+      </section>
+    </div>
+  </div>
+</div>
+{% endblock %}

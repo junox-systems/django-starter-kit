@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="bg-muted/50 flex min-h-dvh items-center justify-center px-4 py-12">
+  <div class="w-full max-w-md">
+    <div class="card">
+      <header class="p-5">
+        <h2 class="text-3xl font-bold">Verify Your Email Address</h2>
+        <p class="text-muted-foreground mt-2 text-sm">We need to confirm you are who you claim to be.</p>
+      </header>
+      <section class="p-5">
+        <p>We have sent an email to you for verification. Please click on the link inside that email. If you do not see the verification email in your main inbox, check your spam folder. Otherwise contact us if you do not receive it within a few minutes.</p>
+        <p class="mt-4"><strong>Note:</strong> you can still <a href="{% url 'account_email' %}" class="text-primary underline underline-offset-4">change your email address</a>.</p>
+      </section>
+    </div>
+  </div>
+</div>
+{% endblock %}
