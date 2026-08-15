@@ -52,8 +52,6 @@ services:
   clickstack:
     image: clickhouse/clickstack-local:2.33.0
     container_name: django-clickstack
-    profiles:
-      - analytics
     ports:
       - "8080:8080"
       - "4317:4317"

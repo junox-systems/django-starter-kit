@@ -37,9 +37,10 @@ test:
 dev-up dev:
 	docker compose -f dev/docker-compose.dev.yml up --build -d
 
-.PHONY: dev-up-analytics
-dev-up-analytics:
-	docker compose -f dev/docker-compose.dev.yml --profile analytics up --build -d
+# Same stack minus analytics (no clickstack): db, redis, s3, app
+.PHONY: dev-slim
+dev-slim:
+	docker compose -f dev/docker-compose.dev.yml up -d --build db redis s3 app
 
 .PHONY: dev-down dev-stop
 dev-down dev-stop stop:
