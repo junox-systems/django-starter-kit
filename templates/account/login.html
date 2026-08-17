@@ -11,6 +11,7 @@
       <section class="p-5">
         <form method="post" class="space-y-4">
           {% csrf_token %}
+          {{ redirect_field }}
           {% include "account/_form_fields.html" %}
           <button class="btn w-full">Login</button>
         </form>

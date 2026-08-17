@@ -3,6 +3,7 @@
     Paths are relative to this CSS file.
 */
 @source "../js/**/*.{js,ts}";
+@source "../js/**/*.svelte";
 @source "../../../templates/**/*.html";
 
 /* Import the core Tailwind v4 engine */

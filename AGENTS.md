@@ -24,6 +24,7 @@ apps/           # Django apps
   users/        # Custom User model (email login, UUID PK, avatar)
   api/          # API endpoints (DMR)
   pages/        # Static/marketing pages
+  dashboard/    # Authenticated home at /dashboard/ — panel payloads, no models
 config/         # Django project config
   settings/     # base.py + dev.py + production.py + test.py
   asgi.py       # Channels boilerplate + OTEL init
@@ -60,9 +61,75 @@ templates/      # Django templates
   - Use generic `svelte-bridge` controller for most Svelte components:
     `<div data-controller="svelte-bridge" data-svelte-bridge-component-value="Name">`
   - Svelte files in `frontend/src/js/svelte/`, lazy-loaded via dynamic import
+  - Server data goes in via `{{ payload|json_script:"id" }}` +
+    `data-svelte-bridge-props-id-value="id"`. Never hand-build JSON into
+    `props-value` from template variables — quoting breaks and it is an XSS hazard.
 - **Animations: GSAP 3** — transitions in controllers or Svelte components
-- **No htmx** — removed. Use Django forms or Svelte islands.
+- **No htmx** — removed by design. `django-htmx` is gone from dependencies,
+  `INSTALLED_APPS` and `MIDDLEWARE`. Turbo Drive replaces it for navigation.
 - Controllers auto-registered from `frontend/src/js/controllers/` — filename `foo-bar.js` → `data-controller="foo-bar"`
+- **Tailwind must be told about `.svelte`.** `frontend/src/css/styles.css` has
+  `@source "../js/**/*.svelte";`. Remove it and every class used only inside a
+  Svelte component is purged from the production CSS — dev looks fine, prod is
+  unstyled, with no warning. Verify after `pnpm run build` by grepping
+  `dist/assets/main-*.css` for a Svelte-only class.
+
+### Turbo Drive
+- **Scoped to the app shell, not global.** `main.js` sets
+  `Turbo.config.drive.enabled = false`; `base_app.html` opts in with
+  `data-turbo="true"` on the shell wrapper. Marketing pages and allauth flows
+  keep plain page loads. Opt a single link out with `data-turbo="false"`.
+- **Forms are browser-native:** `Turbo.config.forms.mode = "off"`. Django
+  re-renders an invalid form as HTTP 200, which Turbo Drive rejects. Do not turn
+  this on without giving every form a redirect-or-422 response.
+- `{% comment %}` blocks, not multi-line `{# #}` (single-line only in Django) —
+  a leaked comment closes `<head>` early and pushes the CSS into `<body>`.
+
+### Layouts
+- `templates/base.html` — public pages. Blocks: `title`, `extra_head`, `header`,
+  `body`, `content`, `footer`, `extra_body`. Also holds the inline pre-paint
+  script (theme + transition suppression) — keep it a plain blocking script.
+- `templates/base_app.html` — **all authenticated pages.** Holds the app bar and
+  mounts the sidebar island; overrides `header`/`footer` to drop the marketing
+  chrome. Pages set `{% block page_title %}` for the bar heading.
+- **Sidebar is `svelte/app/Sidebar.svelte`**, mounted into the `.sidebar` element
+  and marked `data-turbo-permanent`, so it is created once and carried between
+  Turbo visits. Because it never re-renders from server HTML it derives the
+  active item from `location.pathname` on `turbo:load`. Links come from
+  `apps/dashboard/context_processors.py::app_nav` — resolve URLs there with
+  `reverse()`, never hardcode paths in JS, and pass icon *names* not SVG markup.
+- Markup follows Basecoat's `.sidebar` contract; the CSS already exists in
+  `site.css`. **Write no sidebar CSS.** The mount element carries `.sidebar`, and
+  the content wrapper must stay its immediate next sibling — `.sidebar + *` is
+  what applies the content margin.
+- `svelte-bridge` adopts an existing instance on a `data-turbo-permanent`
+  element instead of remounting, and defers teardown a tick to tell "Turbo is
+  relocating this" from "this is really gone". Don't remove that, or the sidebar
+  blinks on every visit (or leaks listeners).
+
+### Dashboard panels
+The dashboard is one Svelte root (`svelte/dashboard/Dashboard.svelte`) composing
+child panels. The root owns layout and any cross-panel state; children get props
+and callbacks — never their own stores or context.
+
+To add a panel:
+1. Add `<name>_payload(user) -> dict` to `apps/dashboard/panels.py`. JSON-safe
+   primitives only.
+2. Add its key to `DashboardView.get_context_data`'s `payload` dict.
+3. Add `frontend/src/js/svelte/dashboard/<Name>.svelte`, wrapping content in
+   `<Panel>`. Use runes (`$props`, `$state`, `$derived`).
+4. Render it in `Dashboard.svelte`'s grid, passing its slice.
+
+Rules:
+- Panels get data as **props and do not fetch on mount** — no spinners, no
+  empty-state flash. Add a DMR endpoint only for genuinely live refresh, and
+  have it call the same `*_payload` function so the shape cannot drift.
+- Refresh calls are GET, so no CSRF token is needed. **A panel that POSTs must
+  solve CSRF exposure first — nothing hands a token to JS yet.**
+- Never put audited *values* in a payload. `LogEntry.changes` carries password
+  hashes; `activity_payload` deliberately reports field names only.
+- Empty states are the default on a fresh install (auditlog only tracks
+  registered models), so build them as real states.
 
 ### API (DMR)
 - Controllers in `apps/api/views.py`, schemas in `apps/api/schemas/`

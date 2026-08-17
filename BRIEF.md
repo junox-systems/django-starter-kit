@@ -47,7 +47,7 @@ All Python dependencies are managed by **`uv`** via a single `pyproject.toml` fi
 - **Audit Logging:** `django-auditlog` (automatic model change tracking)
 - **Frontend Bundler:** Vite (`django-vite`)
 - **Frontend Styling:** Tailwind CSS v4 + Basecoat (shadcn-compatible tokens, per-site `site.css` style pack)
-- **Interactivity:** htmx 2 (in-place HTML) + Stimulus 3 (controller glue) + Svelte 5 (interactive islands) + GSAP 3 (animations)
+- **Interactivity:** Turbo Drive (navigation within the app shell) + Stimulus 3 (controller glue) + Svelte 5 (interactive islands) + GSAP 3 (animations)
 - **Real-time/WebSockets:** `django-channels` + `channels-redis` (boilerplate ready; routes added per-app)
 - **Email:** `django-anymail` (Postmark or AWS SES)
 - **File Storage:** `django-storages` (S3-compatible backend) + `django-imagekit` (image processing)
@@ -124,17 +124,20 @@ Three complementary layers — no framework overlap:
 
 | Layer | Tool | When to use |
 |-------|------|-------------|
-| In-place HTML updates | **htmx 2** | Form submissions, partial page swaps, server-rendered fragments |
+| Navigation | **Turbo Drive** | Persistent navigation inside the authenticated app shell only |
 | Controller glue | **Stimulus 3** | Mounting Svelte components, minor DOM behavior |
 | Interactive islands | **Svelte 5** | Complex client-side UI that requires state (uses the API) |
 | Animations | **GSAP 3** | Transitions, entrance/exit effects |
 
-htmx replaces Turbo. Svelte components are mounted via Stimulus controllers using the Svelte 5 `mount()` / `unmount()` imperative API.
+htmx was removed. Turbo Drive covers navigation, and it is scoped to the app
+shell via `data-turbo="true"` rather than enabled globally; Turbo's form handling
+is off because Django re-renders invalid forms as HTTP 200. Svelte components are
+mounted via Stimulus controllers using the Svelte 5 `mount()` / `unmount()` API.
 
 #### **7.2. Template Structure**
 
 - **`templates/base.html`**: Main site template, loads compiled assets via `django-vite` tags.
-- HTMX partial responses are standard Django template fragments.
+- **`templates/base_app.html`**: App shell for authenticated pages — Turbo-enabled, with the sidebar mounted as a persistent Svelte island.
 - Svelte islands are mounted into `data-controller` elements by Stimulus.
 
 #### **7.3. Styling & Static Assets**

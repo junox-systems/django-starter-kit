@@ -5,7 +5,7 @@
             <ul class="hidden items-center gap-1 text-sm md:flex">
                 <li><a class="text-muted-foreground hover:text-foreground rounded-md px-3 py-2 transition-colors" href="{% url 'admin:index' %}">Admin</a></li>
                 {% if user.is_authenticated %}
-                    <li><a class="text-muted-foreground hover:text-foreground rounded-md px-3 py-2 transition-colors" href="{% url 'profile' %}">Profile</a></li>
+                    <li><a class="text-muted-foreground hover:text-foreground rounded-md px-3 py-2 transition-colors" href="{% url 'dashboard' %}">Dashboard</a></li>
                     <li>
                         <form method="post" action="{% url 'account_logout' %}">
                             {% csrf_token %}
@@ -41,7 +41,7 @@
         <ul class="mx-auto max-w-5xl space-y-1 px-4 py-4 text-sm">
             <li><a class="hover:bg-muted block rounded-md px-3 py-2" href="{% url 'admin:index' %}" data-action="click->navbar#closeMenu">Admin</a></li>
             {% if user.is_authenticated %}
-                <li><a class="hover:bg-muted block rounded-md px-3 py-2" href="{% url 'profile' %}" data-action="click->navbar#closeMenu">Profile</a></li>
+                <li><a class="hover:bg-muted block rounded-md px-3 py-2" href="{% url 'dashboard' %}" data-action="click->navbar#closeMenu">Dashboard</a></li>
                 <li>
                     <form method="post" action="{% url 'account_logout' %}">
                         {% csrf_token %}

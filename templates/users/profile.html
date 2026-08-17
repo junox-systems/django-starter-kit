@@ -1,8 +1,11 @@
-{% extends "base.html" %}
+{% extends "base_app.html" %}
+
+{% block title %}Profile — Django Starter Kit{% endblock %}
+{% block page_title %}Profile{% endblock %}
 
 {% block content %}
-<div class="bg-muted/50 min-h-dvh px-4 py-12">
-  <div class="mx-auto w-full max-w-2xl space-y-6">
+<div>
+  <div class="w-full max-w-2xl space-y-6">
     <div class="card">
       <header class="flex items-center gap-4 p-5">
         <div class="avatar" data-size="lg">

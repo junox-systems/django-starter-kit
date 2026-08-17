@@ -65,7 +65,6 @@ MIDDLEWARE = [
     not in [
         "django.middleware.csrf.CsrfViewMiddleware",
         "corsheaders.middleware.CorsMiddleware",
-        "django_htmx.middleware.HtmxMiddleware",
     ]
 ]
 

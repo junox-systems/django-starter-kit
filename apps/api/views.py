@@ -8,8 +8,10 @@ from dmr.plugins.msgspec import MsgspecSerializer
 from dmr.response import APIError
 from dmr.security.django_session import DjangoSessionSyncAuth
 
+from apps.dashboard.panels import activity_payload
 from apps.users.models import User
 
+from .schemas.dashboard import ActivityEntrySchema
 from .schemas.user import UserPathParams, UserSchema
 
 
@@ -55,3 +57,13 @@ class UserDetailController(
             first_name=user.first_name,
             last_name=user.last_name,
         )
+
+
+class DashboardActivityController(Controller[MsgspecSerializer]):
+    """Refresh the dashboard activity feed for the current user."""
+
+    auth = [DjangoSessionSyncAuth()]
+
+    def get(self) -> list[ActivityEntrySchema]:
+        payload = activity_payload(self.request.user)
+        return [ActivityEntrySchema(**entry) for entry in payload["entries"]]

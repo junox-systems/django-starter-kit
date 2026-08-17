@@ -17,7 +17,6 @@ env = environ.Env(
     ALLOWED_HOSTS=(list, []),
     DATABASE_URL=(str, "postgresql://postgres:postgres@db:5432/db"),
     REDIS_URL=(str, "redis://redis:6379"),
-
     AWS_ACCESS_KEY_ID=(str, ""),
     AWS_SECRET_ACCESS_KEY=(str, ""),
     AWS_STORAGE_BUCKET_NAME=(str, ""),
@@ -43,6 +42,7 @@ INSTALLED_APPS = [
     "apps.users",
     "apps.api",
     "apps.pages",
+    "apps.dashboard",
     # Django Built-in
     "django.contrib.admin",
     "django.contrib.auth",
@@ -76,7 +76,6 @@ INSTALLED_APPS = [
     "dmr",
     "corsheaders",
     "django_vite",
-    "django_htmx",
     "imagekit",
     "channels",
     "anymail",
@@ -94,7 +93,6 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
-    "django_htmx.middleware.HtmxMiddleware",
     "allauth.account.middleware.AccountMiddleware",  # Allauth
     "auditlog.middleware.AuditlogMiddleware",
     "simple_history.middleware.HistoryRequestMiddleware",
@@ -136,6 +134,7 @@ TEMPLATES = [
                 "django.template.context_processors.request",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
+                "apps.dashboard.context_processors.app_nav",
             ],
         },
     },
@@ -143,7 +142,9 @@ TEMPLATES = [
 
 # Database
 DATABASES = {
-    "default": env.db("DATABASE_URL", default="postgresql://postgres:postgres@db:5432/db"),
+    "default": env.db(
+        "DATABASE_URL", default="postgresql://postgres:postgres@db:5432/db"
+    ),
 }
 DATABASES["default"]["CONN_MAX_AGE"] = 600
 DATABASES["default"]["CONN_HEALTH_CHECKS"] = True
@@ -157,10 +158,14 @@ AUTHENTICATION_BACKENDS = (
     "allauth.account.auth_backends.AuthenticationBackend",
     "guardian.backends.ObjectPermissionBackend",
 )
-LOGIN_REDIRECT_URL = "/"
+# Declared explicitly — LoginRequiredMixin depends on it, and Django's default
+# only happened to match allauth's mount point by coincidence.
+LOGIN_URL = "account_login"
+LOGIN_REDIRECT_URL = "/dashboard/"
+# Logging out lands on the public marketing page, not the app.
 LOGOUT_REDIRECT_URL = "/"
 ACCOUNT_EMAIL_VERIFICATION = "mandatory"
-ACCOUNT_SIGNUP_FIELDS = ['email*', 'username*', 'password1*', 'password2*']
+ACCOUNT_SIGNUP_FIELDS = ["email*", "username*", "password1*", "password2*"]
 
 # Password validation
 AUTH_PASSWORD_VALIDATORS = [
@@ -237,9 +242,13 @@ STORAGES = {
 if AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY and AWS_STORAGE_BUCKET_NAME:
     STORAGES["default"]["BACKEND"] = "storages.backends.s3boto3.S3Boto3Storage"
 else:
-    _aws_vars_set = sum([
-        1 for v in [AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_STORAGE_BUCKET_NAME] if v
-    ])
+    _aws_vars_set = sum(
+        [
+            1
+            for v in [AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_STORAGE_BUCKET_NAME]
+            if v
+        ]
+    )
     if _aws_vars_set not in (0, 3):
         logger.warning(
             "Partial S3 config (%d of 3 vars set). Falling back to local filesystem.",

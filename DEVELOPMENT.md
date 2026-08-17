@@ -228,7 +228,31 @@ Use the built-in `svelte-bridge` controller for most cases:
 </div>
 ```
 
-The bridge dynamically imports `frontend/src/js/svelte/YourComponent.svelte`, mounts it with the given props, and unmounts on disconnect.
+The bridge dynamically imports `frontend/src/js/svelte/YourComponent.svelte`, mounts it with the given props, and unmounts on disconnect. The component value is a
+path relative to `frontend/src/js/svelte/` without the extension, so nested
+components work too (e.g. `dashboard/Dashboard`).
+
+#### Passing server data
+
+Inline `props-value` is fine for hand-written constants. For anything coming out
+of a Django view, use `json_script` and point the bridge at it by id — Django
+escapes it safely and you avoid attribute-quoting bugs:
+
+```html
+{{ payload|json_script:"my-island-data" }}
+<div data-controller="svelte-bridge"
+     data-svelte-bridge-component-value="dashboard/Dashboard"
+     data-svelte-bridge-props-id-value="my-island-data">
+</div>
+```
+
+Props are read once at mount and are not reactive — the bridge has no
+`propsValueChanged` hook. Components that need live data should fetch it
+themselves (see `apps/dashboard/` for the pattern).
+
+> **Tailwind and `.svelte`:** classes used only inside Svelte components survive
+> the production build solely because `frontend/src/css/styles.css` declares
+> `@source "../js/**/*.svelte";`. Keep it.
 
 ### Per-Component Pattern (Alternative)
 
@@ -238,11 +262,11 @@ For controllers that need additional logic beyond mount/unmount, create a dedica
 // frontend/src/js/controllers/my-island.js
 import { Controller } from "@hotwired/stimulus";
 import { mount, unmount } from "svelte";
-import { Components as C } from "$lib/components";
+import MyComponent from "../svelte/MyComponent.svelte";
 
 export default class extends Controller {
   connect() {
-    this.component = mount(C.MyComponent, { target: this.element });
+    this.component = mount(MyComponent, { target: this.element });
   }
   disconnect() {
     if (this.component) unmount(this.component);
@@ -250,7 +274,13 @@ export default class extends Controller {
 }
 ```
 
-See `frontend/src/js/controllers/welcome-svelte.js` for a working example.
+Note this imports the component statically, so it ships in the main bundle
+rather than a lazy chunk. Prefer `svelte-bridge` unless you need the extra
+lifecycle control.
+
+See `frontend/src/js/controllers/svelte-bridge.js` for the generic
+implementation, and `frontend/src/js/controllers/sidebar.js` for a controller
+that drives Basecoat CSS via attributes.
 
 ---
 

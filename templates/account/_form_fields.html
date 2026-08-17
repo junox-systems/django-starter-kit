@@ -1,3 +1,9 @@
+{# Allauth reports a wrong password as a non-field error — omit this and invalid logins re-render silently. #}
+{% if form.non_field_errors %}
+    <div class="alert" data-variant="destructive" role="alert">
+        {% for error in form.non_field_errors %}<p>{{ error }}</p>{% endfor %}
+    </div>
+{% endif %}
 {% for field in form %}
     <div role="group" class="field gap-1.5"{% if field.errors %} data-invalid{% endif %}>
         <label for="{{ field.id_for_label }}">{{ field.label }}</label>
