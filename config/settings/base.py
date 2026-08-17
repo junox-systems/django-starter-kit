@@ -234,7 +234,18 @@ STORAGES = {
         "BACKEND": "django.core.files.storage.FileSystemStorage",
     },
     "staticfiles": {
-        "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+        # Compressed, NOT Manifest. Vite already content-hashes everything it
+        # emits, and WHITENOISE_IMMUTABLE_FILE_TEST above matches those hashes
+        # for far-future caching — so Django re-hashing them is redundant work
+        # whose only real effect is a failure mode: the manifest post-processor
+        # rewrites `//# sourceMappingURL=` comments and hard-fails collectstatic
+        # when a referenced .map does not exist. Bundled deps embed exactly that
+        # (rrweb ships a blob-worker source-map comment), and whether it trips
+        # depends on where the minifier happened to put a newline, because
+        # Django's pattern is line-anchored. Deployment must not be that fragile.
+        # Trade-off: non-Vite assets (admin, dj-control-room) are served
+        # unhashed, so they get whitenoise's short max-age instead of immutable.
+        "BACKEND": "whitenoise.storage.CompressedStaticFilesStorage",
     },
 }
 

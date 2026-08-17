@@ -19,16 +19,24 @@ export default class extends Controller {
     this.desktop = window.matchMedia("(min-width: 48rem)");
     this.sync = this.sync.bind(this);
     this.desktop.addEventListener("change", this.sync);
-    this.panelTarget.dataset.sidebarInitialized = "";
-    this.sync();
   }
 
   disconnect() {
     this.desktop.removeEventListener("change", this.sync);
   }
 
+  // Initialise from the target callback, NOT connect(): the sidebar is
+  // data-turbo-permanent, so on a Turbo visit this controller connects to the
+  // new page before Turbo has relocated the sidebar into it. Reading
+  // this.panelTarget in connect() throws "Missing target element".
+  panelTargetConnected() {
+    this.panelTarget.dataset.sidebarInitialized = "";
+    this.sync();
+  }
+
   // Open on desktop, closed on mobile — whenever the breakpoint changes.
   sync() {
+    if (!this.hasPanelTarget) return;
     if (this.desktop.matches) {
       this.panelTarget.removeAttribute("aria-hidden");
     } else {
@@ -37,12 +45,13 @@ export default class extends Controller {
   }
 
   close() {
-    if (!this.desktop.matches) {
+    if (this.hasPanelTarget && !this.desktop.matches) {
       this.panelTarget.setAttribute("aria-hidden", "true");
     }
   }
 
   toggle() {
+    if (!this.hasPanelTarget) return;
     if (this.panelTarget.getAttribute("aria-hidden") === "false") {
       this.close();
     } else {

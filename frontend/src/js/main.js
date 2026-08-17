@@ -19,10 +19,16 @@ Turbo.config.drive.enabled = false;
 // full page loads are the primary pattern here, so leave them alone.
 Turbo.config.forms.mode = "off";
 
-// HyperDX — RUM, session replay, and frontend → backend trace linking.
-// Skipped if VITE_HYPERDX_URL is not set (e.g., when no clickstack is running).
-import HyperDX from "@hyperdx/browser";
-
+// HyperDX — RUM, session replay, and frontend → backend trace linking. Opt-in.
+//
+// Imported DYNAMICALLY on purpose. It pulls in rrweb + OpenTelemetry (~650 kB),
+// and VITE_HYPERDX_URL ships empty, so a static import made every page parse all
+// of it and then never call it. `import.meta.env.VITE_*` is inlined at build
+// time, so with the var unset this whole branch — and the chunk — is dropped.
+//
+// Consequence: enabling HyperDX requires a rebuild (already true, it is a
+// build-time var), and init lands one microtask later, so the very earliest
+// console/network events are not captured.
 const hyperdxUrl = import.meta.env.VITE_HYPERDX_URL;
 if (hyperdxUrl) {
   const initConfig = {
@@ -42,7 +48,9 @@ if (hyperdxUrl) {
     initConfig.apiKey = apiKey;
   }
 
-  HyperDX.init(initConfig);
+  import("@hyperdx/browser")
+    .then(({ default: HyperDX }) => HyperDX.init(initConfig))
+    .catch((err) => console.error("HyperDX failed to load", err));
 }
 
 // Import GSAP
