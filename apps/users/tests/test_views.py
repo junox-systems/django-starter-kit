@@ -47,6 +47,8 @@ class AllauthPagesTests(TestCase):
             with self.subTest(url=url):
                 response = self.client.get(url)
                 self.assertEqual(response.status_code, 200)
+                self.assertNotContains(response, 'data-turbo="true"')
+                self.assertNotContains(response, "app/Sidebar")
 
     def test_invalid_confirm_and_reset_links_render(self):
         for url in (
@@ -63,8 +65,41 @@ class AllauthPagesTests(TestCase):
             reverse("account_change_password"),
             reverse("account_email"),
             reverse("account_reauthenticate"),
+            reverse("socialaccount_connections"),
         ]
         for url in urls:
             with self.subTest(url=url):
                 response = self.client.get(url)
                 self.assertEqual(response.status_code, 200)
+                self.assertContains(response, 'data-turbo="true"')
+                self.assertContains(response, 'data-svelte-bridge-component-value="app/Sidebar"')
+                self.assertContains(response, 'id="app-nav-data"')
+
+    def test_set_password_page_renders_for_passwordless_user(self):
+        # allauth only renders /accounts/password/set/ for users without a
+        # usable password; everyone else is redirected to the change view.
+        passwordless = User.objects.create_user(
+            email="carol@example.com",
+            username="carol",
+        )
+        self.client.force_login(passwordless)
+        response = self.client.get(reverse("account_set_password"))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'data-turbo="true"')
+        self.assertContains(response, 'data-svelte-bridge-component-value="app/Sidebar"')
+        self.assertContains(response, 'id="app-nav-data"')
+
+    def test_connected_accounts_render_in_connections_page(self):
+        from allauth.socialaccount.models import SocialAccount
+
+        account = SocialAccount.objects.create(
+            user=self.user, provider="google", uid="g-12345"
+        )
+        self.client.force_login(self.user)
+        response = self.client.get(reverse("socialaccount_connections"))
+        self.assertEqual(response.status_code, 200)
+        # The radio carries the real account pk (no phantom "" empty-label
+        # choice from the form field's ModelChoiceField), and the radio loop
+        # renders one row per connected account.
+        self.assertContains(response, f'name="account" value="{account.pk}"')
+        self.assertNotContains(response, 'name="account" value=""')
