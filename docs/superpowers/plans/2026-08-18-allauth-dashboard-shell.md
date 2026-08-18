@@ -267,7 +267,7 @@ Full new content (first tag must be the extends):
 - [ ] **Step 5: Run tests to verify the four account pages turn green**
 
 Run: `make test apps/users/tests/test_views.py::AllauthPagesTests -v`
-Expected: `test_authenticated_management_pages_render` still FAILS, but only on the `socialaccount_connections` subtest ("`account_change_password`, `account_email`, `account_reauthenticate`, `account_set_password`" now contain the shell chrome). Public pages still pass.
+Expected: `test_authenticated_management_pages_render` still FAILS, but only on the `socialaccount_connections` subtest ("`account_change_password`, `account_email`, `account_reauthenticate`" now contain the shell chrome; set-password is verified separately via the passwordless-user test). Public pages still pass.
 
 - [ ] **Step 6: Commit**
 
