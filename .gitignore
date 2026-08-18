@@ -468,3 +468,7 @@ $RECYCLE.BIN/
 .pnpm-store/
 .idea/
 .playwright-mcp
+
+# Plan execution workspaces
+.worktrees/
+.superpowers/
