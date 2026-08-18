@@ -65,7 +65,6 @@ class AllauthPagesTests(TestCase):
             reverse("account_change_password"),
             reverse("account_email"),
             reverse("account_reauthenticate"),
-            reverse("account_set_password"),
             reverse("socialaccount_connections"),
         ]
         for url in urls:
@@ -74,3 +73,16 @@ class AllauthPagesTests(TestCase):
                 self.assertEqual(response.status_code, 200)
                 self.assertContains(response, 'data-turbo="true"')
                 self.assertContains(response, 'data-svelte-bridge-component-value="app/Sidebar"')
+
+    def test_set_password_page_renders_for_passwordless_user(self):
+        # allauth only renders /accounts/password/set/ for users without a
+        # usable password; everyone else is redirected to the change view.
+        passwordless = User.objects.create_user(
+            email="carol@example.com",
+            username="carol",
+        )
+        self.client.force_login(passwordless)
+        response = self.client.get(reverse("account_set_password"))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'data-turbo="true"')
+        self.assertContains(response, 'data-svelte-bridge-component-value="app/Sidebar"')
