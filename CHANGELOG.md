@@ -1,5 +1,69 @@
 # Changelog
 
+## [0.3.0](https://github.com/junox-systems/django-starter-kit/compare/v0.2.0...v0.3.0) (2026-08-18)
+
+
+### Features
+
+* add AWS_S3_ENDPOINT_URL for S3-compatible storage backends ([a8b8a87](https://github.com/junox-systems/django-starter-kit/commit/a8b8a874f2b5eae3a58022fb7bc0f4cd3262e0a1))
+* add clickstack observability to dev compose with analytics profile ([341ac64](https://github.com/junox-systems/django-starter-kit/commit/341ac64c01b3fc29a0f0b942ebc1f1b04144a17a))
+* add docker swarm stack file replacing root compose ([678ffce](https://github.com/junox-systems/django-starter-kit/commit/678ffce470c0706b4e5c1e515bc55008325467a6))
+* add generic Stimulus controller for Svelte mounting ([e3a41f2](https://github.com/junox-systems/django-starter-kit/commit/e3a41f2d01d750e50e9381baa679b90bf696e8e8))
+* add prod entrypoint script with db wait + migrate ([835c71b](https://github.com/junox-systems/django-starter-kit/commit/835c71b8d5fcaa724beebff47d7b87335df7863a))
+* add rustfs S3 service to dev compose ([b4bfd9b](https://github.com/junox-systems/django-starter-kit/commit/b4bfd9bcf4bcc348e47b242f118bc6844aa4b298))
+* add swarm stack targets and analytics profile shortcut to Makefile ([22674f7](https://github.com/junox-systems/django-starter-kit/commit/22674f75177ac56554c2cb6d02ec77c49e15ad64))
+* configurable otel log level per environment ([a07ef3d](https://github.com/junox-systems/django-starter-kit/commit/a07ef3d76615e18cd1a4cb3d5a27187fafc0f9ea))
+* **dashboard:** authenticated app shell with Turbo + Svelte sidebar ([96633fd](https://github.com/junox-systems/django-starter-kit/commit/96633fd3586c5589d75c0239f2e134197e7c7998))
+* **dev:** run celery beat, make analytics default ([40bd28e](https://github.com/junox-systems/django-starter-kit/commit/40bd28eda3538175ea2c826c0bfb679b905752ec))
+* particle-logo hero with official Svelte mark ([05f3dc5](https://github.com/junox-systems/django-starter-kit/commit/05f3dc5c47b1643a3f9ec5f24dc439c6df32cbdd))
+* remove htmx — Django forms + Stimulus + Svelte islands replace it ([7564c2e](https://github.com/junox-systems/django-starter-kit/commit/7564c2efaa83cd3f576b322f3bec12fa6baf5f06))
+* render account management pages inside the app shell ([d5b34b1](https://github.com/junox-systems/django-starter-kit/commit/d5b34b1b09436d55f5839903aaadfb4ac20bbe57))
+* render social account connections inside the app shell ([bbb5d71](https://github.com/junox-systems/django-starter-kit/commit/bbb5d71a7e73f77e258a8a179661b7296c43f250))
+* replace dramatiq with celery + dj-control-room ([3ae8391](https://github.com/junox-systems/django-starter-kit/commit/3ae8391b4d74a5d94dbc950aad3a4edc124f2bf7))
+* rewrite prod Dockerfile as multi-stage almalinux:10-kitten-minimal with uv-only ([6405e72](https://github.com/junox-systems/django-starter-kit/commit/6405e72bb9f818084d56432d2d02a2d1112cddf8))
+* rm django unfold, keep stock admin as default ([1304a72](https://github.com/junox-systems/django-starter-kit/commit/1304a72ae1b07271b861f22a8d0ebf06e093b972))
+* style all allauth pages, add profile page ([aceece8](https://github.com/junox-systems/django-starter-kit/commit/aceece8a995d55c05dccaf8e59714be7a393e6ba))
+* swap daisyui for basecoat css and theme system ([4f314be](https://github.com/junox-systems/django-starter-kit/commit/4f314be834b5a7f5645dce888145f9501fb00d9d))
+
+
+### Bug Fixes
+
+* add S3 partial config warning, widen hash regex, document CONN_MAX_AGE ([21a9777](https://github.com/junox-systems/django-starter-kit/commit/21a97775aee5d8d4f18f04962f291e718966b3af))
+* add settings guard in asgi.py, fix Makefile prod-start ([126c259](https://github.com/junox-systems/django-starter-kit/commit/126c25967331bb451218b32a26d72530aa04532f))
+* address final review findings — swarm depends_on list, OTEL_ENABLED, stack-deploy IMAGE_NAME, settings module env, worker healthcheck, init.sh probe ([1f9d807](https://github.com/junox-systems/django-starter-kit/commit/1f9d8071bc018b4df33833ec907df7ee06abe9f6))
+* clean DMR_SETTINGS override, document SSL/HSTS setup ([e29655b](https://github.com/junox-systems/django-starter-kit/commit/e29655be3fd938a6c0ca83438bdcfaf863e7fa87))
+* clickstack local mode — no login required ([7ea53bf](https://github.com/junox-systems/django-starter-kit/commit/7ea53bf84e81bed77613571fa26c506d25802989))
+* link frontend traces to backend via asgi middleware ([566c3a9](https://github.com/junox-systems/django-starter-kit/commit/566c3a95f065eb709cfa9dd78c082ebf0456fc7a))
+* remove .env requirement, dev uses filesystem storage ([af3e6ec](https://github.com/junox-systems/django-starter-kit/commit/af3e6eca749f9819fdf1719b372c7330f1a16af3))
+* render connected accounts without a phantom empty radio ([78a0882](https://github.com/junox-systems/django-starter-kit/commit/78a08820234ec8b6db3c1b84359ab5cec0f943ef))
+* resolve verification issues ([e8de5b8](https://github.com/junox-systems/django-starter-kit/commit/e8de5b804b83f2c841db682a2187caf0ff1b526c))
+* slim runtime stage to uv+python only, dockerignore staticfiles ([d22c8c4](https://github.com/junox-systems/django-starter-kit/commit/d22c8c43fef471e4b164510fbfefb799654e3ea7))
+* update Dockerfile to python:3.14-slim ([8e63c8b](https://github.com/junox-systems/django-starter-kit/commit/8e63c8b7c7a231c84e752090560e493774fa26da))
+
+
+### Performance Improvements
+
+* lazy-load HyperDX, drop redundant manifest hashing ([5e1f655](https://github.com/junox-systems/django-starter-kit/commit/5e1f65506e92e7f75c6a47e36814189d8200066d))
+
+
+### Documentation
+
+* abstract the Django-template-to-Svelte formula in AGENTS.md ([62c3434](https://github.com/junox-systems/django-starter-kit/commit/62c34343828d207fcaa1517375e3da000ba12b9e))
+* add AGENTS.md for AI agents, symlink CLAUDE.md -&gt; AGENTS.md ([374793a](https://github.com/junox-systems/django-starter-kit/commit/374793aa8e28c13379e4c28c2316caf14cb200e1))
+* add harden & slim design spec ([5a7da8b](https://github.com/junox-systems/django-starter-kit/commit/5a7da8bed1292600e33bbdba0ba91ed59304bb7e))
+* add implementation plan for harden-and-slim ([b7bb9b0](https://github.com/junox-systems/django-starter-kit/commit/b7bb9b03c2503cdad4ebf84c722c71a1b30f2590))
+* align plan expectation prose with passwordless set-password test ([c68e1d9](https://github.com/junox-systems/django-starter-kit/commit/c68e1d99e1460e117a1d070c5113023fba72e62c))
+* amend plan — fix rustfs healthcheck endpoint, bucket init, .env note ([b4cd6e9](https://github.com/junox-systems/django-starter-kit/commit/b4cd6e949469e6674bf9c651fc60336323b92cec))
+* design spec for allauth pages inside the dashboard shell ([9d938f5](https://github.com/junox-systems/django-starter-kit/commit/9d938f52c2481cda8801d11ac7bd106076129a50))
+* document username/email normalization rationale in User model ([0f182c2](https://github.com/junox-systems/django-starter-kit/commit/0f182c258018296a0cf082067f32e824aa877116))
+* implementation plan for allauth pages inside the dashboard shell ([47692ae](https://github.com/junox-systems/django-starter-kit/commit/47692aef72c6cf5de4864947af9b9d530d9b539f))
+* implementation plan for allauth pages inside the dashboard shell ([a494761](https://github.com/junox-systems/django-starter-kit/commit/a494761c73f776e709fb0bdb77c92f74ddc26033))
+* make the Svelte bridge self-explanatory for future readers ([11115eb](https://github.com/junox-systems/django-starter-kit/commit/11115eba7a8b97948a6b2de22ad2c861f722ed23))
+* mark harden-and-slim plan complete ([e09fcf4](https://github.com/junox-systems/django-starter-kit/commit/e09fcf4194242ee6fbaf4d56bed4a889e5d0e726))
+* update DEVELOPMENT.md — remove htmx references, document svelte-bridge ([e353b01](https://github.com/junox-systems/django-starter-kit/commit/e353b010c8b26943cf028cd7d595fda99d84fd05))
+* update README for harden-and-slim changes ([2ff4e8b](https://github.com/junox-systems/django-starter-kit/commit/2ff4e8b94587d432b03cbee336e67266bf0600f8))
+* update README for rustfs, clickstack, swarm stack ([bc5bfba](https://github.com/junox-systems/django-starter-kit/commit/bc5bfbabb3fb836d5f6ddcd446cf1c1df73caf41))
+
 ## [0.2.0](https://github.com/junox-systems/django-starter-kit/compare/v0.1.0...v0.2.0) (2026-05-14)
 
 
