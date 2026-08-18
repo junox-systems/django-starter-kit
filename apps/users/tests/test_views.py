@@ -47,6 +47,8 @@ class AllauthPagesTests(TestCase):
             with self.subTest(url=url):
                 response = self.client.get(url)
                 self.assertEqual(response.status_code, 200)
+                self.assertNotContains(response, 'data-turbo="true"')
+                self.assertNotContains(response, "app/Sidebar")
 
     def test_invalid_confirm_and_reset_links_render(self):
         for url in (
@@ -63,8 +65,12 @@ class AllauthPagesTests(TestCase):
             reverse("account_change_password"),
             reverse("account_email"),
             reverse("account_reauthenticate"),
+            reverse("account_set_password"),
+            reverse("socialaccount_connections"),
         ]
         for url in urls:
             with self.subTest(url=url):
                 response = self.client.get(url)
                 self.assertEqual(response.status_code, 200)
+                self.assertContains(response, 'data-turbo="true"')
+                self.assertContains(response, 'data-svelte-bridge-component-value="app/Sidebar"')
