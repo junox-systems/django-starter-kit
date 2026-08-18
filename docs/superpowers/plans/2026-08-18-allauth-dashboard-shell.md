@@ -58,7 +58,6 @@ Replace `test_public_account_pages_render` and `test_authenticated_management_pa
             reverse("account_change_password"),
             reverse("account_email"),
             reverse("account_reauthenticate"),
-            reverse("account_set_password"),
             reverse("socialaccount_connections"),
         ]
         for url in urls:
@@ -67,7 +66,26 @@ Replace `test_public_account_pages_render` and `test_authenticated_management_pa
                 self.assertEqual(response.status_code, 200)
                 self.assertContains(response, 'data-turbo="true"')
                 self.assertContains(response, 'data-svelte-bridge-component-value="app/Sidebar"')
+                self.assertContains(response, 'id="app-nav-data"')
+
+    def test_set_password_page_renders_for_passwordless_user(self):
+        # allauth only renders /accounts/password/set/ for users without a
+        # usable password; everyone else is redirected to the change view.
+        passwordless = User.objects.create_user(
+            email="carol@example.com",
+            username="carol",
+        )
+        self.client.force_login(passwordless)
+        response = self.client.get(reverse("account_set_password"))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'data-turbo="true"')
+        self.assertContains(response, 'data-svelte-bridge-component-value="app/Sidebar"')
+        self.assertContains(response, 'id="app-nav-data"')
 ```
+
+> Note: `account_set_password` is tested separately with a **passwordless** user because
+> allauth's `PasswordSetView.dispatch` (allauth/account/views.py:523) redirects users who
+> already have a usable password — the direct-200 pattern above can never apply to them.
 
 - [ ] **Step 2: Run tests to verify they fail**
 
@@ -282,7 +300,6 @@ Full content (first tag must be the extends):
 
 ```html
 {% extends "socialaccount/base_manage.html" %}
-{% load i18n %}
 
 {% block page_title %}Account Connections{% endblock %}
 
@@ -297,11 +314,18 @@ Full content (first tag must be the extends):
       {% if form.accounts %}
         <form method="post" action="{% url 'socialaccount_connections' %}" class="space-y-4">
           {% csrf_token %}
+          {% if form.non_field_errors %}
+            <div class="space-y-2">
+              {% for error in form.non_field_errors %}
+                <div class="alert" data-variant="destructive" role="alert">{{ error }}</div>
+              {% endfor %}
+            </div>
+          {% endif %}
           <div class="space-y-2">
-            {% for acc in form.fields.account.choices %}
-              {% with account=acc.0.instance.get_provider_account %}
+            {% for base_account in form.accounts %}
+              {% with account=base_account.get_provider_account %}
                 <label class="hover:bg-muted flex cursor-pointer items-center gap-3 rounded-md px-3 py-2 transition-colors">
-                  <input type="radio" name="account" value="{{ account.account.pk }}" class="size-4 accent-primary">
+                  <input type="radio" name="account" value="{{ base_account.pk }}" class="size-4 accent-primary">
                   <span class="flex flex-1 flex-wrap items-center gap-2 text-sm">
                     {{ account }}
                     <span class="badge" data-variant="secondary">{{ account.get_brand.name }}</span>
@@ -332,12 +356,37 @@ Full content (first tag must be the extends):
 {% endblock %}
 ```
 
-- [ ] **Step 3: Run tests to verify all green**
+- [ ] **Step 3: Add the connected-accounts render test**
 
-Run: `make test apps/users/tests/test_views.py::AllauthPagesTests -v`
-Expected: PASS for both tests. `socialaccount_connections` now renders the shell chrome; public pages still assert it is absent.
+`form.fields.account.choices` would include `ModelChoiceField`'s default empty label
+(`"---------"`), rendering a phantom `value=""` radio; iterating `form.accounts`
+(an attribute the form sets in `__init__`, allauth/socialaccount/forms.py:53) avoids it.
+Add to `apps/users/tests/test_views.py` under `AllauthPagesTests`:
 
-- [ ] **Step 4: Commit**
+```python
+    def test_connected_accounts_render_in_connections_page(self):
+        from allauth.socialaccount.models import SocialAccount
+
+        account = SocialAccount.objects.create(
+            user=self.user, provider="google", uid="g-12345"
+        )
+        self.client.force_login(self.user)
+        response = self.client.get(reverse("socialaccount_connections"))
+        self.assertEqual(response.status_code, 200)
+        # The radio carries the real account pk (no phantom "" empty-label
+        # choice), and the loop renders one row per connected account.
+        self.assertContains(response, f'name="account" value="{account.pk}"')
+        self.assertNotContains(response, 'name="account" value=""')
+```
+
+- [ ] **Step 4: Run tests to verify all green**
+
+Run: `make test apps/users/tests/test_views.py::AllauthPagesTests`
+Expected: PASS. `socialaccount_connections` now renders the shell chrome, the
+connected-accounts loop renders the real pk (no phantom empty radio), and public
+pages still assert shell chrome is absent.
+
+- [ ] **Step 5: Commit**
 
 ```bash
 git add templates/socialaccount/base_manage.html templates/socialaccount/connections.html

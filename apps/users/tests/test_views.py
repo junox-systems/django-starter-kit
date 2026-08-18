@@ -73,6 +73,7 @@ class AllauthPagesTests(TestCase):
                 self.assertEqual(response.status_code, 200)
                 self.assertContains(response, 'data-turbo="true"')
                 self.assertContains(response, 'data-svelte-bridge-component-value="app/Sidebar"')
+                self.assertContains(response, 'id="app-nav-data"')
 
     def test_set_password_page_renders_for_passwordless_user(self):
         # allauth only renders /accounts/password/set/ for users without a
@@ -86,3 +87,19 @@ class AllauthPagesTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'data-turbo="true"')
         self.assertContains(response, 'data-svelte-bridge-component-value="app/Sidebar"')
+        self.assertContains(response, 'id="app-nav-data"')
+
+    def test_connected_accounts_render_in_connections_page(self):
+        from allauth.socialaccount.models import SocialAccount
+
+        account = SocialAccount.objects.create(
+            user=self.user, provider="google", uid="g-12345"
+        )
+        self.client.force_login(self.user)
+        response = self.client.get(reverse("socialaccount_connections"))
+        self.assertEqual(response.status_code, 200)
+        # The radio carries the real account pk (no phantom "" empty-label
+        # choice from the form field's ModelChoiceField), and the radio loop
+        # renders one row per connected account.
+        self.assertContains(response, f'name="account" value="{account.pk}"')
+        self.assertNotContains(response, 'name="account" value=""')
