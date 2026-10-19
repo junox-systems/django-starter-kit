@@ -17,6 +17,16 @@
             <span class="text-sm">{{ m.user.email }}{% if m == membership %} (you){% endif %}</span>
             <span class="flex items-center gap-2">
               <span class="badge" data-variant="{% if m.is_owner %}primary{% else %}secondary{% endif %}">{{ m.get_role_display }}</span>
+              {% if membership.is_owner %}
+                <form method="post" action="{% url 'membership_role' org.pk m.pk %}">
+                  {% csrf_token %}
+                  {% if m.is_owner %}
+                    <button type="submit" name="role" value="member" class="btn" data-variant="ghost" data-size="sm">Make member</button>
+                  {% else %}
+                    <button type="submit" name="role" value="owner" class="btn" data-variant="ghost" data-size="sm">Make owner</button>
+                  {% endif %}
+                </form>
+              {% endif %}
               {% if m == membership or membership.is_owner %}
                 <form method="post" action="{% url 'membership_remove' org.pk m.pk %}">
                   {% csrf_token %}

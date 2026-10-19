@@ -12,6 +12,11 @@ urlpatterns = [
         name="membership_remove",
     ),
     path(
+        "<uuid:pk>/members/<uuid:membership_pk>/role/",
+        views.membership_role,
+        name="membership_role",
+    ),
+    path(
         "<uuid:pk>/invitations/<uuid:invitation_pk>/revoke/",
         views.invitation_revoke,
         name="invitation_revoke",

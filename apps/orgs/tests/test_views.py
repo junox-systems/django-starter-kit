@@ -152,3 +152,36 @@ class ReleaseUserTests(OrgTestCase):
         self.member_m.refresh_from_db()
         self.assertEqual(self.member_m.role, OWNER)
         self.assertFalse(Organization.objects.filter(pk=solo.pk).exists())
+
+
+class MembershipRoleTests(OrgTestCase):
+    def role_url(self, membership):
+        return reverse("membership_role", args=[self.org.pk, membership.pk])
+
+    def test_owner_promotes_and_demotes(self):
+        self.client.force_login(self.owner)
+        self.client.post(self.role_url(self.member_m), {"role": "owner"})
+        self.member_m.refresh_from_db()
+        self.assertEqual(self.member_m.role, OWNER)
+        self.client.post(self.role_url(self.owner_m), {"role": "member"})
+        self.owner_m.refresh_from_db()
+        self.assertEqual(self.owner_m.role, MEMBER)
+
+    def test_member_cannot_change_roles(self):
+        self.client.force_login(self.member)
+        response = self.client.post(self.role_url(self.member_m), {"role": "owner"})
+        self.assertEqual(response.status_code, 403)
+        self.member_m.refresh_from_db()
+        self.assertEqual(self.member_m.role, MEMBER)
+
+    def test_last_owner_cannot_be_demoted(self):
+        self.client.force_login(self.owner)
+        self.client.post(self.role_url(self.owner_m), {"role": "member"})
+        self.owner_m.refresh_from_db()
+        self.assertEqual(self.owner_m.role, OWNER)
+
+    def test_unknown_role_is_ignored(self):
+        self.client.force_login(self.owner)
+        self.client.post(self.role_url(self.member_m), {"role": "admin"})
+        self.member_m.refresh_from_db()
+        self.assertEqual(self.member_m.role, MEMBER)
