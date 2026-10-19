@@ -110,3 +110,21 @@ class AllauthPagesTests(TestCase):
         # renders one row per connected account.
         self.assertContains(response, f'name="account" value="{account.pk}"')
         self.assertNotContains(response, 'name="account" value=""')
+
+
+class SignupWelcomeEmailTests(TestCase):
+    def test_signup_queues_welcome_email(self):
+        from django.core import mail
+
+        with self.captureOnCommitCallbacks(execute=True):
+            self.client.post(
+                reverse("account_signup"),
+                {
+                    "email": "new@example.com",
+                    "username": "newbie",
+                    "password1": "a-long-s3cret-pw",
+                    "password2": "a-long-s3cret-pw",
+                },
+            )
+        subjects = [m.subject for m in mail.outbox]
+        self.assertIn("Welcome aboard", subjects)
