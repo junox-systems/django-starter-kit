@@ -6,13 +6,13 @@ Modern Django 5.2 LTS starter kit. Opinionated, lean, production-ready.
 
 ## Tech Stack
 
-- **Backend:** Django 5.2, Granian (ASGI), ParadeDB/PG17, Redis/Valkey, Celery (django-celery-results, django-celery-beat)
+- **Backend:** Django 5.2, Granian (ASGI), ParadeDB/PG17, Redis/Valkey, django-q2 (ORM broker)
 - **Auth:** django-allauth (OIDC/SSO, social, email-based login)
 - **API:** django-modern-rest (DMR) 0.x — NOT DRF
 - **Frontend:** Django templates + forms (primary) → htmx 4 boosted navigation inside the app shell → Stimulus 3 mounts Svelte 5 islands → GSAP animations. See **Frontend Formula** below before touching `templates/` or `frontend/src/js/`.
 - **Styling:** Tailwind CSS v4 + Basecoat (shadcn-compatible tokens, per-site `site.css` style pack)
 - **Build:** Vite, uv (Python), pnpm (JS)
-- **Admin:** stock Django admin (with dj-control-room dashboard: redis, cache, urls, celery, signals panels; guardian, constance, import_export, simple_history)
+- **Admin:** stock Django admin (with dj-control-room dashboard: redis, cache, urls, signals panels; guardian, constance, import_export, simple_history)
 - **Observability:** Sentry (opt-in), OpenTelemetry (opt-in)
 - **Tooling:** ruff (lint/format), pytest, django-debug-toolbar
 

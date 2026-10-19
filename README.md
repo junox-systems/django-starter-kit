@@ -19,7 +19,7 @@ A modern, production-ready Django starter kit — opinionated, lean, and ready t
 | **django-imagekit** | On-demand image processing (avatar thumbnails) |
 | **django-storages** | S3-compatible media file backend |
 | **django-anymail** | Transactional email (Postmark / AWS SES) |
-| **Celery** | Background task queue (django-celery-results, django-celery-beat) |
+| **django-q2** | Background tasks + schedules, Postgres as broker |
 | **Sentry SDK** | Error tracking + performance monitoring (opt-in) |
 | **OpenTelemetry** | Distributed tracing — Django, psycopg, Redis (opt-in) |
 
@@ -61,7 +61,7 @@ cd django-starter-kit
 
 cp .env.example .env   # configure your environment
 
-make dev-up            # starts DB, Redis, MinIO, Django, Vite, worker
+make dev-up            # starts DB, Redis, MinIO, Django, Vite, qcluster
 make dev-logs          # follow logs
 ```
 
@@ -87,8 +87,8 @@ make django-dev
 # Terminal 2 — Vite (HMR)
 make vite-dev
 
-# Terminal 3 — Celery worker
-make worker-dev
+# Terminal 3 — django-q2 cluster
+make qcluster-dev
 ```
 
 Then:
@@ -195,7 +195,7 @@ make dev-clean       # Destroy containers + volumes
 # Local development
 make django-dev      # Granian ASGI server with reload
 make vite-dev        # Vite HMR dev server
-make worker-dev      # Celery worker with reload
+make qcluster-dev    # django-q2 workers + scheduler
 
 # Database
 make makemigrations  # Generate migrations

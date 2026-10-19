@@ -41,8 +41,8 @@ make django-dev
 # Terminal 2 — Frontend (Vite HMR)
 make vite-dev
 
-# Terminal 3 — Celery worker (auto-reload)
-make worker-dev
+# Terminal 3 — django-q2 cluster (workers + scheduler)
+make qcluster-dev
 ```
 
 ---
@@ -298,7 +298,7 @@ that drives Basecoat CSS via attributes.
 
 Initialises automatically if `SENTRY_DSN` is set. Features:
 
-- Error tracking across Django + Celery
+- Error tracking across Django and qcluster workers
 - Performance tracing at **10% sample rate** (no PII)
 
 ### OpenTelemetry
@@ -317,30 +317,27 @@ The `.github/workflows/ci.yml` pipeline runs on every push and pull request to `
 
 ---
 
-## Task Queue (Celery)
+## Task Queue (django-q2)
 
-Background tasks are defined with the `@shared_task` decorator:
+Background tasks are plain functions, enqueued by dotted path:
 
 ```python
 # apps/myapp/tasks.py
-from celery import shared_task
-
-@shared_task
 def send_welcome_email(user_id: str):
-    # runs asynchronously in the worker process
+    # runs asynchronously in the qcluster worker process
     ...
 ```
 
-Enqueue from a view:
-
 ```python
-send_welcome_email.delay(str(user.id))
+from django_q.tasks import async_task
+
+async_task("apps.myapp.tasks.send_welcome_email", str(user.id))
 ```
 
-Start the worker:
+Start the cluster (workers + scheduler):
 
 ```bash
-make worker-dev   # development (with auto-reload)
+make qcluster-dev
 ```
 
-> **Broker:** Celery uses Redis as the message broker (same Redis instance as the cache, on a dedicated DB index). Results persist to the DB (`django-celery-results`); periodic tasks via `django-celery-beat` (DatabaseScheduler). Monitor workers/tasks/queues in the admin at `/admin/dj-celery-panel/`.
+> **Broker:** the Django database (`Q_CLUSTER["orm"]`) — tasks queue in Postgres, so there is no Redis. Results, failures and schedules are models in the admin under *Django Q*. A task that raises is not re-queued; wrap it with `apps.core.tasks.retry` for backoff retries. Tests run tasks inline (`"sync": True`).

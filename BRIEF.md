@@ -27,7 +27,7 @@ The architecture covers the backend structure, data modeling, frontend integrati
 The system is a modular monolithic web application built on the Django framework. While monolithic in codebase, its dependencies (database, cache, message broker) are decoupled services, enabling flexible deployment and scaling.
 
 - **Presentation Layer (Frontend):** Renders the user interface using Django's templating engine, styled with Tailwind CSS v4 + Basecoat (shadcn-compatible tokens, per-site `site.css` style pack), and enhanced with Svelte 5 for high-interactivity islands. Stimulus acts as the controller glue for mounting components.
-- **Application Layer (Backend):** Contains the core business logic, managed by Django views. API endpoints will be served by **django-modern-rest (DMR)** (replacing DRF). Asynchronous tasks are handled by Celery.
+- **Application Layer (Backend):** Contains the core business logic, managed by Django views. API endpoints will be served by **django-modern-rest (DMR)** (replacing DRF). Asynchronous tasks are handled by django-q2, using the database as broker.
 - **Data Layer:** Manages data persistence, caching, and search. This includes a primary relational database (**ParadeDB**) for structured data and full-text search, and an in-memory cache (**Redis / Valkey**) for high-speed data access via **django-cacheops**.
 
 ---
@@ -40,7 +40,7 @@ All Python dependencies are managed by **`uv`** via a single `pyproject.toml` fi
 - **API Framework:** django-modern-rest (DMR) *(DRF is present as a placeholder until DMR integration is complete)*
 - **Database:** ParadeDB (PostgreSQL 17 with search & analytics extensions)
 - **Cache:** Redis / Valkey 7 — `django-redis` + `django-cacheops`
-- **Task Queue:** Celery + Redis (as the message broker)
+- **Task Queue:** django-q2 (the Django ORM / Postgres is the broker)
 - **Python Tooling:** `uv` (package manager), `ruff` (linter/formatter), `pytest` (testing)
 - **Configuration:** `django-environ` (env var management via `env.db()`, `env.bool()`, etc.)
 - **Authentication:** `django-allauth` (social auth, OIDC, local accounts, email verification)
@@ -152,13 +152,13 @@ mounted via Stimulus controllers using the Svelte 5 `mount()` / `unmount()` API.
 
 - **Caching:** `django-cacheops` for declarative ORM caching. `django-redis` for session and low-level cache API.
 - **Database Queries:** Use `select_related` and `prefetch_related` to prevent N+1 problems. `django-debug-toolbar` is installed in development.
-- **Asynchronous Tasks:** Offload long-running tasks to **Celery** (Redis broker) to keep web requests fast.
+- **Asynchronous Tasks:** Offload long-running tasks to **django-q2** (database broker) to keep web requests fast.
 
 ---
 
 ### **9. Deployment & Operations (DevOps)**
 
-- **Containerization:** The application stack (web, database, broker, worker) is defined in Docker Compose files for consistent, reproducible environments.
+- **Containerization:** The application stack (web, database, qcluster worker) is defined in Docker Compose files for consistent, reproducible environments.
 - **Environment Configuration:** All sensitive data is managed via environment variables using `django-environ`. No secrets in version control. Use `DJANGO_SETTINGS_MODULE` to select the active settings file.
 - **CI/CD Pipeline:** GitHub Actions automates linting (`ruff`), testing (`pytest`), Docker image build, and deployment.
 - **Observability:**

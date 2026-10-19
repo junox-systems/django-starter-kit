@@ -78,6 +78,5 @@ STORAGES = {
     },
 }
 
-# Run celery tasks eagerly (synchronously) during tests
-CELERY_TASK_ALWAYS_EAGER = True
-CELERY_TASK_EAGER_PROPAGATES = True
+# Run django-q2 tasks inline (synchronously) during tests
+Q_CLUSTER = {**Q_CLUSTER, "sync": True}  # noqa: F405

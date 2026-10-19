@@ -88,11 +88,9 @@ django-dev:
 vite-dev:
     cd frontend && pnpm run dev --host 0.0.0.0 --port 5173
 
-worker-dev:
-    DJANGO_SETTINGS_MODULE=config.settings.dev uv run celery -A config worker -l info
-
-beat-dev:
-    DJANGO_SETTINGS_MODULE=config.settings.dev uv run celery -A config beat -l info
+# django-q2 workers + scheduler (replaces Celery worker and beat)
+qcluster-dev:
+    DJANGO_SETTINGS_MODULE=config.settings.dev uv run python manage.py qcluster
 
 makemigrations:
     uv run python manage.py makemigrations

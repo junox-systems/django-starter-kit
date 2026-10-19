@@ -58,11 +58,9 @@ INSTALLED_APPS = [
     "dj_redis_panel",
     "dj_cache_panel",
     "dj_urls_panel",
-    "dj_celery_panel",
     "dj_signals_panel",
     "dj_control_room",
-    "django_celery_results",
-    "django_celery_beat",
+    "django_q",
     "constance",
     "guardian",
     "import_export",
@@ -292,20 +290,19 @@ CACHES = {
         },
     }
 }
-# Celery
+# django-q2
 # ------------------------------------------------------------------------------
-# Broker defaults to the shared Redis instance; set CELERY_BROKER_URL to a
-# dedicated DB index (e.g. redis://cache:6379/1) once message volume grows.
-CELERY_BROKER_URL = env("CELERY_BROKER_URL", default=env("REDIS_URL"))
-CELERY_RESULT_BACKEND = "django-db"
-CELERY_TASK_TRACK_STARTED = True
-CELERY_RESULT_EXTENDED = True
-
-CELERY_TASK_DEFAULT_RETRY_DELAY = 1  # seconds before first retry
-CELERY_TASK_TIME_LIMIT = 30 * 60  # seconds, hard limit per task
-CELERY_TASK_SOFT_TIME_LIMIT = 25 * 60  # seconds, raises SoftTimeLimitExceeded
-
-CELERY_BEAT_SCHEDULER = "django_celery_beat.schedulers:DatabaseScheduler"
+# The ORM is the broker: tasks queue in Postgres, no Redis. Run workers with
+# `python manage.py qcluster`; schedules live in the admin (django_q.Schedule).
+Q_CLUSTER = {
+    "name": "django-starter-kit",
+    "orm": "default",
+    "workers": 2,
+    "timeout": 25 * 60,  # seconds, hard limit per task
+    "retry": 30 * 60,  # re-queue tasks not acknowledged by then; must exceed timeout
+    "max_attempts": 5,
+    "catch_up": False,  # skip schedules missed while the cluster was down
+}
 
 # DJ Control Room — redis panel instances
 # ------------------------------------------------------------------------------
@@ -326,7 +323,6 @@ ANYMAIL = {
 _sentry_dsn = env("SENTRY_DSN")
 if _sentry_dsn:
     import sentry_sdk
-    from sentry_sdk.integrations.celery import CeleryIntegration
     from sentry_sdk.integrations.django import DjangoIntegration
     from sentry_sdk.integrations.redis import RedisIntegration
 
@@ -334,7 +330,6 @@ if _sentry_dsn:
         dsn=_sentry_dsn,
         integrations=[
             DjangoIntegration(),
-            CeleryIntegration(),
             RedisIntegration(),
         ],
         traces_sample_rate=0.1,
