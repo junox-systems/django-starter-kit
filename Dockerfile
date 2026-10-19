@@ -46,6 +46,7 @@ ENV ENVIRONMENT=production \
     DJANGO_SETTINGS_MODULE=config.settings.production \
     PYTHONUNBUFFERED=1 \
     UV_NO_CACHE=1 \
+    UV_NO_DEV=1 \
     MISE_DATA_DIR=/opt/mise \
     MISE_CONFIG_DIR=/opt/mise
 
