@@ -221,6 +221,9 @@ AWS_ACCESS_KEY_ID = env("AWS_ACCESS_KEY_ID")
 AWS_SECRET_ACCESS_KEY = env("AWS_SECRET_ACCESS_KEY")
 AWS_STORAGE_BUCKET_NAME = env("AWS_STORAGE_BUCKET_NAME")
 AWS_S3_ENDPOINT_URL = env("AWS_S3_ENDPOINT_URL", default="")
+# Browser-facing endpoint when AWS_S3_ENDPOINT_URL is internal (e.g. http://s3:9000
+# in docker-stack). Empty means URLs are signed against AWS_S3_ENDPOINT_URL.
+AWS_S3_PUBLIC_ENDPOINT_URL = env("AWS_S3_PUBLIC_ENDPOINT_URL", default="")
 # Only for real AWS: with a custom endpoint (RustFS, MinIO) boto must build
 # URLs from AWS_S3_ENDPOINT_URL, or media links point at amazonaws.com.
 AWS_S3_CUSTOM_DOMAIN = (
@@ -255,7 +258,10 @@ STORAGES = {
 
 # Override default storage for media files if AWS credentials are provided
 if AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY and AWS_STORAGE_BUCKET_NAME:
-    STORAGES["default"]["BACKEND"] = "storages.backends.s3boto3.S3Boto3Storage"
+    STORAGES["default"] = {
+        "BACKEND": "apps.core.storage.PublicEndpointS3Storage",
+        "OPTIONS": {"public_endpoint_url": AWS_S3_PUBLIC_ENDPOINT_URL or None},
+    }
 else:
     _aws_vars_set = sum(
         [
