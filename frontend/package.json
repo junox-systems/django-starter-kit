@@ -15,19 +15,19 @@
     "@fontsource-variable/manrope": "^5.3.0",
     "@fontsource-variable/space-grotesk": "^5.3.0",
     "@hotwired/stimulus": "^3.2.2",
-    "@hyperdx/browser": "^0.25.1",
+    "@hyperdx/browser": "^0.26.0",
     "basecoat-css": "^1.0.2",
     "gsap": "^3.15.0",
     "htmx.org": "4.0.0",
-    "svelte": "^5.55.5",
-    "three": "0.185.1",
-    "vite": "^8.0.12"
+    "svelte": "^5.57.2",
+    "three": "0.186.1",
+    "vite": "^8.3.4"
   },
   "devDependencies": {
-    "@sveltejs/vite-plugin-svelte": "^7.1.2",
-    "@tailwindcss/typography": "^0.5.19",
-    "@tailwindcss/vite": "^4.3.0",
-    "@types/three": "0.185.4",
-    "tailwindcss": "^4.3.0"
+    "@sveltejs/vite-plugin-svelte": "^7.3.1",
+    "@tailwindcss/typography": "^0.5.20",
+    "@tailwindcss/vite": "^4.3.3",
+    "@types/three": "0.186.0",
+    "tailwindcss": "^4.3.3"
   }
 }
