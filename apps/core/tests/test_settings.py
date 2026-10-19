@@ -32,3 +32,21 @@ class ProductionSecretKeyTests(SimpleTestCase):
     def test_accepts_real_key(self):
         result = load_settings("config.settings.production", SECRET_KEY="a-real-key")
         self.assertEqual(result.returncode, 0, result.stderr)
+
+
+class S3CustomDomainTests(SimpleTestCase):
+    def test_custom_endpoint_drops_amazonaws_domain(self):
+        result = load_settings(
+            "config.settings.base",
+            AWS_S3_ENDPOINT_URL="http://s3:9000",
+            AWS_STORAGE_BUCKET_NAME="media",
+        )
+        self.assertEqual(result.stdout.strip(), "None", result.stderr)
+
+    def test_real_aws_uses_bucket_domain(self):
+        result = load_settings(
+            "config.settings.base",
+            AWS_S3_ENDPOINT_URL="",
+            AWS_STORAGE_BUCKET_NAME="media",
+        )
+        self.assertEqual(result.stdout.strip(), "media.s3.amazonaws.com", result.stderr)

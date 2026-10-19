@@ -221,7 +221,11 @@ AWS_ACCESS_KEY_ID = env("AWS_ACCESS_KEY_ID")
 AWS_SECRET_ACCESS_KEY = env("AWS_SECRET_ACCESS_KEY")
 AWS_STORAGE_BUCKET_NAME = env("AWS_STORAGE_BUCKET_NAME")
 AWS_S3_ENDPOINT_URL = env("AWS_S3_ENDPOINT_URL", default="")
-AWS_S3_CUSTOM_DOMAIN = f"{AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com"
+# Only for real AWS: with a custom endpoint (RustFS, MinIO) boto must build
+# URLs from AWS_S3_ENDPOINT_URL, or media links point at amazonaws.com.
+AWS_S3_CUSTOM_DOMAIN = (
+    None if AWS_S3_ENDPOINT_URL else f"{AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com"
+)
 AWS_S3_OBJECT_PARAMETERS = {
     "CacheControl": "max-age=86400",
 }
