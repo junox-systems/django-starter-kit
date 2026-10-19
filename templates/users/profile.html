@@ -53,6 +53,17 @@
         </form>
       </section>
     </div>
+
+    <div class="card">
+      <header class="p-5">
+        <h3 class="text-lg font-bold">Your data</h3>
+        <p class="text-muted-foreground mt-1 text-sm">Download a copy of your data, or delete your account.</p>
+      </header>
+      <section class="flex flex-wrap gap-2 p-5">
+        <a href="{% url 'export_data' %}" class="btn" data-variant="secondary" hx-boost="false">Download my data</a>
+        <a href="{% url 'delete_account' %}" class="btn" data-variant="destructive">Delete account</a>
+      </section>
+    </div>
   </div>
 </div>
 {% endblock %}
