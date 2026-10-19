@@ -7,8 +7,7 @@ services:
         condition: on-failure
         delay: 5s
         max_attempts: 3
-    ports:
-      - "8000:8000"
+    # No published port: traffic enters through the nginx service.
     environment:
       DJANGO_SETTINGS_MODULE: config.settings.production
       DATABASE_URL: postgres://${POSTGRES_USER:-django}:${POSTGRES_PASSWORD:-django}@db:5432/${POSTGRES_DB:-django}
@@ -148,6 +147,30 @@ services:
       retries: 3
     networks:
       - backend
+
+  nginx:
+    image: nginx:1.29-alpine
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: any
+    ports:
+      - "80:80"
+      - "443:443"
+    configs:
+      - source: nginx_conf
+        target: /etc/nginx/nginx.conf
+    volumes:
+      # Host dir with fullchain.pem + privkey.pem, on the node running nginx.
+      - ${NGINX_CERTS_DIR:?NGINX_CERTS_DIR required}:/etc/nginx/certs:ro
+    depends_on:
+      - web
+    networks:
+      - backend
+
+configs:
+  nginx_conf:
+    file: ./prod/nginx/nginx.conf
 
 volumes:
   postgres_data:

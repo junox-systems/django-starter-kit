@@ -32,7 +32,8 @@ CSRF_COOKIE_SECURE = True
 
 # SSL/TLS: Enable these AFTER configuring your reverse proxy to set
 # X-Forwarded-Proto. Do NOT enable without the proxy header — it
-# causes infinite redirect loops.
+# causes infinite redirect loops. prod/nginx/nginx.conf (the nginx
+# service in docker-stack.yml) sets the header.
 # SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 # SECURE_SSL_REDIRECT = True
 # SECURE_HSTS_SECONDS = 31536000  # 1 year
