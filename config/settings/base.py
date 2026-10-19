@@ -50,6 +50,7 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "django.contrib.sitemaps",
     # Third Party
     # DJ Control Room — shared core lib first, then panels, then control room
     # (so all panels appear under one "DJ Control Room" section in admin)
