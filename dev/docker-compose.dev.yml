@@ -20,26 +20,6 @@ services:
       timeout: 5s
       retries: 5
 
-  s3:
-    image: rustfs/rustfs:1.0.0-alpha.86
-    container_name: django-s3
-    restart: unless-stopped
-    volumes:
-      - rustfs_data:/data
-    ports:
-      - "9000:9000"
-    environment:
-      RUSTFS_ACCESS_KEY: rustfsadmin
-      RUSTFS_SECRET_KEY: rustfsadmin
-      RUSTFS_ADDRESS: 0.0.0.0:9000
-      RUSTFS_EXTERNAL_ADDRESS: ":9000"
-      RUSTFS_CORS_ALLOWED_ORIGINS: "*"
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:9000/health"]
-      interval: 10s
-      timeout: 5s
-      retries: 3
-
   clickstack:
     image: clickhouse/clickstack-local:2.33.0
     container_name: django-clickstack
@@ -59,12 +39,13 @@ services:
     container_name: django-app
     restart: unless-stopped
     depends_on:
-      - db
+      db:
+        condition: service_healthy
     environment:
       - ENVIRONMENT=development
       - DATABASE_URL=postgresql://postgres:postgres@db:5432/db
       - OTEL_EXPORTER_OTLP_ENDPOINT=http://clickstack:4317
-      - OTEL_ENABLED=true
+      - OTEL_ENABLED=${OTEL_ENABLED:-true}
       - VITE_HYPERDX_URL=http://localhost:4318
       - VITE_HYPERDX_SERVICE=django-starter-kit-frontend
     volumes:
@@ -79,7 +60,6 @@ services:
 
 volumes:
   postgres_data:
-  rustfs_data:
   django_venv:
   frontend_node_modules:
   clickstack_db:

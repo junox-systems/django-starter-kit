@@ -1,22 +1,21 @@
 # syntax=docker/dockerfile:1
 
 #### Builder stage
-FROM almalinux:10-kitten-minimal AS builder
+FROM debian:trixie-slim AS builder
+
+ARG MISE_VERSION=2026.8.0
 
 ENV UV_NO_CACHE=1 \
     PYTHONUNBUFFERED=1 \
     UV_COMPILE_BYTECODE=1
 
-RUN microdnf install -y dnf dnf-plugins-core \
-    && dnf install -y \
-    gcc \
-    make \
-    openssl-devel \
-    libffi-devel \
-    && dnf config-manager --add-repo https://mise.jdx.dev/rpm/mise.repo \
-    && dnf install -y --nodocs mise \
-    && dnf clean all \
-    && rm -rf /var/cache/dnf
+# Debian's x86-64 baseline runs on v2 CPUs; AlmaLinux/RHEL 10 require v3.
+# No compiler: every dependency ships prebuilt wheels/binaries.
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends ca-certificates curl xz-utils \
+    && rm -rf /var/lib/apt/lists/* \
+    && curl -fsSL "https://github.com/jdx/mise/releases/download/v${MISE_VERSION}/mise-v${MISE_VERSION}-linux-$(uname -m | sed 's/x86_64/x64/;s/aarch64/arm64/').tar.xz" \
+    | tar -xJf - -C /usr/local/bin --strip-components=2 mise/bin/mise
 
 WORKDIR /app
 
@@ -35,11 +34,11 @@ RUN uv sync --frozen && \
 
 COPY . .
 
-RUN make vite-build && \
-    make collectstatic
+RUN just vite-build && \
+    just collectstatic
 
 #### Runtime stage
-FROM almalinux:10-kitten-minimal AS runtime
+FROM debian:trixie-slim AS runtime
 
 ARG MISE_VERSION=2026.8.0
 
@@ -47,16 +46,16 @@ ENV ENVIRONMENT=production \
     DJANGO_SETTINGS_MODULE=config.settings.production \
     PYTHONUNBUFFERED=1 \
     UV_NO_CACHE=1 \
+    UV_NO_DEV=1 \
     MISE_DATA_DIR=/opt/mise \
     MISE_CONFIG_DIR=/opt/mise
 
-RUN microdnf install -y tar xz shadow-utils \
-    && microdnf clean all \
-    && rm -rf /var/cache/dnf
-
-RUN curl -fsSL "https://github.com/jdx/mise/releases/download/v${MISE_VERSION}/mise-v${MISE_VERSION}-linux-x64.tar.xz" \
-    | tar -xJf - -C /usr/local/bin --strip-components=2 mise/bin/mise \
-    && chmod +x /usr/local/bin/mise
+# curl is also the healthcheck client.
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends ca-certificates curl xz-utils \
+    && rm -rf /var/lib/apt/lists/* \
+    && curl -fsSL "https://github.com/jdx/mise/releases/download/v${MISE_VERSION}/mise-v${MISE_VERSION}-linux-$(uname -m | sed 's/x86_64/x64/;s/aarch64/arm64/').tar.xz" \
+    | tar -xJf - -C /usr/local/bin --strip-components=2 mise/bin/mise
 
 RUN useradd --create-home --shell /bin/bash django_user && \
     mkdir -p /opt/mise && \
@@ -93,8 +92,9 @@ RUN chmod +x /init.sh && chown django_user:django_user /init.sh
 
 USER django_user
 
-HEALTHCHECK --interval=30s --timeout=5s --retries=3 \
-    CMD python -c "import socket; s=socket.create_connection(('localhost',8000),timeout=2); s.close()" || exit 1
+# Host header: /healthz/ goes through ALLOWED_HOSTS, which must include localhost.
+HEALTHCHECK --interval=30s --timeout=5s --start-period=30s --retries=3 \
+    CMD curl -fsS -H "Host: localhost" http://127.0.0.1:8000/healthz/ || exit 1
 
 EXPOSE 8000
 

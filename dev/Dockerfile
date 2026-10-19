@@ -1,24 +1,19 @@
-# stable almalinux:10
-FROM almalinux:10
+# Debian's x86-64 baseline runs on v2 CPUs; AlmaLinux/RHEL 10 require v3.
+FROM debian:trixie-slim
+
+ARG MISE_VERSION=2026.8.0
 
 # set environment variables
 ENV ENVIRONMENT=development \
     UV_NO_CACHE=1
 
-# This includes build tools and runtime tools for convenience in dev
-# enable copr repository for mise https://copr.fedorainfracloud.org/coprs/jdxcode/mise
-RUN dnf install -y dnf-plugins-core && \
-    dnf copr enable -y jdxcode/mise && \
-    dnf install -y --nodocs \
-    mise \
-    curl \
-    git \
-    unzip \
-    make \
-    gcc \
-    openssl-devel \
-    libffi-devel \
-    && dnf clean all
+# git for pre-commit and VCS work inside the container. No compiler: every
+# dependency ships prebuilt wheels/binaries.
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends ca-certificates curl xz-utils git \
+    && rm -rf /var/lib/apt/lists/* \
+    && curl -fsSL "https://github.com/jdx/mise/releases/download/v${MISE_VERSION}/mise-v${MISE_VERSION}-linux-$(uname -m | sed 's/x86_64/x64/;s/aarch64/arm64/').tar.xz" \
+    | tar -xJf - -C /usr/local/bin --strip-components=2 mise/bin/mise
 
 # set working directory
 WORKDIR /app

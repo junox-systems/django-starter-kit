@@ -29,6 +29,20 @@ def _owner_membership(request, pk):
     return membership
 
 
+def _is_last_owner(membership):
+    return (
+        membership.is_owner
+        and not membership.organization.memberships.filter(role=OWNER)
+        .exclude(pk=membership.pk)
+        .exists()
+    )
+
+
+NEEDS_OWNER = (
+    "An organization needs an owner. Promote someone else first, or delete it."
+)
+
+
 @login_required
 @require_http_methods(["GET", "POST"])
 def org_list(request):
@@ -56,8 +70,10 @@ def org_detail(request, pk):
             if org.members.filter(email=email).exists():
                 form.add_error("email", "Already a member.")
             else:
-                invitation, _ = Invitation.objects.get_or_create(
-                    organization=org, email=email, defaults={"invited_by": request.user}
+                # Re-inviting replaces the old invite: fresh token, fresh expiry.
+                Invitation.objects.filter(organization=org, email=email).delete()
+                invitation = Invitation.objects.create(
+                    organization=org, email=email, invited_by=request.user
                 )
                 accept_url = request.build_absolute_uri(
                     reverse("invitation_accept", args=[invitation.token])
@@ -96,20 +112,28 @@ def membership_remove(request, pk, membership_pk):
     target = get_object_or_404(Membership, pk=membership_pk, organization_id=pk)
     if target != me and not me.is_owner:
         raise PermissionDenied
-    if (
-        target.is_owner
-        and not target.organization.memberships.filter(role=OWNER)
-        .exclude(pk=target.pk)
-        .exists()
-    ):
-        messages.error(
-            request,
-            "An organization needs an owner. Delete it instead, or ask the admin to promote someone.",
-        )
+    if _is_last_owner(target):
+        messages.error(request, NEEDS_OWNER)
         return redirect("org_detail", pk=pk)
     target.delete()
     if target == me:
         return redirect("orgs")
+    return redirect("org_detail", pk=pk)
+
+
+@login_required
+@require_POST
+def membership_role(request, pk, membership_pk):
+    _owner_membership(request, pk)
+    target = get_object_or_404(Membership, pk=membership_pk, organization_id=pk)
+    role = request.POST.get("role")
+    if role not in Membership.Role.values:
+        return redirect("org_detail", pk=pk)
+    if role != OWNER and _is_last_owner(target):
+        messages.error(request, NEEDS_OWNER)
+        return redirect("org_detail", pk=pk)
+    target.role = role
+    target.save(update_fields=["role", "updated_at"])
     return redirect("org_detail", pk=pk)
 
 
@@ -132,6 +156,10 @@ def invitation_accept(request, token):
     email_matches = request.user.emailaddress_set.filter(
         email__iexact=invitation.email, verified=True
     ).exists()
+    if invitation.is_expired:
+        return render(
+            request, "orgs/accept.html", {"invitation": invitation}, status=410
+        )
     if request.method == "POST" and email_matches:
         with transaction.atomic():
             Membership.objects.get_or_create(

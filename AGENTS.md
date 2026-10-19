@@ -6,12 +6,12 @@ Modern Django 5.2 LTS starter kit. Opinionated, lean, production-ready.
 
 ## Tech Stack
 
-- **Backend:** Django 5.2, Granian (ASGI), ParadeDB/PG17 (also cache + task queue — no Redis), django-q2 (ORM broker)
+- **Backend:** Django 5.2, Granian (ASGI), PostgreSQL 18 (also cache + task queue — no Redis), django-q2 (ORM broker)
 - **Auth:** django-allauth (OIDC/SSO, social, email-based login)
 - **API:** django-modern-rest (DMR) 0.x — NOT DRF
 - **Frontend:** Django templates + forms (primary) → htmx 4 boosted navigation inside the app shell → Stimulus 3 mounts Svelte 5 islands → GSAP animations. See **Frontend Formula** below before touching `templates/` or `frontend/src/js/`.
 - **Styling:** Tailwind CSS v4 + Basecoat (shadcn-compatible tokens, per-site `site.css` style pack)
-- **Build:** Vite, uv (Python), pnpm (JS)
+- **Build:** Vite, uv (Python), pnpm (JS), just (tasks), Docker on Debian trixie-slim
 - **Admin:** stock Django admin (with dj-control-room dashboard: cache, urls, signals panels; guardian, constance, import_export)
 - **Observability:** Sentry (opt-in), OpenTelemetry (opt-in)
 - **Tooling:** ruff (lint/format), pytest, django-debug-toolbar
@@ -197,7 +197,7 @@ Component values are paths relative to `svelte/` without the extension, so
    chrome.
 5. **Only if it needs live refresh:** add a DMR controller that calls the same
    `*_payload` function, and pass its URL through the payload.
-6. **Verify.** `make test`, then `cd frontend && pnpm run build`, then load the page
+6. **Verify.** `just test`, then `cd frontend && pnpm run build`, then load the page
    and check the console. A `svelte-bridge: no component found` error means the
    component value path is wrong.
 
@@ -274,5 +274,5 @@ Each of these has already caused a real bug in this repo.
 
 ## Testing
 
-- `make test` — runs pytest with `DJANGO_SETTINGS_MODULE=config.settings.test`
+- `just test` — runs pytest with `DJANGO_SETTINGS_MODULE=config.settings.test`
 - Write tests per app in `apps/<name>/tests/`

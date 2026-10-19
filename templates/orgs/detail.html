@@ -17,6 +17,16 @@
             <span class="text-sm">{{ m.user.email }}{% if m == membership %} (you){% endif %}</span>
             <span class="flex items-center gap-2">
               <span class="badge" data-variant="{% if m.is_owner %}primary{% else %}secondary{% endif %}">{{ m.get_role_display }}</span>
+              {% if membership.is_owner %}
+                <form method="post" action="{% url 'membership_role' org.pk m.pk %}">
+                  {% csrf_token %}
+                  {% if m.is_owner %}
+                    <button type="submit" name="role" value="member" class="btn" data-variant="ghost" data-size="sm">Make member</button>
+                  {% else %}
+                    <button type="submit" name="role" value="owner" class="btn" data-variant="ghost" data-size="sm">Make owner</button>
+                  {% endif %}
+                </form>
+              {% endif %}
               {% if m == membership or membership.is_owner %}
                 <form method="post" action="{% url 'membership_remove' org.pk m.pk %}">
                   {% csrf_token %}
@@ -46,7 +56,7 @@
           <ul class="divide-y border-t">
             {% for invitation in invitations %}
               <li class="flex items-center justify-between gap-3 py-3">
-                <span class="text-sm">{{ invitation.email }} <span class="badge" data-variant="outline">Pending</span></span>
+                <span class="text-sm">{{ invitation.email }} {% if invitation.is_expired %}<span class="badge" data-variant="destructive">Expired</span>{% else %}<span class="badge" data-variant="outline">Pending</span>{% endif %}</span>
                 <form method="post" action="{% url 'invitation_revoke' org.pk invitation.pk %}">
                   {% csrf_token %}
                   <button type="submit" class="btn" data-variant="ghost" data-size="sm">Revoke</button>
