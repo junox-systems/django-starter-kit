@@ -36,11 +36,23 @@ test:
 .PHONY: dev-up dev
 dev-up dev:
 	docker compose -f dev/docker-compose.dev.yml up --build -d
+	@$(MAKE) --no-print-directory dev-urls ANALYTICS=1
 
 # Same stack minus analytics (no clickstack): db, app
 .PHONY: dev-slim
 dev-slim:
 	OTEL_ENABLED=false docker compose -f dev/docker-compose.dev.yml up -d --build db app
+	@$(MAKE) --no-print-directory dev-urls
+
+# Where the dev stack listens (published on all host interfaces).
+.PHONY: dev-urls
+dev-urls:
+	@echo ""
+	@echo "App         http://localhost:8000          first start installs deps + migrates: make dev-logs"
+	@echo "Admin       http://localhost:8000/admin/   create a login: make dev-createsuperuser"
+	@echo "Vite HMR    http://localhost:5173          assets only, open the app on :8000"
+	@echo "Postgres    postgresql://postgres:postgres@localhost:5432/db"
+	@if [ -n "$(ANALYTICS)" ]; then echo "ClickStack  http://localhost:8080          OTLP gRPC :4317, HTTP :4318"; else echo "ClickStack  off (dev-slim)"; fi
 
 .PHONY: dev-down dev-stop
 dev-down dev-stop stop:
