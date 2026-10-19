@@ -62,7 +62,6 @@ INSTALLED_APPS = [
     "constance",
     "guardian",
     "import_export",
-    "simple_history",
     "allauth",
     "allauth.account",
     "allauth.socialaccount",
@@ -90,7 +89,6 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "allauth.account.middleware.AccountMiddleware",  # Allauth
     "auditlog.middleware.AuditlogMiddleware",
-    "simple_history.middleware.HistoryRequestMiddleware",
 ]
 
 # Django Modern REST (DMR) Settings

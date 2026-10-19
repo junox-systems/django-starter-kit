@@ -39,7 +39,6 @@ dependencies = [
     "django-constance>=4.3.5",
     "django-guardian>=3.3.1",
     "django-import-export>=4.4.1",
-    "django-simple-history>=3.11.0",
     "opentelemetry-instrumentation-asgi>=0.62b1",
     "dj-control-room[cache,urls,signals]>=1.8.1",
 ]

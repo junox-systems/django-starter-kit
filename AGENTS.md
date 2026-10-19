@@ -12,7 +12,7 @@ Modern Django 5.2 LTS starter kit. Opinionated, lean, production-ready.
 - **Frontend:** Django templates + forms (primary) → htmx 4 boosted navigation inside the app shell → Stimulus 3 mounts Svelte 5 islands → GSAP animations. See **Frontend Formula** below before touching `templates/` or `frontend/src/js/`.
 - **Styling:** Tailwind CSS v4 + Basecoat (shadcn-compatible tokens, per-site `site.css` style pack)
 - **Build:** Vite, uv (Python), pnpm (JS)
-- **Admin:** stock Django admin (with dj-control-room dashboard: cache, urls, signals panels; guardian, constance, import_export, simple_history)
+- **Admin:** stock Django admin (with dj-control-room dashboard: cache, urls, signals panels; guardian, constance, import_export)
 - **Observability:** Sentry (opt-in), OpenTelemetry (opt-in)
 - **Tooling:** ruff (lint/format), pytest, django-debug-toolbar
 
