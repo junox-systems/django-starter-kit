@@ -45,9 +45,7 @@ def initialize_opentelemetry() -> Optional[object]:
                     "OTEL_SERVICE_NAME", "django-starter-kit"
                 ),
                 "service.version": os.environ.get("OTEL_SERVICE_VERSION", "1.0.0"),
-                "deployment.environment": os.environ.get(
-                    "ENVIRONMENT", "development"
-                ),
+                "deployment.environment": os.environ.get("ENVIRONMENT", "development"),
             }
         )
 
@@ -91,9 +89,7 @@ def initialize_opentelemetry() -> Optional[object]:
             LoggingHandler(level=log_level, logger_provider=log_provider)
         )
 
-        logger.info(
-            "OpenTelemetry initialized with endpoint: %s", otlp_endpoint
-        )
+        logger.info("OpenTelemetry initialized with endpoint: %s", otlp_endpoint)
         return provider
 
     except Exception:

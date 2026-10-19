@@ -1,6 +1,6 @@
 MAKEFLAGS += -j4
 
-.PHONY: install i 
+.PHONY: install i
 install i: deps-django deps-frontend
 	@echo "Installation complete. You can now run the project."
 
@@ -97,7 +97,7 @@ beat-dev:
 makemigrations make migrations:
 	uv run python manage.py makemigrations
 
-.PHONY: migrate 
+.PHONY: migrate
 migrate:
 	uv run python manage.py migrate
 ## - END DEV - ## ---------------------------------------------------------------------------
@@ -126,7 +126,7 @@ prod-start:
 	--loop uvloop \
 		--host 0.0.0.0 \
 		--port 8000 \
-		config.asgi:application 
+		config.asgi:application
 
 ## - END PROD - ## -------------------------------------------------------------------------------
 

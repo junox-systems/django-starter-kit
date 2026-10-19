@@ -45,6 +45,7 @@ urlpatterns = [
 if settings.DEBUG:
     try:
         import debug_toolbar
+
         urlpatterns.insert(0, path("__debug__/", include(debug_toolbar.urls)))
     except ImportError:
         pass

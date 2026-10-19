@@ -53,7 +53,10 @@ class AllauthPagesTests(TestCase):
     def test_invalid_confirm_and_reset_links_render(self):
         for url in (
             reverse("account_confirm_email", args=["invalid-key"]),
-            reverse("account_reset_password_from_key", args=["invalid-uidb36", "invalid-key"]),
+            reverse(
+                "account_reset_password_from_key",
+                args=["invalid-uidb36", "invalid-key"],
+            ),
         ):
             with self.subTest(url=url):
                 response = self.client.get(url)
@@ -72,7 +75,9 @@ class AllauthPagesTests(TestCase):
                 response = self.client.get(url)
                 self.assertEqual(response.status_code, 200)
                 self.assertContains(response, 'hx-boost:inherited="true"')
-                self.assertContains(response, 'data-svelte-bridge-component-value="app/Sidebar"')
+                self.assertContains(
+                    response, 'data-svelte-bridge-component-value="app/Sidebar"'
+                )
                 self.assertContains(response, 'id="app-nav-data"')
 
     def test_set_password_page_renders_for_passwordless_user(self):
@@ -86,7 +91,9 @@ class AllauthPagesTests(TestCase):
         response = self.client.get(reverse("account_set_password"))
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'hx-boost:inherited="true"')
-        self.assertContains(response, 'data-svelte-bridge-component-value="app/Sidebar"')
+        self.assertContains(
+            response, 'data-svelte-bridge-component-value="app/Sidebar"'
+        )
         self.assertContains(response, 'id="app-nav-data"')
 
     def test_connected_accounts_render_in_connections_page(self):

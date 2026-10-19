@@ -3,7 +3,7 @@ FROM almalinux:10
 
 # set environment variables
 ENV ENVIRONMENT=development \
-    UV_NO_CACHE=1 
+    UV_NO_CACHE=1
 
 # This includes build tools and runtime tools for convenience in dev
 # enable copr repository for mise https://copr.fedorainfracloud.org/coprs/jdxcode/mise

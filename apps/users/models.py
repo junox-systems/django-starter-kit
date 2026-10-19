@@ -63,7 +63,9 @@ class User(AbstractUser, BaseModel):
         verbose_name_plural = _("Users")
 
     def save(self, *args, **kwargs):
-        self.email = self.email.lower().strip()  # NOTE: allauth also normalizes; this is belt-and-suspenders
+        self.email = (
+            self.email.lower().strip()
+        )  # NOTE: allauth also normalizes; this is belt-and-suspenders
         self.username = self.username.strip()
         super().save(*args, **kwargs)
 
