@@ -7,6 +7,7 @@ from dmr.openapi.views import SwaggerView, OpenAPIJsonView
 from dmr.routing import Router
 
 from apps.api.urls import urlpatterns as api_urlpatterns
+from apps.core.views import healthz
 
 # Build OpenAPI schema from the API router
 _api_router = Router("api/v1/", api_urlpatterns)
@@ -14,6 +15,7 @@ schema = build_schema(_api_router)
 
 # Core URL patterns
 urlpatterns = [
+    path("healthz/", healthz, name="healthz"),
     # DJ Control Room panel URLs — mounted under /admin/
     path("admin/dj-cache-panel/", include("dj_cache_panel.urls")),
     path("admin/dj-urls-panel/", include("dj_urls_panel.urls")),
