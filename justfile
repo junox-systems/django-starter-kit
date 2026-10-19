@@ -35,14 +35,23 @@ test:
 
 #### DOCKER DEV ####
 
-dev-up:
+dev-up: && (dev-urls "analytics")
     {{compose}} up --build -d
 
 alias dev := dev-up
 
 # Same stack minus analytics (no clickstack): db, app
-dev-slim:
+dev-slim: && dev-urls
     OTEL_ENABLED=false {{compose}} up -d --build db app
+
+# Where the dev stack listens (published on all host interfaces).
+dev-urls analytics="":
+    @echo ""
+    @echo "App         http://localhost:8000          first start installs deps + migrates: just logs"
+    @echo "Admin       http://localhost:8000/admin/   create a login: just dev-createsuperuser"
+    @echo "Vite HMR    http://localhost:5173          assets only, open the app on :8000"
+    @echo "Postgres    postgresql://postgres:postgres@localhost:5432/db"
+    @if [ -n "{{analytics}}" ]; then echo "ClickStack  http://localhost:8080          OTLP gRPC :4317, HTTP :4318"; else echo "ClickStack  off (dev-slim)"; fi
 
 dev-down:
     {{compose}} down
