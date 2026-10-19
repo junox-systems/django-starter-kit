@@ -12,6 +12,10 @@
         <form method="post" class="space-y-4">
           {% csrf_token %}
           {% include "account/_form_fields.html" %}
+          <p class="text-muted-foreground text-xs">
+            By signing up you agree to the <a href="{% url 'terms' %}" class="text-foreground underline-offset-4 hover:underline">Terms</a>
+            and <a href="{% url 'privacy' %}" class="text-foreground underline-offset-4 hover:underline">Privacy Policy</a>.
+          </p>
           <button class="btn w-full">Sign Up</button>
         </form>
       </section>
