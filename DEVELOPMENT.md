@@ -17,8 +17,8 @@ The project includes a complete Docker development environment with all necessar
 | **clickstack** | `clickhouse/clickstack-local` | OTEL traces/logs UI on `:8080` (`just dev` only) |
 
 The app waits for the db healthcheck, installs dependencies, runs migrations,
-then starts its processes. Media stays on local disk in dev; S3 (RustFS) lives
-in the production stack only.
+then starts its processes. Media stays on local disk in dev; production uses
+external S3 (or a compatible provider) via the `AWS_*` env vars.
 
 ### Development Commands
 
