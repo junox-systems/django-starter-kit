@@ -18,6 +18,7 @@ from django.conf import settings
 from django.core.mail import send_mail
 from django.db import OperationalError
 
+from apps.core.emails import html_body
 from apps.users.models import User
 
 EMAIL_ERRORS = (
@@ -58,11 +59,14 @@ def send_welcome_email(user_id):
         user = User.objects.get(id=user_id)
     except User.DoesNotExist:
         return
+    subject = "Welcome aboard"
+    message = f"Hi {user.username}, thanks for signing up."
     send_mail(
-        subject="Welcome aboard",
-        message=f"Hi {user.username}, thanks for signing up.",
+        subject=subject,
+        message=message,
         from_email=settings.DEFAULT_FROM_EMAIL,
         recipient_list=[user.email],
+        html_message=html_body(subject, message),
     )
 
 
@@ -85,4 +89,5 @@ def send_test_email(subject, message, recipient_list):
         message=message,
         from_email=settings.DEFAULT_FROM_EMAIL,
         recipient_list=recipient_list,
+        html_message=html_body(subject, message),
     )

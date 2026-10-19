@@ -150,6 +150,7 @@ LOGIN_URL = "account_login"
 LOGIN_REDIRECT_URL = "/dashboard/"
 # Logging out lands on the public marketing page, not the app.
 LOGOUT_REDIRECT_URL = "/"
+ACCOUNT_ADAPTER = "apps.users.adapter.AccountAdapter"
 ACCOUNT_EMAIL_VERIFICATION = "mandatory"
 ACCOUNT_SIGNUP_FIELDS = ["email*", "username*", "password1*", "password2*"]
 
