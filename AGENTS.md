@@ -6,7 +6,7 @@ Modern Django 5.2 LTS starter kit. Opinionated, lean, production-ready.
 
 ## Tech Stack
 
-- **Backend:** Django 5.2, Granian (ASGI), PostgreSQL 18 (also cache + task queue — no Redis), django-q2 (ORM broker)
+- **Backend:** Django 5.2, Granian (ASGI), PostgreSQL 18 via ParadeDB (`pg_search` BM25 + pgvector, `django-paradedb`; also cache + task queue — no Redis), django-q2 (ORM broker)
 - **Auth:** django-allauth (OIDC/SSO, social, email-based login)
 - **API:** django-modern-rest (DMR) 0.x — NOT DRF
 - **Frontend:** Django templates + forms (primary) → htmx 4 boosted navigation inside the app shell → Stimulus 3 mounts Svelte 5 islands → GSAP animations. See **Frontend Formula** below before touching `templates/` or `frontend/src/js/`.

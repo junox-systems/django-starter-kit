@@ -12,7 +12,7 @@ The project includes a complete Docker development environment with all necessar
 
 | Service | Image | Purpose |
 |---------|-------|---------|
-| **db** | `pgvector/pgvector:0.8.6-pg18` | PostgreSQL 18: data, cache, settings, task queue |
+| **db** | `paradedb/paradedb:0.26.2-pg18` | PostgreSQL 18 + ParadeDB (`pg_search`, pgvector): data, cache, settings, task queue |
 | **app** | `dev/Dockerfile` (Debian trixie-slim + mise) | Django, Vite and qcluster under supervisord |
 | **clickstack** | `clickhouse/clickstack-local` | OTEL traces/logs UI on `:8080` (`just dev` only) |
 

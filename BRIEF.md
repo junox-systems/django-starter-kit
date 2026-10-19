@@ -38,7 +38,7 @@ All Python dependencies are managed by **`uv`** via a single `pyproject.toml` fi
 
 - **Backend Framework:** Django 5.2 LTS
 - **API Framework:** django-modern-rest (DMR) *(DRF is present as a placeholder until DMR integration is complete)*
-- **Database:** ParadeDB (PostgreSQL 17 with search & analytics extensions)
+- **Database:** ParadeDB (PostgreSQL 18 with `pg_search` BM25 + pgvector), queried via `django-paradedb`
 - **Cache:** Django `DatabaseCache` (Postgres)
 - **Task Queue:** django-q2 (the Django ORM / Postgres is the broker)
 - **Python Tooling:** `uv` (package manager), `ruff` (linter/formatter), `pytest` (testing)
@@ -101,7 +101,7 @@ The `User` model is intentionally minimal:
 
 #### **6.3. Search and Analytics (ParadeDB)**
 
-ParadeDB provides BM25 full-text search and columnar analytics. Queries are written at the service/view layer using raw SQL or ParadeDB's native Django integration. There is no custom `SearchManager` in the starter kit — add search when you need it.
+ParadeDB provides BM25 full-text search and columnar analytics. Queries are written at the service/view layer using `django-paradedb` (`ParadeDBIndex`, `ParadeDB` lookups) or raw SQL. There is no custom `SearchManager` in the starter kit — add search when you need it.
 
 #### **6.4. Caching**
 

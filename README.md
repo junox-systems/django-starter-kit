@@ -9,7 +9,7 @@ A modern, production-ready Django starter kit — opinionated, lean, and ready t
 | Package | Purpose |
 |---------|---------|
 | **Django 5.2 LTS** | Core framework |
-| **PostgreSQL 18** (pgvector image) | Database, cache, settings and task queue |
+| **PostgreSQL 18** (ParadeDB image) | Database, BM25/vector search (`django-paradedb`), cache, settings and task queue |
 | **RustFS** | S3-compatible media storage in the production stack |
 | **Granian** | Production ASGI server (Rust-based, async-native) |
 | **Whitenoise** | Static file serving |

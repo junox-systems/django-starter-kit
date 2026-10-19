@@ -497,6 +497,19 @@ openapi = [
 ]
 
 [[package]]
+name = "django-paradedb"
+version = "0.15.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "django" },
+    { name = "json5" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/df/91/45ad47cdd32b0ce219ed4f7df1a80b00d885ccd8d014e6193d55b7f2cdec/django_paradedb-0.15.0.tar.gz", hash = "sha256:603901c729db574bff5f39c9db0d0af129df40acc9071e9061380824db426d8b", size = 134998, upload-time = "2026-10-16T22:02:01.675Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/41/3a/af480254fb0fd48cd5b0674c854d18e9ae24b4712698c9564518a3c3f479/django_paradedb-0.15.0-py3-none-any.whl", hash = "sha256:dcd48b07b57a2b93ed01aae31a9e4cf99bbe84a608f136331db78cf11b8cfef9", size = 32585, upload-time = "2026-10-16T22:02:00.042Z" },
+]
+
+[[package]]
 name = "django-picklefield"
 version = "3.4.0"
 source = { registry = "https://pypi.org/simple" }
@@ -539,6 +552,7 @@ dependencies = [
     { name = "django-imagekit" },
     { name = "django-import-export" },
     { name = "django-modern-rest", extra = ["jwt", "msgspec", "openapi"] },
+    { name = "django-paradedb" },
     { name = "django-q2" },
     { name = "django-storages" },
     { name = "django-vite" },
@@ -577,6 +591,7 @@ requires-dist = [
     { name = "django-imagekit", specifier = ">=5.0.0" },
     { name = "django-import-export", specifier = ">=4.4.1" },
     { name = "django-modern-rest", extras = ["jwt", "msgspec", "openapi"], specifier = ">=0.16.0" },
+    { name = "django-paradedb", specifier = ">=0.15.0" },
     { name = "django-q2", specifier = ">=1.11.1" },
     { name = "django-storages", specifier = ">=1.14.0" },
     { name = "django-vite", specifier = ">=3.1.0" },
@@ -790,6 +805,15 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/d3/59/322338183ecda247fb5d1763a6cbe46eff7222eaeebafd9fa65d4bf5cb11/jmespath-1.1.0.tar.gz", hash = "sha256:472c87d80f36026ae83c6ddd0f1d05d4e510134ed462851fd5f754c8c3cbb88d", size = 27377, upload-time = "2026-01-22T16:35:26.279Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/14/2f/967ba146e6d58cf6a652da73885f52fc68001525b4197effc174321d70b4/jmespath-1.1.0-py3-none-any.whl", hash = "sha256:a5663118de4908c91729bea0acadca56526eb2698e83de10cd116ae0f4e97c64", size = 20419, upload-time = "2026-01-22T16:35:24.919Z" },
+]
+
+[[package]]
+name = "json5"
+version = "0.17.3"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/16/1f/58a4d7ee466f81bc3c7337036380fc6d49de3afb7855d74f8121b1e89b32/json5-0.17.3.tar.gz", hash = "sha256:8d0278ad34ebaa9c3af76d9519274811830224a2d1cd5af156dbd067f461b8a4", size = 54234, upload-time = "2026-10-09T21:19:28.335Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/ae/39/e689b616c4279a821d5842a8a85c1874540f8d58e35028df93f2182120c2/json5-0.17.3-py3-none-any.whl", hash = "sha256:2c8b22a893c35cd6a3c5ccbf1dd1c7d02c25dc1b5897fea658f9bf08c2e05f9a", size = 34809, upload-time = "2026-10-09T21:19:27.357Z" },
 ]
 
 [[package]]

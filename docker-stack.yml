@@ -66,7 +66,7 @@ services:
       - backend
 
   db:
-    image: pgvector/pgvector:0.8.6-pg18
+    image: paradedb/paradedb:0.26.2-pg18
     deploy:
       replicas: 1
       restart_policy:
@@ -76,7 +76,7 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD required}
       POSTGRES_DB: ${POSTGRES_DB:-django}
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - postgres_data:/var/lib/postgresql
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-django} -d ${POSTGRES_DB:-django}"]
       interval: 5s

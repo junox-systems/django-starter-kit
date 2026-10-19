@@ -76,6 +76,8 @@ INSTALLED_APPS = [
     "django_vite",
     "imagekit",
     "anymail",
+    # paradedb_* diagnostic management commands
+    "paradedb",
     "auditlog",
 ]
 
