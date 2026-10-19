@@ -30,8 +30,24 @@ class ProductionSecretKeyTests(SimpleTestCase):
         self.assertIn("SECRET_KEY must be set in production", result.stderr)
 
     def test_accepts_real_key(self):
-        result = load_settings("config.settings.production", SECRET_KEY="a-real-key")
+        result = load_settings(
+            "config.settings.production",
+            SECRET_KEY="a-real-key",
+            DEFAULT_FROM_EMAIL="hello@example.com",
+        )
         self.assertEqual(result.returncode, 0, result.stderr)
+
+    def test_requires_from_email(self):
+        env = {k: v for k, v in os.environ.items() if k != "DEFAULT_FROM_EMAIL"}
+        result = subprocess.run(
+            [sys.executable, "-c", "import config.settings.production"],
+            cwd=settings.BASE_DIR,
+            env={**env, "SECRET_KEY": "a-real-key"},
+            capture_output=True,
+            text=True,
+        )
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("DEFAULT_FROM_EMAIL", result.stderr)
 
 
 class S3CustomDomainTests(SimpleTestCase):

@@ -18,7 +18,10 @@ services:
       AWS_S3_PUBLIC_ENDPOINT_URL: ${AWS_S3_PUBLIC_ENDPOINT_URL:-}
       SENTRY_DSN: ${SENTRY_DSN:-}
       POSTMARK_SERVER_TOKEN: ${POSTMARK_SERVER_TOKEN:-}
+      DEFAULT_FROM_EMAIL: ${DEFAULT_FROM_EMAIL:?DEFAULT_FROM_EMAIL required}
       ALLOWED_HOSTS: ${ALLOWED_HOSTS:-localhost}
+      # https origin(s) nginx serves, e.g. https://example.com
+      CSRF_TRUSTED_ORIGINS: ${CSRF_TRUSTED_ORIGINS:?CSRF_TRUSTED_ORIGINS required}
       SECRET_KEY: ${SECRET_KEY:?SECRET_KEY required}
     depends_on:
       - db
@@ -53,6 +56,7 @@ services:
       AWS_S3_PUBLIC_ENDPOINT_URL: ${AWS_S3_PUBLIC_ENDPOINT_URL:-}
       SENTRY_DSN: ${SENTRY_DSN:-}
       POSTMARK_SERVER_TOKEN: ${POSTMARK_SERVER_TOKEN:-}
+      DEFAULT_FROM_EMAIL: ${DEFAULT_FROM_EMAIL:?DEFAULT_FROM_EMAIL required}
       SECRET_KEY: ${SECRET_KEY:?SECRET_KEY required}
     depends_on:
       - db

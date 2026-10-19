@@ -238,6 +238,8 @@ Required env vars:
 - `IMAGE_NAME` — Docker image for stack
 - `POSTGRES_PASSWORD` — DB password
 - `RUSTFS_SECRET_KEY` — S3 secret key
+- `DEFAULT_FROM_EMAIL` — sender verified in Postmark
+- `CSRF_TRUSTED_ORIGINS` — public https origin(s), e.g. `https://example.com`
 
 ### Known Caveats
 

@@ -22,6 +22,15 @@ if SECRET_KEY.startswith("django-insecure"):  # noqa: F405
 # This is required when DEBUG is set to False
 ALLOWED_HOSTS = env.list("ALLOWED_HOSTS", default=["localhost", "127.0.0.1"])
 
+# Behind a TLS proxy Django sees http (until SECURE_PROXY_SSL_HEADER is on), so
+# the browser's https Origin must be trusted explicitly or every POST gets 403.
+CSRF_TRUSTED_ORIGINS = env.list("CSRF_TRUSTED_ORIGINS", default=[])
+
+# Postmark rejects unverified senders; the webmaster@localhost fallback would
+# silently break signup (email verification is mandatory). No default on purpose.
+DEFAULT_FROM_EMAIL = env("DEFAULT_FROM_EMAIL")
+SERVER_EMAIL = env("SERVER_EMAIL", default=DEFAULT_FROM_EMAIL)
+
 # Security Settings
 # ------------------------------------------------------------------------------
 SECURE_BROWSER_XSS_FILTER = True
