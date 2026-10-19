@@ -92,8 +92,9 @@ RUN chmod +x /init.sh && chown django_user:django_user /init.sh
 
 USER django_user
 
-HEALTHCHECK --interval=30s --timeout=5s --retries=3 \
-    CMD python -c "import socket; s=socket.create_connection(('localhost',8000),timeout=2); s.close()" || exit 1
+# Host header: /healthz/ goes through ALLOWED_HOSTS, which must include localhost.
+HEALTHCHECK --interval=30s --timeout=5s --start-period=30s --retries=3 \
+    CMD curl -fsS -H "Host: localhost" http://127.0.0.1:8000/healthz/ || exit 1
 
 EXPOSE 8000
 

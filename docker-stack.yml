@@ -23,10 +23,12 @@ services:
     depends_on:
       - db
     healthcheck:
-      test: ["CMD", "python", "-c", "import socket; s=socket.create_connection(('localhost',8000),timeout=2); s.close()"]
+      # /healthz/ pings the DB; ALLOWED_HOSTS must keep localhost for this.
+      test: ["CMD", "curl", "-fsS", "-H", "Host: localhost", "http://127.0.0.1:8000/healthz/"]
       interval: 30s
       timeout: 5s
       retries: 3
+      start_period: 30s
     networks:
       - backend
 
