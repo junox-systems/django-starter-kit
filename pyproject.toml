@@ -12,7 +12,7 @@ dependencies = [
     "psycopg[binary]>=3.2.9",
     "whitenoise>=6.6.0",
     # Auth
-    "django-allauth[idp-oidc,socialaccount]>=65.11.0",
+    "django-allauth[idp-oidc,mfa,socialaccount]>=65.11.0",
     # API
     "django-modern-rest[jwt,msgspec,openapi]>=0.16.0",
     # Frontend

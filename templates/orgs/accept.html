@@ -1,0 +1,27 @@
+{% extends "base_app.html" %}
+
+{% block title %}Invitation — Django Starter Kit{% endblock %}
+{% block page_title %}Invitation{% endblock %}
+
+{% block content %}
+<div class="w-full max-w-2xl">
+  <div class="card">
+    <header class="p-5">
+      <h2 class="text-3xl font-bold">Join {{ invitation.organization.name }}</h2>
+    </header>
+    <section class="p-5">
+      {% if email_matches %}
+        <form method="post">
+          {% csrf_token %}
+          <button type="submit" class="btn">Accept invitation</button>
+        </form>
+      {% else %}
+        <div class="alert" data-variant="destructive" role="alert">
+          <p>This invitation was sent to {{ invitation.email }}. Sign in with that address, or add and verify it under
+            <a href="{% url 'account_email' %}" class="underline">Email addresses</a>.</p>
+        </div>
+      {% endif %}
+    </section>
+  </div>
+</div>
+{% endblock %}

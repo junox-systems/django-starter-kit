@@ -331,6 +331,10 @@ idp-oidc = [
     { name = "oauthlib" },
     { name = "pyjwt", extra = ["crypto"] },
 ]
+mfa = [
+    { name = "fido2" },
+    { name = "qrcode" },
+]
 socialaccount = [
     { name = "oauthlib" },
     { name = "pyjwt", extra = ["crypto"] },
@@ -525,7 +529,7 @@ dependencies = [
     { name = "boto3" },
     { name = "dj-control-room", extra = ["cache", "signals", "urls"] },
     { name = "django" },
-    { name = "django-allauth", extra = ["idp-oidc", "socialaccount"] },
+    { name = "django-allauth", extra = ["idp-oidc", "mfa", "socialaccount"] },
     { name = "django-anymail" },
     { name = "django-auditlog" },
     { name = "django-constance" },
@@ -563,7 +567,7 @@ requires-dist = [
     { name = "boto3", specifier = ">=1.30.0" },
     { name = "dj-control-room", extras = ["cache", "urls", "signals"], specifier = ">=1.8.1" },
     { name = "django", specifier = ">=5.2.18,<5.3" },
-    { name = "django-allauth", extras = ["idp-oidc", "socialaccount"], specifier = ">=65.11.0" },
+    { name = "django-allauth", extras = ["idp-oidc", "mfa", "socialaccount"], specifier = ">=65.11.0" },
     { name = "django-anymail", specifier = ">=10.0" },
     { name = "django-auditlog", specifier = ">=3.0.0" },
     { name = "django-constance", specifier = ">=4.3.5" },
@@ -658,6 +662,18 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/7f/13/6741787bd91c4109c7bed047d68273965cd52ce8a5f773c471b949334b6d/faker-40.15.0.tar.gz", hash = "sha256:20f3a6ec8c266b74d4c554e34118b21c3c2056c0b4a519d15c8decb3a4e6e795", size = 1967447, upload-time = "2026-04-17T20:05:27.555Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/a7/a7/a600f8f30d4505e89166de51dd121bd540ab8e560e8cf0901de00a81de8c/faker-40.15.0-py3-none-any.whl", hash = "sha256:71ab3c3370da9d2205ab74ffb0fd51273063ad562b3a3bb69d0026a20923e318", size = 2004447, upload-time = "2026-04-17T20:05:25.437Z" },
+]
+
+[[package]]
+name = "fido2"
+version = "2.2.1"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "cryptography" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/ba/ea/6f08c354b7aeb8019249d46a86c2153f8218499cced4d21bf16b6d49fc16/fido2-2.2.1.tar.gz", hash = "sha256:85787428a94c3f8eaf72f0ff30afba983b559a1b1b795c93318c81b4ad4062c4", size = 327147, upload-time = "2026-06-29T17:41:11.927Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/71/84/198d99c3312557ef6121cf78c38281efe9b3bc88cba0e2c05446f38a024d/fido2-2.2.1-py3-none-any.whl", hash = "sha256:ed397da981b9ab133da6ead7309e41f924b566b749956129efe286fae097749f", size = 238354, upload-time = "2026-06-29T17:41:09.921Z" },
 ]
 
 [[package]]
@@ -1474,6 +1490,18 @@ wheels = [
     { url = "https://files.pythonhosted.org/packages/da/92/1446574745d74df0c92e6aa4a7b0b3130706a4142b2d1a5869f2eaa423c6/pyyaml-6.0.3-cp314-cp314t-musllinux_1_2_x86_64.whl", hash = "sha256:16249ee61e95f858e83976573de0f5b2893b3677ba71c9dd36b9cf8be9ac6d65", size = 829923, upload-time = "2025-09-25T21:32:54.537Z" },
     { url = "https://files.pythonhosted.org/packages/f0/7a/1c7270340330e575b92f397352af856a8c06f230aa3e76f86b39d01b416a/pyyaml-6.0.3-cp314-cp314t-win_amd64.whl", hash = "sha256:4ad1906908f2f5ae4e5a8ddfce73c320c2a1429ec52eafd27138b7f1cbe341c9", size = 174062, upload-time = "2025-09-25T21:32:55.767Z" },
     { url = "https://files.pythonhosted.org/packages/f1/12/de94a39c2ef588c7e6455cfbe7343d3b2dc9d6b6b2f40c4c6565744c873d/pyyaml-6.0.3-cp314-cp314t-win_arm64.whl", hash = "sha256:ebc55a14a21cb14062aa4162f906cd962b28e2e9ea38f9b4391244cd8de4ae0b", size = 149341, upload-time = "2025-09-25T21:32:56.828Z" },
+]
+
+[[package]]
+name = "qrcode"
+version = "8.2"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "colorama", marker = "sys_platform == 'win32'" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/8f/b2/7fc2931bfae0af02d5f53b174e9cf701adbb35f39d69c2af63d4a39f81a9/qrcode-8.2.tar.gz", hash = "sha256:35c3f2a4172b33136ab9f6b3ef1c00260dd2f66f858f24d88418a015f446506c", size = 43317, upload-time = "2025-05-01T15:44:24.726Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/dd/b8/d2d6d731733f51684bbf76bf34dab3b70a9148e8f2cef2bb544fccec681a/qrcode-8.2-py3-none-any.whl", hash = "sha256:16e64e0716c14960108e85d853062c9e8bba5ca8252c0b4d0231b9df4060ff4f", size = 45986, upload-time = "2025-05-01T15:44:22.781Z" },
 ]
 
 [[package]]

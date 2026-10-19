@@ -53,7 +53,7 @@ def retry(*exceptions, retries=5, max_backoff=30):
 
 @retry(*EMAIL_ERRORS)
 def send_welcome_email(user_id):
-    """Send a welcome email after signup. Example: User post_save signal."""
+    """Send a welcome email after signup. Queued by apps/users/signals.py."""
     try:
         user = User.objects.get(id=user_id)
     except User.DoesNotExist:

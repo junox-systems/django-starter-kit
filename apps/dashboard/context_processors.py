@@ -24,6 +24,7 @@ def _groups(is_staff):
     account = [
         _item("Email addresses", "account_email", "mail"),
         _item("Password", "account_change_password", "key"),
+        _item("Two-factor", "mfa_index", "smartphone"),
         _item("Connections", "socialaccount_connections", "link"),
     ]
     if is_staff:
@@ -36,6 +37,7 @@ def _groups(is_staff):
             "items": [
                 _item("Dashboard", "dashboard", "dashboard"),
                 _item("Profile", "profile", "user"),
+                _item("Organizations", "orgs", "users"),
             ],
         },
         {"label": "Account", "items": account},

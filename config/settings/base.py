@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     "apps.api",
     "apps.pages",
     "apps.dashboard",
+    "apps.orgs",
     # Django Built-in
     "django.contrib.admin",
     "django.contrib.auth",
@@ -64,6 +65,7 @@ INSTALLED_APPS = [
     "import_export",
     "allauth",
     "allauth.account",
+    "allauth.mfa",
     "allauth.socialaccount",
     "allauth.socialaccount.providers.openid_connect",
     "allauth.socialaccount.providers.google",
