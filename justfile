@@ -26,6 +26,10 @@ lint-fix:
 format:
     uv run ruff format .
 
+# uvx: pre-commit runs without becoming a project dependency.
+precommit:
+    uvx pre-commit run --all-files
+
 test:
     DJANGO_SETTINGS_MODULE=config.settings.test uv run pytest
 
