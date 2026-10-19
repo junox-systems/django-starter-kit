@@ -4,6 +4,18 @@ from django.urls import reverse
 from apps.users.models import User
 
 
+class OpenAPIDocsTests(TestCase):
+    def test_schema_lists_api_routes(self):
+        response = self.client.get(reverse("openapi"))
+        self.assertEqual(response.status_code, 200)
+        paths = response.json()["paths"]
+        self.assertIn("/api/v1/users/", paths)
+        self.assertIn("/api/v1/dashboard/activity/", paths)
+
+    def test_swagger_ui_renders(self):
+        self.assertEqual(self.client.get(reverse("swagger")).status_code, 200)
+
+
 class UserAPIAccessTests(TestCase):
     def setUp(self):
         self.user = User.objects.create_user(
