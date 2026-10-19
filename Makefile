@@ -85,7 +85,7 @@ django-dev:
 vite-dev:
 	cd frontend && pnpm run dev --host 0.0.0.0 --port 5173
 
-# django-q2 workers + scheduler (replaces Celery worker and beat)
+# django-q2 workers + scheduler
 .PHONY: qcluster-dev
 qcluster-dev:
 	DJANGO_SETTINGS_MODULE=config.settings.dev uv run python manage.py qcluster

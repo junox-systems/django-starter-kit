@@ -31,9 +31,8 @@ EMAIL_ERRORS = (
 def retry(*exceptions, retries=5, max_backoff=30):
     """Re-run the task on `exceptions` with exponential backoff (1s, 2s, 4s…).
 
-    django-q2 only re-queues tasks that die or time out, not ones that raise,
-    so this keeps the autoretry_for/retry_backoff behaviour the Celery tasks
-    had. Backoff sleeps inside the worker; keep it short.
+    django-q2 only re-queues tasks that die or time out, not ones that raise.
+    Backoff sleeps inside the worker; keep it short.
     """
 
     def decorator(func):
