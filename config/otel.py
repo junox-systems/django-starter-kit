@@ -32,7 +32,6 @@ def initialize_opentelemetry() -> Optional[object]:
             OTLPSpanExporter,
         )
         from opentelemetry.instrumentation.psycopg import PsycopgInstrumentor
-        from opentelemetry.instrumentation.redis import RedisInstrumentor
         from opentelemetry.sdk._logs import LoggerProvider, LoggingHandler
         from opentelemetry.sdk._logs.export import BatchLogRecordProcessor
         from opentelemetry.sdk.resources import Resource
@@ -61,7 +60,6 @@ def initialize_opentelemetry() -> Optional[object]:
 
         # HTTP request spans are created by OpenTelemetryMiddleware in asgi.py.
         PsycopgInstrumentor().instrument()
-        RedisInstrumentor().instrument()
 
         # Logs — forward stdlib logging to the OTLP endpoint.
         # Level: OTEL_LOG_LEVEL env override; defaults to DEBUG in development,

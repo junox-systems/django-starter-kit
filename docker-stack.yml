@@ -11,7 +11,6 @@ services:
     environment:
       DJANGO_SETTINGS_MODULE: config.settings.production
       DATABASE_URL: postgres://${POSTGRES_USER:-django}:${POSTGRES_PASSWORD:-django}@db:5432/${POSTGRES_DB:-django}
-      REDIS_URL: redis://cache:6379/0
       AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID:-}
       AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY:-}
       AWS_STORAGE_BUCKET_NAME: ${AWS_STORAGE_BUCKET_NAME:-}
@@ -23,7 +22,6 @@ services:
       SECRET_KEY: ${SECRET_KEY:?SECRET_KEY required}
     depends_on:
       - db
-      - cache
     healthcheck:
       test: ["CMD", "python", "-c", "import socket; s=socket.create_connection(('localhost',8000),timeout=2); s.close()"]
       interval: 30s
@@ -46,7 +44,6 @@ services:
     environment:
       DJANGO_SETTINGS_MODULE: config.settings.production
       DATABASE_URL: postgres://${POSTGRES_USER:-django}:${POSTGRES_PASSWORD:-django}@db:5432/${POSTGRES_DB:-django}
-      REDIS_URL: redis://cache:6379/0
       AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID:-}
       AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY:-}
       AWS_STORAGE_BUCKET_NAME: ${AWS_STORAGE_BUCKET_NAME:-}
@@ -57,7 +54,6 @@ services:
       SECRET_KEY: ${SECRET_KEY:?SECRET_KEY required}
     depends_on:
       - db
-      - cache
     healthcheck:
       disable: true
     networks:
@@ -79,20 +75,6 @@ services:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-django} -d ${POSTGRES_DB:-django}"]
       interval: 5s
       timeout: 5s
-      retries: 5
-    networks:
-      - backend
-
-  cache:
-    image: valkey/valkey:7-alpine
-    deploy:
-      replicas: 1
-      restart_policy:
-        condition: any
-    healthcheck:
-      test: ["CMD", "valkey-cli", "ping"]
-      interval: 5s
-      timeout: 3s
       retries: 5
     networks:
       - backend

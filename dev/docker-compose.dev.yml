@@ -20,15 +20,6 @@ services:
       timeout: 5s
       retries: 5
 
-  redis:
-    image: valkey/valkey:7-alpine
-    container_name: redis
-    ports:
-      - "6379:6379"
-    restart: unless-stopped
-    volumes:
-      - redis_dev:/data
-
   s3:
     image: rustfs/rustfs:1.0.0-alpha.86
     container_name: django-s3
@@ -69,11 +60,9 @@ services:
     restart: unless-stopped
     depends_on:
       - db
-      - redis
     environment:
       - ENVIRONMENT=development
       - DATABASE_URL=postgresql://postgres:postgres@db:5432/db
-      - REDIS_URL=redis://redis:6379
       - OTEL_EXPORTER_OTLP_ENDPOINT=http://clickstack:4317
       - OTEL_ENABLED=true
       - VITE_HYPERDX_URL=http://localhost:4318
@@ -90,7 +79,6 @@ services:
 
 volumes:
   postgres_data:
-  redis_dev:
   rustfs_data:
   django_venv:
   frontend_node_modules:

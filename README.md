@@ -10,7 +10,6 @@ A modern, production-ready Django starter kit — opinionated, lean, and ready t
 |---------|---------|
 | **Django 5.2 LTS** | Core framework |
 | **ParadeDB** (PostgreSQL 17) | Database + BM25 full-text search |
-| **Redis / Valkey 7** | Cache (`django-cacheops`) + sessions + Celery broker |
 | **MinIO** | S3-compatible local object storage |
 | **Granian** | Production ASGI server (Rust-based, async-native) |
 | **Whitenoise** | Static file serving |
@@ -21,7 +20,7 @@ A modern, production-ready Django starter kit — opinionated, lean, and ready t
 | **django-anymail** | Transactional email (Postmark / AWS SES) |
 | **django-q2** | Background tasks + schedules, Postgres as broker |
 | **Sentry SDK** | Error tracking + performance monitoring (opt-in) |
-| **OpenTelemetry** | Distributed tracing — Django, psycopg, Redis (opt-in) |
+| **OpenTelemetry** | Distributed tracing — Django, psycopg (opt-in) |
 
 ### Frontend
 
@@ -61,7 +60,7 @@ cd django-starter-kit
 
 cp .env.example .env   # configure your environment
 
-make dev-up            # starts DB, Redis, MinIO, Django, Vite, qcluster
+make dev-up            # starts DB, MinIO, Django, Vite, qcluster
 make dev-logs          # follow logs
 ```
 
@@ -79,7 +78,7 @@ python manage.py createsuperuser
 Run infrastructure only, then start the app processes locally for faster iteration:
 
 ```bash
-docker compose -f dev/docker-compose.dev.yml up db redis s3 -d
+docker compose -f dev/docker-compose.dev.yml up db s3 -d
 
 # Terminal 1 — Django
 make django-dev
@@ -143,7 +142,6 @@ Svelte components live in `frontend/src/js/svelte/` and are lazy-loaded via dyna
 | Django | `8000` | Main app |
 | Vite HMR | `5173` | Dev only — proxied by django-vite |
 | PostgreSQL | `5432` | |
-| Redis | `6379` | |
 | MinIO | `9000` / `9001` | S3 API / Web UI |
 
 ---
@@ -163,7 +161,7 @@ django-starter-kit/
 │   │   ├── dev.py         # Development overrides
 │   │   ├── production.py  # Production hardening
 │   │   └── test.py        # Test isolation
-│   ├── asgi.py            # ASGI entry point (Channels boilerplate)
+│   ├── asgi.py            # ASGI entry point (+ OTEL init)
 │   └── otel.py            # OpenTelemetry setup (opt-in)
 ├── frontend/
 │   └── src/
@@ -218,7 +216,6 @@ Copy `.env.example` to `.env` and fill in values. Key variables:
 DJANGO_SETTINGS_MODULE=config.settings.dev   # or .production / .test
 SECRET_KEY=...
 DATABASE_URL=postgresql://postgres:postgres@localhost:5432/db
-REDIS_URL=redis://localhost:6379
 
 # Optional — initialises only if set
 SENTRY_DSN=https://...
@@ -266,7 +263,7 @@ Required env vars:
 | **Python 3.14** | Bleeding-edge. Some packages may lack pre-built wheels. `uv` handles source builds. |
 | **DMR 0.x** | API framework pre-1.0. Pin version in `pyproject.toml` for stability. |
 | **Granian** | Rust ASGI server — mature but smaller ecosystem than Gunicorn+Uvicorn. |
-| **Redis single-node** | Cache, sessions, broker, Channels share one Redis. Shard for high traffic. |
+| **Postgres does it all** | Cache, sessions and the task queue live in Postgres — no Redis. Add a dedicated cache/broker only when load demands it. |
 
 ---
 

@@ -24,14 +24,8 @@ dependencies = [
     "boto3>=1.30.0",
     # Email
     "django-anymail>=10.0",
-    # Cache
-    "django-redis>=5.3.0",
-    "django-cacheops>=7.0",
     # Background Tasks (broker = the Django DB)
     "django-q2>=1.11.1",
-    # Real-time
-    "channels>=4.0.0",
-    "channels-redis>=4.0.0",
     # CORS
     "django-cors-headers>=4.3.0",
     # Observability
@@ -39,7 +33,6 @@ dependencies = [
     "opentelemetry-sdk>=1.36.0",
     "opentelemetry-exporter-otlp>=1.36.0",
     "opentelemetry-instrumentation-psycopg>=0.57b0",
-    "opentelemetry-instrumentation-redis>=0.57b0",
     # Audit
     "django-auditlog>=3.0.0",
     # Utilities
@@ -48,7 +41,7 @@ dependencies = [
     "django-import-export>=4.4.1",
     "django-simple-history>=3.11.0",
     "opentelemetry-instrumentation-asgi>=0.62b1",
-    "dj-control-room[redis,cache,urls,signals]>=1.8.1",
+    "dj-control-room[cache,urls,signals]>=1.8.1",
 ]
 
 # Dev-only: the production image runs `uv sync --no-dev`.

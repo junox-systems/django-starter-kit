@@ -18,9 +18,6 @@ initialize_opentelemetry()
 import logging  # noqa: E402
 
 from django.core.asgi import get_asgi_application  # noqa: E402
-from channels.auth import AuthMiddlewareStack  # noqa: E402
-from channels.routing import ProtocolTypeRouter, URLRouter  # noqa: E402
-from channels.security.websocket import AllowedHostsOriginValidator  # noqa: E402
 from opentelemetry.instrumentation.asgi import OpenTelemetryMiddleware  # noqa: E402
 
 logger = logging.getLogger(__name__)
@@ -39,22 +36,7 @@ if os.environ.get(
         os.environ["DJANGO_SETTINGS_MODULE"],
     )
 
-django_asgi_app = get_asgi_application()
-
-application = ProtocolTypeRouter(
-    {
-        "http": django_asgi_app,
-        "websocket": AllowedHostsOriginValidator(
-            AuthMiddlewareStack(
-                URLRouter(
-                    [
-                        # Add WebSocket URL routes here
-                    ]
-                )
-            )
-        ),
-    }
-)
+application = get_asgi_application()
 
 # Create one server span per HTTP request and propagate W3C trace context
 # between the browser (HyperDX) and the backend.

@@ -6,13 +6,13 @@ Modern Django 5.2 LTS starter kit. Opinionated, lean, production-ready.
 
 ## Tech Stack
 
-- **Backend:** Django 5.2, Granian (ASGI), ParadeDB/PG17, Redis/Valkey, django-q2 (ORM broker)
+- **Backend:** Django 5.2, Granian (ASGI), ParadeDB/PG17 (also cache + task queue — no Redis), django-q2 (ORM broker)
 - **Auth:** django-allauth (OIDC/SSO, social, email-based login)
 - **API:** django-modern-rest (DMR) 0.x — NOT DRF
 - **Frontend:** Django templates + forms (primary) → htmx 4 boosted navigation inside the app shell → Stimulus 3 mounts Svelte 5 islands → GSAP animations. See **Frontend Formula** below before touching `templates/` or `frontend/src/js/`.
 - **Styling:** Tailwind CSS v4 + Basecoat (shadcn-compatible tokens, per-site `site.css` style pack)
 - **Build:** Vite, uv (Python), pnpm (JS)
-- **Admin:** stock Django admin (with dj-control-room dashboard: redis, cache, urls, signals panels; guardian, constance, import_export, simple_history)
+- **Admin:** stock Django admin (with dj-control-room dashboard: cache, urls, signals panels; guardian, constance, import_export, simple_history)
 - **Observability:** Sentry (opt-in), OpenTelemetry (opt-in)
 - **Tooling:** ruff (lint/format), pytest, django-debug-toolbar
 
@@ -27,7 +27,7 @@ apps/           # Django apps
   dashboard/    # Authenticated home at /dashboard/ — panel payloads, no models
 config/         # Django project config
   settings/     # base.py + dev.py + production.py + test.py
-  asgi.py       # Channels boilerplate + OTEL init
+  asgi.py       # ASGI app + OTEL init
   otel.py       # OpenTelemetry (opt-in)
 frontend/       # JS/CSS assets
   src/css/
@@ -258,7 +258,7 @@ Each of these has already caused a real bug in this repo.
 2. **Never add OIDC fields to User model** — allauth SocialAccount handles it
 3. **Never add Turbo back** — replaced by htmx 4 boosted navigation
 4. **Never create new files outside apps/ for backend code** — everything goes in apps/
-5. **Never tune cacheops/auditlog for hypothetical scale** — starter kit, YAGNI
+5. **Never tune caching/auditlog for hypothetical scale** — starter kit, YAGNI
 6. **Never auto-enable SSL/HSTS** — must be manual per deployment
 7. **Never let Svelte own URLs, navigation, or page chrome** — Django resolves
    URLs and renders structure; islands receive data. See **Frontend Formula**.

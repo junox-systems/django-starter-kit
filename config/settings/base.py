@@ -16,7 +16,6 @@ env = environ.Env(
     SECRET_KEY=(str, "django-insecure-development-key-for-local-use-only"),
     ALLOWED_HOSTS=(list, []),
     DATABASE_URL=(str, "postgresql://postgres:postgres@db:5432/db"),
-    REDIS_URL=(str, "redis://redis:6379"),
     AWS_ACCESS_KEY_ID=(str, ""),
     AWS_SECRET_ACCESS_KEY=(str, ""),
     AWS_STORAGE_BUCKET_NAME=(str, ""),
@@ -55,7 +54,6 @@ INSTALLED_APPS = [
     # DJ Control Room — shared core lib first, then panels, then control room
     # (so all panels appear under one "DJ Control Room" section in admin)
     "dj_control_room_base",
-    "dj_redis_panel",
     "dj_cache_panel",
     "dj_urls_panel",
     "dj_signals_panel",
@@ -76,10 +74,8 @@ INSTALLED_APPS = [
     "corsheaders",
     "django_vite",
     "imagekit",
-    "channels",
     "anymail",
     "auditlog",
-    "cacheops",
 ]
 
 MIDDLEWARE = [
@@ -112,15 +108,6 @@ DMR_SETTINGS: dict = {
 ROOT_URLCONF = "config.urls"
 
 ASGI_APPLICATION = "config.asgi.application"
-
-CHANNEL_LAYERS = {
-    "default": {
-        "BACKEND": "channels_redis.pubsub.RedisPubSubChannelLayer",
-        "CONFIG": {
-            "hosts": [env("REDIS_URL")],
-        },
-    },
-}
 
 TEMPLATES = [
     {
@@ -283,13 +270,15 @@ EMAIL_BACKEND = "anymail.backends.postmark.EmailBackend"
 # ------------------------------------------------------------------------------
 CACHES = {
     "default": {
-        "BACKEND": "django_redis.cache.RedisCache",
-        "LOCATION": env("REDIS_URL"),
-        "OPTIONS": {
-            "CLIENT_CLASS": "django_redis.client.DefaultClient",
-        },
+        # Postgres-backed: no Redis. Table created by apps/core migration 0001.
+        "BACKEND": "django.core.cache.backends.db.DatabaseCache",
+        "LOCATION": "django_cache",
     }
 }
+
+# django-constance defaults to its Redis backend; keep settings in Postgres.
+CONSTANCE_BACKEND = "constance.backends.database.DatabaseBackend"
+
 # django-q2
 # ------------------------------------------------------------------------------
 # The ORM is the broker: tasks queue in Postgres, no Redis. Run workers with
@@ -304,14 +293,6 @@ Q_CLUSTER = {
     "catch_up": False,  # skip schedules missed while the cluster was down
 }
 
-# DJ Control Room — redis panel instances
-# ------------------------------------------------------------------------------
-DJ_REDIS_PANEL_SETTINGS = {
-    "INSTANCES": {
-        "default": {"url": env("REDIS_URL")},
-    },
-}
-
 # Anymail
 # ------------------------------------------------------------------------------
 ANYMAIL = {
@@ -324,13 +305,11 @@ _sentry_dsn = env("SENTRY_DSN")
 if _sentry_dsn:
     import sentry_sdk
     from sentry_sdk.integrations.django import DjangoIntegration
-    from sentry_sdk.integrations.redis import RedisIntegration
 
     sentry_sdk.init(
         dsn=_sentry_dsn,
         integrations=[
             DjangoIntegration(),
-            RedisIntegration(),
         ],
         traces_sample_rate=0.1,
         send_default_pii=False,
@@ -345,15 +324,3 @@ IMAGEKIT_DEFAULT_CACHEFILE_STRATEGY = "imagekit.cachefiles.strategies.Optimistic
 # Default primary key field type
 # https://docs.djangoproject.com/en/stable/ref/settings/#default-auto-field
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
-
-# Cacheops
-# ------------------------------------------------------------------------------
-CACHEOPS_REDIS = env("REDIS_URL")
-CACHEOPS_DEFAULTS = {
-    "timeout": 60 * 15,  # 15 minutes default
-}
-CACHEOPS = {
-    "users.User": {"ops": "get", "timeout": 60 * 15},
-    "auth.*": {"ops": ("fetch", "get"), "timeout": 60 * 15},
-}
-CACHEOPS_DEGRADE_ON_FAILURE = True

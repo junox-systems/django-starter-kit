@@ -40,9 +40,9 @@ dev-up:
 
 alias dev := dev-up
 
-# Same stack minus analytics (no clickstack): db, redis, s3, app
+# Same stack minus analytics (no clickstack): db, s3, app
 dev-slim:
-    {{compose}} up -d --build db redis s3 app
+    {{compose}} up -d --build db s3 app
 
 dev-down:
     {{compose}} down

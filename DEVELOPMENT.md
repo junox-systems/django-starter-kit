@@ -13,7 +13,6 @@ The project includes a complete Docker development environment with all necessar
 | Service | Image | Purpose |
 |---------|-------|---------|
 | **ParadeDB** | `paradedb/paradedb:0.18.0-pg17` | PostgreSQL 17 + BM25 search extensions |
-| **Redis / Valkey** | `valkey/valkey:7-alpine` | Cache, session storage |
 | **MinIO** | `bitnami/minio:2025.4.22` | S3-compatible local object storage (UI at `:9001`) |
 
 > **Note:** Pin MinIO to `2025.4.22` — newer versions removed the web UI.
@@ -65,7 +64,6 @@ There is no routing logic in `config/settings/__init__.py` — it is intentional
 # Required in production
 SECRET_KEY=...
 DATABASE_URL=postgresql://user:pass@host:5432/db
-REDIS_URL=redis://host:6379
 ENVIRONMENT=production
 
 # Optional — Sentry (only initialises if set)
@@ -94,7 +92,7 @@ POSTMARK_SERVER_TOKEN=...
 - **`apps/` vs `frontend/`:** Python/Django code in `apps/`. All JS, CSS, and images in `frontend/`. Clean boundary between backend and frontend work.
 - **The `core` App:** Only truly universal, project-wide code lives here. Currently: `BaseModel` (UUID + timestamps). If a piece of functionality grows (e.g., notifications), extract it to its own dedicated app.
 - **Fat Models, Thin Views:** Business logic in models, managers, and service functions. Views are thin HTTP handlers.
-- **Let Packages Do Their Job:** Don't reimplement what `django-allauth`, `django-auditlog`, or `django-cacheops` already provide. Write integration, not reimplementation.
+- **Let Packages Do Their Job:** Don't reimplement what `django-allauth`, or `django-auditlog` already provide. Write integration, not reimplementation.
 
 ---
 
@@ -162,18 +160,12 @@ auditlog.register(MyModel)
 
 Logs are accessible at `/admin/auditlog/` and via `MyModel.history`.
 
-### Caching (django-cacheops)
+### Caching (database cache)
 
-Declarative ORM-level caching is provided by `django-cacheops`. Configure in `config/settings/base.py`:
-
-```python
-CACHEOPS = {
-    "users.User": {"ops": "get", "timeout": 60 * 15},
-    "myapp.MyModel": {"ops": ("fetch", "get"), "timeout": 60 * 5},
-}
-```
-
-`CACHEOPS_DEGRADE_ON_FAILURE = True` means the app works normally if Redis is down.
+`CACHES["default"]` is Django's `DatabaseCache` — Postgres-backed, no Redis. Its
+table is created by `apps/core` migration `0001_create_cache_table`, so `migrate`
+is enough. Use the standard cache API (`django.core.cache.cache`,
+`@cache_page`) where a view is measurably slow.
 
 ---
 
@@ -303,7 +295,7 @@ Initialises automatically if `SENTRY_DSN` is set. Features:
 
 ### OpenTelemetry
 
-Opt-in via `OTEL_ENABLED=true`. Instruments Django, psycopg, and Redis. Exports to any OTLP-compatible backend (SigNoz, Grafana Tempo, etc.).
+Opt-in via `OTEL_ENABLED=true`. Instruments Django and psycopg. Exports to any OTLP-compatible backend (SigNoz, Grafana Tempo, etc.).
 
 ---
 

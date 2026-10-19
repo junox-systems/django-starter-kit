@@ -10,7 +10,6 @@ Only the essential instrumentors are included:
 - `opentelemetry-exporter-otlp`
 - `opentelemetry-instrumentation-django`
 - `opentelemetry-instrumentation-psycopg`
-- `opentelemetry-instrumentation-redis`
 
 ## Configuration
 
@@ -31,7 +30,6 @@ When enabled, the following are automatically traced:
 
 - **Django** — HTTP requests and responses
 - **psycopg** — PostgreSQL database queries
-- **Redis** — cache and broker operations
 
 That's it. No extra instrumentors for urllib, threading, asyncio, system metrics, etc. — add them only if you need them.
 

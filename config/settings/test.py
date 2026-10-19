@@ -40,9 +40,6 @@ CACHES = {
     }
 }
 
-# Disable cacheops during tests
-CACHEOPS_ENABLED = False
-
 # Disable logging during tests for cleaner output
 LOGGING_CONFIG = None
 

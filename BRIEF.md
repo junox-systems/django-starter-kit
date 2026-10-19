@@ -28,7 +28,7 @@ The system is a modular monolithic web application built on the Django framework
 
 - **Presentation Layer (Frontend):** Renders the user interface using Django's templating engine, styled with Tailwind CSS v4 + Basecoat (shadcn-compatible tokens, per-site `site.css` style pack), and enhanced with Svelte 5 for high-interactivity islands. Stimulus acts as the controller glue for mounting components.
 - **Application Layer (Backend):** Contains the core business logic, managed by Django views. API endpoints will be served by **django-modern-rest (DMR)** (replacing DRF). Asynchronous tasks are handled by django-q2, using the database as broker.
-- **Data Layer:** Manages data persistence, caching, and search. This includes a primary relational database (**ParadeDB**) for structured data and full-text search, and an in-memory cache (**Redis / Valkey**) for high-speed data access via **django-cacheops**.
+- **Data Layer:** Manages data persistence, caching, and search. This includes a primary relational database (**ParadeDB**) for structured data and full-text search. Cache, sessions and the task queue also live in Postgres — there is no Redis.
 
 ---
 
@@ -39,7 +39,7 @@ All Python dependencies are managed by **`uv`** via a single `pyproject.toml` fi
 - **Backend Framework:** Django 5.2 LTS
 - **API Framework:** django-modern-rest (DMR) *(DRF is present as a placeholder until DMR integration is complete)*
 - **Database:** ParadeDB (PostgreSQL 17 with search & analytics extensions)
-- **Cache:** Redis / Valkey 7 — `django-redis` + `django-cacheops`
+- **Cache:** Django `DatabaseCache` (Postgres)
 - **Task Queue:** django-q2 (the Django ORM / Postgres is the broker)
 - **Python Tooling:** `uv` (package manager), `ruff` (linter/formatter), `pytest` (testing)
 - **Configuration:** `django-environ` (env var management via `env.db()`, `env.bool()`, etc.)
@@ -48,10 +48,9 @@ All Python dependencies are managed by **`uv`** via a single `pyproject.toml` fi
 - **Frontend Bundler:** Vite (`django-vite`)
 - **Frontend Styling:** Tailwind CSS v4 + Basecoat (shadcn-compatible tokens, per-site `site.css` style pack)
 - **Interactivity:** htmx 4 (boosted navigation within the app shell) + Stimulus 3 (controller glue) + Svelte 5 (interactive islands) + GSAP 3 (animations)
-- **Real-time/WebSockets:** `django-channels` + `channels-redis` (boilerplate ready; routes added per-app)
 - **Email:** `django-anymail` (Postmark or AWS SES)
 - **File Storage:** `django-storages` (S3-compatible backend) + `django-imagekit` (image processing)
-- **Observability:** Sentry SDK (error tracking + 10% performance sampling) + OpenTelemetry (Django, psycopg, Redis instrumentors only; opt-in via `OTEL_ENABLED=true`)
+- **Observability:** Sentry SDK (error tracking + 10% performance sampling) + OpenTelemetry (Django, psycopg instrumentors only; opt-in via `OTEL_ENABLED=true`)
 - **Server:** Granian 2.5+ (Production ASGI) + Whitenoise (Static File Serving)
 
 ---
@@ -106,7 +105,7 @@ ParadeDB provides BM25 full-text search and columnar analytics. Queries are writ
 
 #### **6.4. Caching**
 
-`django-cacheops` provides declarative ORM-level caching backed by Redis. Configure `CACHEOPS` in `settings/base.py` per model. `CACHEOPS_DEGRADE_ON_FAILURE = True` ensures the app degrades gracefully if Redis is unavailable.
+Django's `DatabaseCache` in Postgres. Its table is created by a migration in `apps/core`. Cache views or values with the standard cache API when profiling shows a need.
 
 #### **6.5. File & Media Management**
 
@@ -150,7 +149,7 @@ mounted via Stimulus controllers using the Svelte 5 `mount()` / `unmount()` API.
 
 ### **8. Performance & Optimization**
 
-- **Caching:** `django-cacheops` for declarative ORM caching. `django-redis` for session and low-level cache API.
+- **Caching:** Django's database cache for the low-level cache API.
 - **Database Queries:** Use `select_related` and `prefetch_related` to prevent N+1 problems. `django-debug-toolbar` is installed in development.
 - **Asynchronous Tasks:** Offload long-running tasks to **django-q2** (database broker) to keep web requests fast.
 
@@ -163,7 +162,7 @@ mounted via Stimulus controllers using the Svelte 5 `mount()` / `unmount()` API.
 - **CI/CD Pipeline:** GitHub Actions automates linting (`ruff`), testing (`pytest`), Docker image build, and deployment.
 - **Observability:**
   - **Error Tracking:** Sentry SDK — initializes only if `SENTRY_DSN` is set. `traces_sample_rate=0.1` (10%). No PII sent.
-  - **Performance Tracing:** OpenTelemetry — opt-in via `OTEL_ENABLED=true`. Instruments Django, psycopg, and Redis only.
+  - **Performance Tracing:** OpenTelemetry — opt-in via `OTEL_ENABLED=true`. Instruments Django and psycopg only.
 
 ---
 
