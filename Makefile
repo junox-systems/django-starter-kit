@@ -37,10 +37,10 @@ test:
 dev-up dev:
 	docker compose -f dev/docker-compose.dev.yml up --build -d
 
-# Same stack minus analytics (no clickstack): db, s3, app
+# Same stack minus analytics (no clickstack): db, app
 .PHONY: dev-slim
 dev-slim:
-	docker compose -f dev/docker-compose.dev.yml up -d --build db s3 app
+	OTEL_ENABLED=false docker compose -f dev/docker-compose.dev.yml up -d --build db app
 
 .PHONY: dev-down dev-stop
 dev-down dev-stop stop:
