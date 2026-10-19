@@ -18,7 +18,10 @@ services:
       AWS_S3_PUBLIC_ENDPOINT_URL: ${AWS_S3_PUBLIC_ENDPOINT_URL:-}
       SENTRY_DSN: ${SENTRY_DSN:-}
       POSTMARK_SERVER_TOKEN: ${POSTMARK_SERVER_TOKEN:-}
+      DEFAULT_FROM_EMAIL: ${DEFAULT_FROM_EMAIL:?DEFAULT_FROM_EMAIL required}
       ALLOWED_HOSTS: ${ALLOWED_HOSTS:-localhost}
+      # https origin(s) nginx serves, e.g. https://example.com
+      CSRF_TRUSTED_ORIGINS: ${CSRF_TRUSTED_ORIGINS:?CSRF_TRUSTED_ORIGINS required}
       SECRET_KEY: ${SECRET_KEY:?SECRET_KEY required}
     depends_on:
       - db
@@ -53,6 +56,7 @@ services:
       AWS_S3_PUBLIC_ENDPOINT_URL: ${AWS_S3_PUBLIC_ENDPOINT_URL:-}
       SENTRY_DSN: ${SENTRY_DSN:-}
       POSTMARK_SERVER_TOKEN: ${POSTMARK_SERVER_TOKEN:-}
+      DEFAULT_FROM_EMAIL: ${DEFAULT_FROM_EMAIL:?DEFAULT_FROM_EMAIL required}
       SECRET_KEY: ${SECRET_KEY:?SECRET_KEY required}
     depends_on:
       - db
@@ -62,7 +66,7 @@ services:
       - backend
 
   db:
-    image: pgvector/pgvector:0.8.6-pg18
+    image: paradedb/paradedb:0.26.2-pg18
     deploy:
       replicas: 1
       restart_policy:
@@ -72,34 +76,12 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD required}
       POSTGRES_DB: ${POSTGRES_DB:-django}
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - postgres_data:/var/lib/postgresql
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-django} -d ${POSTGRES_DB:-django}"]
       interval: 5s
       timeout: 5s
       retries: 5
-    networks:
-      - backend
-
-  s3:
-    image: rustfs/rustfs:1.0.0-alpha.86
-    deploy:
-      replicas: 1
-      restart_policy:
-        condition: any
-    environment:
-      RUSTFS_ACCESS_KEY: ${RUSTFS_ACCESS_KEY:-rustfsadmin}
-      RUSTFS_SECRET_KEY: ${RUSTFS_SECRET_KEY:?RUSTFS_SECRET_KEY required}
-      RUSTFS_ADDRESS: 0.0.0.0:9000
-      RUSTFS_EXTERNAL_ADDRESS: ":9000"
-      RUSTFS_CORS_ALLOWED_ORIGINS: "*"
-    volumes:
-      - rustfs_data:/data
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:9000/health"]
-      interval: 10s
-      timeout: 5s
-      retries: 3
     networks:
       - backend
 
@@ -129,7 +111,6 @@ configs:
 
 volumes:
   postgres_data:
-  rustfs_data:
 
 networks:
   backend:

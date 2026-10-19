@@ -9,8 +9,7 @@ A modern, production-ready Django starter kit — opinionated, lean, and ready t
 | Package | Purpose |
 |---------|---------|
 | **Django 5.2 LTS** | Core framework |
-| **PostgreSQL 18** (pgvector image) | Database, cache, settings and task queue |
-| **RustFS** | S3-compatible media storage in the production stack |
+| **PostgreSQL 18** (ParadeDB image) | Database, BM25/vector search (`django-paradedb`), cache, settings and task queue |
 | **Granian** | Production ASGI server (Rust-based, async-native) |
 | **Whitenoise** | Static file serving |
 | **django-allauth** | Auth — local accounts, OIDC/SSO, social login |
@@ -237,7 +236,9 @@ Required env vars:
 - `SECRET_KEY` — Django secret
 - `IMAGE_NAME` — Docker image for stack
 - `POSTGRES_PASSWORD` — DB password
-- `RUSTFS_SECRET_KEY` — S3 secret key
+- `DEFAULT_FROM_EMAIL` — sender verified in Postmark
+- `CSRF_TRUSTED_ORIGINS` — public https origin(s), e.g. `https://example.com`
+- `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `AWS_STORAGE_BUCKET_NAME` — external S3 bucket for media (optional `AWS_S3_ENDPOINT_URL` for non-AWS)
 
 ### Known Caveats
 

@@ -41,6 +41,7 @@ dependencies = [
     "django-import-export>=4.4.1",
     "opentelemetry-instrumentation-asgi>=0.62b1",
     "dj-control-room[cache,urls,signals]>=1.8.1",
+    "django-paradedb>=0.15.0",
 ]
 
 # Dev-only: the production image runs `uv sync --no-dev`.
@@ -55,7 +56,7 @@ dev = [
 
 [tool.ruff]
 line-length = 88
-target-version = "py312"
+target-version = "py314"
 # Ruff 0.17 widened its defaults (Markdown code blocks, more rules). Pin the
 # previous ones; adopt new rules deliberately, not via a version bump.
 include = ["*.py", "*.pyi", "*.ipynb"]

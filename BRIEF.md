@@ -27,7 +27,7 @@ The architecture covers the backend structure, data modeling, frontend integrati
 The system is a modular monolithic web application built on the Django framework. While monolithic in codebase, its dependencies (database, cache, message broker) are decoupled services, enabling flexible deployment and scaling.
 
 - **Presentation Layer (Frontend):** Renders the user interface using Django's templating engine, styled with Tailwind CSS v4 + Basecoat (shadcn-compatible tokens, per-site `site.css` style pack), and enhanced with Svelte 5 for high-interactivity islands. Stimulus acts as the controller glue for mounting components.
-- **Application Layer (Backend):** Contains the core business logic, managed by Django views. API endpoints will be served by **django-modern-rest (DMR)** (replacing DRF). Asynchronous tasks are handled by django-q2, using the database as broker.
+- **Application Layer (Backend):** Contains the core business logic, managed by Django views. API endpoints are served by **django-modern-rest (DMR)**. Asynchronous tasks are handled by django-q2, using the database as broker.
 - **Data Layer:** Manages data persistence, caching, and search. This includes a primary relational database (**ParadeDB**) for structured data and full-text search. Cache, sessions and the task queue also live in Postgres — there is no Redis.
 
 ---
@@ -37,8 +37,8 @@ The system is a modular monolithic web application built on the Django framework
 All Python dependencies are managed by **`uv`** via a single `pyproject.toml` file.
 
 - **Backend Framework:** Django 5.2 LTS
-- **API Framework:** django-modern-rest (DMR) *(DRF is present as a placeholder until DMR integration is complete)*
-- **Database:** ParadeDB (PostgreSQL 17 with search & analytics extensions)
+- **API Framework:** django-modern-rest (DMR)
+- **Database:** ParadeDB (PostgreSQL 18 with `pg_search` BM25 + pgvector), queried via `django-paradedb`
 - **Cache:** Django `DatabaseCache` (Postgres)
 - **Task Queue:** django-q2 (the Django ORM / Postgres is the broker)
 - **Python Tooling:** `uv` (package manager), `ruff` (linter/formatter), `pytest` (testing)
@@ -66,7 +66,7 @@ A modular structure is mandated to ensure a clean separation of concerns.
   - **`users`**: Custom `User` model (email-based login, UUID PK, avatar). Auth and email verification managed by `django-allauth`. Audit trail via `django-auditlog`.
   - **`core`**: Foundational, project-wide abstractions. Contains `BaseModel` (UUID + timestamps). Keep this lean — if code grows into a domain, extract it to its own app.
   - **`pages`**: Static/marketing pages.
-  - **`api`**: API endpoints — *placeholder, will be replaced by DMR*.
+  - **`api`**: API endpoints (DMR controllers + msgspec schemas).
 
 ---
 
@@ -77,7 +77,7 @@ Authentication is handled by **`django-allauth`** to provide a comprehensive and
 - **Core Functionality:** Manages user registration, login/logout, password reset, and email verification.
 - **OpenID Connect (OIDC):** Pre-configured for OIDC-based SSO via `allauth.socialaccount`, enabling integration with identity providers like Authentik, Keycloak, or Okta. OIDC provider data is stored in allauth's `SocialAccount` model — not duplicated on the `User` model.
 - **Custom User Model:** The `users` app defines a custom `User` model (`settings.AUTH_USER_MODEL`) inheriting from `AbstractUser` and `BaseModel`. Email is the `USERNAME_FIELD`. UUID is the primary key.
-- **API Authentication:** Will be handled by DMR when integrated.
+- **API Authentication:** Django session auth via DMR.
 
 ---
 
@@ -101,7 +101,7 @@ The `User` model is intentionally minimal:
 
 #### **6.3. Search and Analytics (ParadeDB)**
 
-ParadeDB provides BM25 full-text search and columnar analytics. Queries are written at the service/view layer using raw SQL or ParadeDB's native Django integration. There is no custom `SearchManager` in the starter kit — add search when you need it.
+ParadeDB provides BM25 full-text search and columnar analytics. Queries are written at the service/view layer using `django-paradedb` (`ParadeDBIndex`, `ParadeDB` lookups) or raw SQL. There is no custom `SearchManager` in the starter kit — add search when you need it.
 
 #### **6.4. Caching**
 
@@ -170,4 +170,4 @@ mounted via Stimulus controllers using the Svelte 5 `mount()` / `unmount()` API.
 
 - **Modern Tooling:** This starter kit is built with modern, actively maintained, and stable tools. Outdated or unmaintained packages are strictly avoided.
 - **High-Performance Server:** **Granian** is the recommended production server. Its Rust-based, async-native architecture provides exceptional speed and concurrency for modern ASGI Django applications.
-- **API Layer:** DRF (`djangorestframework`) is present as a placeholder. It will be replaced by **django-modern-rest (DMR)** — a type-safe, async-capable, OpenAPI-first REST framework.
+- **API Layer:** **django-modern-rest (DMR)** — a type-safe, async-capable, OpenAPI-first REST framework. DRF is not used.
