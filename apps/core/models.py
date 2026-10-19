@@ -1,12 +1,12 @@
 # apps/core/models.py
 
 import uuid
-from uuid_utils import uuid7
 from django.db import models
 
 
+# Kept as a named function: migrations reference apps.core.models.uuid7_default.
 def uuid7_default():
-    return uuid.UUID(bytes=uuid7().bytes)
+    return uuid.uuid7()
 
 
 class BaseModel(models.Model):

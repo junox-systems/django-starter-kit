@@ -46,6 +46,8 @@ class UserModelTestCase(TestCase):
         import uuid
 
         self.assertIsInstance(self.user.id, uuid.UUID)
+        # Time-ordered v7 keeps B-tree inserts append-only.
+        self.assertEqual(self.user.id.version, 7)
 
     def test_timestamps_exist(self):
         """User has created_at and updated_at from BaseModel."""
