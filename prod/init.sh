@@ -28,7 +28,7 @@ done
 echo "Database ready."
 
 echo "Running migrations..."
-uv run python manage.py migrate --noinput
+uv run python manage.py migrate_locked
 
 echo "Starting: $@"
 exec "$@"
