@@ -10,6 +10,8 @@ from django.shortcuts import redirect, render
 from django.views.decorators.http import require_http_methods
 from django.views.generic import TemplateView
 
+from apps.orgs.models import release_user
+
 
 class ProfileView(LoginRequiredMixin, TemplateView):
     template_name = "users/profile.html"
@@ -28,6 +30,10 @@ def user_export(user):
         "email_addresses": [
             {"email": e.email, "verified": e.verified, "primary": e.primary}
             for e in user.emailaddress_set.all()
+        ],
+        "organizations": [
+            {"name": m.organization.name, "role": m.role}
+            for m in user.memberships.select_related("organization")
         ],
         "social_accounts": [
             {"provider": a.provider, "uid": a.uid} for a in user.socialaccount_set.all()
@@ -53,6 +59,7 @@ def delete_account(request):
             return redirect("delete_account")
         user = request.user
         logout(request)
+        release_user(user)
         # Erase the user's own change history too (it holds their old values);
         # entries they authored elsewhere keep the change with actor=NULL.
         with disable_auditlog():

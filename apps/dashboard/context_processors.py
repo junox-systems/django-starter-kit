@@ -37,6 +37,7 @@ def _groups(is_staff):
             "items": [
                 _item("Dashboard", "dashboard", "dashboard"),
                 _item("Profile", "profile", "user"),
+                _item("Organizations", "orgs", "users"),
             ],
         },
         {"label": "Account", "items": account},

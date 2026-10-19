@@ -1,0 +1,79 @@
+{% extends "base_app.html" %}
+
+{% block title %}{{ org.name }} — Django Starter Kit{% endblock %}
+{% block page_title %}{{ org.name }}{% endblock %}
+
+{% block content %}
+<div class="w-full max-w-2xl space-y-6">
+  <div class="card">
+    <header class="p-5">
+      <h2 class="text-3xl font-bold">{{ org.name }}</h2>
+      <p class="text-muted-foreground mt-2 text-sm">Members</p>
+    </header>
+    <section class="p-5">
+      <ul class="divide-y">
+        {% for m in memberships %}
+          <li class="flex flex-wrap items-center justify-between gap-3 py-3">
+            <span class="text-sm">{{ m.user.email }}{% if m == membership %} (you){% endif %}</span>
+            <span class="flex items-center gap-2">
+              <span class="badge" data-variant="{% if m.is_owner %}primary{% else %}secondary{% endif %}">{{ m.get_role_display }}</span>
+              {% if m == membership or membership.is_owner %}
+                <form method="post" action="{% url 'membership_remove' org.pk m.pk %}">
+                  {% csrf_token %}
+                  <button type="submit" class="btn" data-variant="ghost" data-size="sm">{% if m == membership %}Leave{% else %}Remove{% endif %}</button>
+                </form>
+              {% endif %}
+            </span>
+          </li>
+        {% endfor %}
+      </ul>
+    </section>
+  </div>
+
+  {% if membership.is_owner %}
+    <div class="card">
+      <header class="p-5">
+        <h3 class="text-lg font-bold">Invite someone</h3>
+        <p class="text-muted-foreground mt-1 text-sm">They get an email link and join after signing in with that address.</p>
+      </header>
+      <section class="space-y-4 p-5">
+        <form method="post" class="space-y-4">
+          {% csrf_token %}
+          {% include "account/_form_fields.html" %}
+          <button type="submit" class="btn">Send invitation</button>
+        </form>
+        {% if invitations %}
+          <ul class="divide-y border-t">
+            {% for invitation in invitations %}
+              <li class="flex items-center justify-between gap-3 py-3">
+                <span class="text-sm">{{ invitation.email }} <span class="badge" data-variant="outline">Pending</span></span>
+                <form method="post" action="{% url 'invitation_revoke' org.pk invitation.pk %}">
+                  {% csrf_token %}
+                  <button type="submit" class="btn" data-variant="ghost" data-size="sm">Revoke</button>
+                </form>
+              </li>
+            {% endfor %}
+          </ul>
+        {% endif %}
+      </section>
+    </div>
+
+    <div class="card">
+      <header class="p-5">
+        <h3 class="text-lg font-bold">Delete organization</h3>
+        <p class="text-muted-foreground mt-1 text-sm">Removes the organization, its memberships and pending invitations.</p>
+      </header>
+      <section class="p-5">
+        <form method="post" action="{% url 'org_delete' org.pk %}">
+          {% csrf_token %}
+          <button type="submit" class="btn" data-variant="destructive">Delete {{ org.name }}</button>
+        </form>
+      </section>
+    </div>
+  {% endif %}
+
+  <p class="text-muted-foreground text-sm">
+    <a href="{% url 'orgs' %}" class="underline-offset-4 hover:underline">All organizations</a>
+  </p>
+</div>
+{% endblock %}

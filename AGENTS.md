@@ -25,6 +25,7 @@ apps/           # Django apps
   api/          # API endpoints (DMR)
   pages/        # Static/marketing pages
   dashboard/    # Authenticated home at /dashboard/ — panel payloads, no models
+  orgs/         # Organizations, memberships (owner/member), email invitations
 config/         # Django project config
   settings/     # base.py + dev.py + production.py + test.py
   asgi.py       # ASGI app + OTEL init
