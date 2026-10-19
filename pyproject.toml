@@ -20,7 +20,7 @@ dependencies = [
     # Storage & Media
     "django-storages>=1.14.0",
     "django-imagekit>=5.0.0",
-    "pillow>=10.0.0",
+    "pillow>=13.0.0",
     "boto3>=1.30.0",
     # Email
     "django-anymail>=10.0",
@@ -56,7 +56,7 @@ dependencies = [
 # Dev-only: the production image runs `uv sync --no-dev`.
 [dependency-groups]
 dev = [
-    "django-debug-toolbar>=6.0.0",
+    "django-debug-toolbar>=8.0.0",
     "django-stubs>=5.2.9,<5.3",
     "pytest>=9.1.1",
     "pytest-django>=4.14.0",
