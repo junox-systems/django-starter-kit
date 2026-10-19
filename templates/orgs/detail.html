@@ -46,7 +46,7 @@
           <ul class="divide-y border-t">
             {% for invitation in invitations %}
               <li class="flex items-center justify-between gap-3 py-3">
-                <span class="text-sm">{{ invitation.email }} <span class="badge" data-variant="outline">Pending</span></span>
+                <span class="text-sm">{{ invitation.email }} {% if invitation.is_expired %}<span class="badge" data-variant="destructive">Expired</span>{% else %}<span class="badge" data-variant="outline">Pending</span>{% endif %}</span>
                 <form method="post" action="{% url 'invitation_revoke' org.pk invitation.pk %}">
                   {% csrf_token %}
                   <button type="submit" class="btn" data-variant="ghost" data-size="sm">Revoke</button>

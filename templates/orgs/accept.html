@@ -10,7 +10,11 @@
       <h2 class="text-3xl font-bold">Join {{ invitation.organization.name }}</h2>
     </header>
     <section class="p-5">
-      {% if email_matches %}
+      {% if invitation.is_expired %}
+        <div class="alert" data-variant="destructive" role="alert">
+          <p>This invitation has expired. Ask an owner of {{ invitation.organization.name }} to invite you again.</p>
+        </div>
+      {% elif email_matches %}
         <form method="post">
           {% csrf_token %}
           <button type="submit" class="btn">Accept invitation</button>

@@ -56,8 +56,10 @@ def org_detail(request, pk):
             if org.members.filter(email=email).exists():
                 form.add_error("email", "Already a member.")
             else:
-                invitation, _ = Invitation.objects.get_or_create(
-                    organization=org, email=email, defaults={"invited_by": request.user}
+                # Re-inviting replaces the old invite: fresh token, fresh expiry.
+                Invitation.objects.filter(organization=org, email=email).delete()
+                invitation = Invitation.objects.create(
+                    organization=org, email=email, invited_by=request.user
                 )
                 accept_url = request.build_absolute_uri(
                     reverse("invitation_accept", args=[invitation.token])
@@ -132,6 +134,10 @@ def invitation_accept(request, token):
     email_matches = request.user.emailaddress_set.filter(
         email__iexact=invitation.email, verified=True
     ).exists()
+    if invitation.is_expired:
+        return render(
+            request, "orgs/accept.html", {"invitation": invitation}, status=410
+        )
     if request.method == "POST" and email_matches:
         with transaction.atomic():
             Membership.objects.get_or_create(

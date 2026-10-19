@@ -3,10 +3,12 @@
 quotas and shared data to Organization, not User."""
 
 import secrets
+from datetime import timedelta
 
 from auditlog.registry import auditlog
 from django.conf import settings
 from django.db import models
+from django.utils import timezone
 
 from apps.core.models import BaseModel
 
@@ -50,6 +52,9 @@ class Membership(BaseModel):
         return self.role == self.Role.OWNER
 
 
+INVITATION_TTL = timedelta(days=7)
+
+
 def invitation_token():
     return secrets.token_urlsafe(32)
 
@@ -73,6 +78,10 @@ class Invitation(BaseModel):
 
     def __str__(self):
         return f"{self.email} to {self.organization}"
+
+    @property
+    def is_expired(self):
+        return timezone.now() - self.created_at > INVITATION_TTL
 
 
 auditlog.register(Organization)
