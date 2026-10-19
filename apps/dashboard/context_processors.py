@@ -1,7 +1,7 @@
 # apps/dashboard/context_processors.py
 """App shell navigation.
 
-The sidebar is a persistent Svelte island (Sidebar.svelte) that survives Turbo
+The sidebar is a persistent Svelte island (Sidebar.svelte) that survives htmx
 navigations, so it cannot re-render from server HTML per page. It therefore
 receives its links once as props and tracks the active item client-side.
 
@@ -27,8 +27,8 @@ def _groups(is_staff):
         _item("Connections", "socialaccount_connections", "link"),
     ]
     if is_staff:
-        # Admin is outside the Turbo-enabled shell — force a full page load.
-        account.append(_item("Admin", "admin:index", "shield", turbo=False))
+        # Admin is outside the boosted shell — force a full page load.
+        account.append(_item("Admin", "admin:index", "shield", boost=False))
 
     return [
         {

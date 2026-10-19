@@ -1,5 +1,6 @@
 import { Controller } from "@hotwired/stimulus";
 import { mount, unmount } from "svelte";
+import htmx from "htmx.org";
 
 // ---------------------------------------------------------------------------
 // svelte-bridge: the only thing allowed to connect Django and Svelte.
@@ -58,11 +59,11 @@ export default class extends Controller {
     return JSON.parse(el.textContent);
   }
 
-  // A permanent mount point (data-turbo-permanent) survives Turbo
-  // navigation, so its island must too: adopt it across visits instead of
-  // letting it blink in and out.
+  // A permanent mount point (hx-preserve) survives boosted htmx navigation,
+  // so its island must too: adopt it across visits instead of letting it
+  // blink in and out.
   get isPermanent() {
-    return this.element.hasAttribute("data-turbo-permanent");
+    return this.element.hasAttribute("hx-preserve");
   }
 
   connect() {
@@ -71,14 +72,17 @@ export default class extends Controller {
     const name = this.componentValue;
     if (!name) return;
 
-    // Turbo relocates a data-turbo-permanent element into the next page
-    // rather than rebuilding it, which makes Stimulus disconnect and
-    // reconnect. The existing instance is still valid — adopt it instead of
-    // mounting a second copy, so the island never blinks or leaks listeners.
+    // htmx moves an hx-preserve element into the next page rather than
+    // rebuilding it, which can make Stimulus disconnect and reconnect. The
+    // existing instance is still valid — adopt it instead of mounting a
+    // second copy, so the island never blinks or leaks listeners.
     if (this.element.__svelteIsland) {
       this.instance = this.element.__svelteIsland;
       return;
     }
+    // Reconnected while the first chunk is still downloading: that load will
+    // mount, so starting another would put two islands in one element.
+    if (this.loading) return;
 
     const loader = components[`../svelte/${name}.svelte`];
     if (!loader) {
@@ -88,6 +92,7 @@ export default class extends Controller {
       return;
     }
 
+    this.loading = true;
     loader()
       .then((mod) => {
         // The user may have navigated away while this chunk was downloading;
@@ -97,19 +102,25 @@ export default class extends Controller {
           target: this.element,
           props: this.resolvedProps,
         });
+        // htmx only scans the DOM it swaps in, so boost the links the island
+        // just rendered (e.g. the sidebar nav inside the boosted shell).
+        htmx.process(this.element);
         // Stamp the instance on the element so a future visit (re-connect
-        // after Turbo relocation) finds and adopts it instead of remounting.
+        // after an hx-preserve move) finds and adopts it instead of remounting.
         if (this.isPermanent) this.element.__svelteIsland = this.instance;
       })
       .catch((err) => {
         // Chunk failed to load or parse: surface it, keep the page alive.
         console.error(`svelte-bridge: failed to load ${name}.svelte`, err);
+      })
+      .finally(() => {
+        this.loading = false;
       });
   }
 
   disconnect() {
     if (this.isPermanent) {
-      // Mid-visit Turbo detaches the element before reattaching it, so absence
+      // Mid-swap htmx detaches the element before reattaching it, so absence
       // right now proves nothing. Re-check on the next tick: still detached
       // means it was genuinely discarded (we left the shell) and must be torn
       // down, or its effects and document listeners leak.

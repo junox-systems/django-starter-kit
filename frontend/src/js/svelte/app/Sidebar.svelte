@@ -2,10 +2,10 @@
   // App shell navigation.
   //
   // Mounted into the `.sidebar` element in base_app.html, which is marked
-  // data-turbo-permanent — so this component is created ONCE and survives every
-  // Turbo navigation. It therefore cannot rely on server-rendered active state:
+  // hx-preserve — so this component is created ONCE and survives every boosted
+  // htmx navigation. It therefore cannot rely on server-rendered active state:
   // it derives the active item from location.pathname and refreshes on
-  // `turbo:load`. Layout/visibility stay with Basecoat CSS + the sidebar
+  // `htmx:after:history:push`. Layout/visibility stay with Basecoat CSS + the sidebar
   // Stimulus controller; this component only renders <nav> contents.
   let { groups } = $props();
 
@@ -18,11 +18,11 @@
     const sync = () => {
       path = window.location.pathname;
     };
-    // turbo:load covers Drive visits; popstate covers back/forward.
-    document.addEventListener("turbo:load", sync);
+    // history:push covers boosted visits; popstate covers back/forward.
+    document.addEventListener("htmx:after:history:push", sync);
     window.addEventListener("popstate", sync);
     return () => {
-      document.removeEventListener("turbo:load", sync);
+      document.removeEventListener("htmx:after:history:push", sync);
       window.removeEventListener("popstate", sync);
     };
   });
@@ -70,7 +70,7 @@
               <a
                 href={item.href}
                 aria-current={item.href === activeHref ? "page" : undefined}
-                data-turbo={item.turbo === false ? "false" : undefined}
+                hx-boost={item.boost === false ? "false" : undefined}
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"

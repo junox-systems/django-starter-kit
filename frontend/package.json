@@ -15,10 +15,10 @@
     "@fontsource-variable/manrope": "^5.3.0",
     "@fontsource-variable/space-grotesk": "^5.3.0",
     "@hotwired/stimulus": "^3.2.2",
-    "@hotwired/turbo": "^8.0.23",
     "@hyperdx/browser": "^0.25.1",
     "basecoat-css": "^1.0.2",
     "gsap": "^3.15.0",
+    "htmx.org": "4.0.0",
     "svelte": "^5.55.5",
     "three": "0.185.1",
     "vite": "^8.0.12"

@@ -143,6 +143,31 @@ class ProfileMovedUnderDashboardTests(TestCase):
         self.assertEqual(self.client.get("/profile/").status_code, 404)
 
 
+class AppNavTests(TestCase):
+    def _items(self, **user_fields):
+        user = User.objects.create_user(
+            email="nav@example.com", username="nav", password="s3cret-pw", **user_fields
+        )
+        self.client.force_login(user)
+        response = self.client.get(reverse("dashboard"))
+        groups = response.context["app_nav"]["groups"]
+        return response, [item for group in groups for item in group["items"]]
+
+    def test_admin_link_only_for_staff_and_not_boosted(self):
+        _, items = self._items()
+        self.assertNotIn("Admin", [i["label"] for i in items])
+
+        User.objects.all().delete()
+        _, items = self._items(is_staff=True)
+        admin = next(i for i in items if i["label"] == "Admin")
+        self.assertIs(admin["boost"], False)
+
+    def test_sidebar_is_preserved_across_boosted_visits(self):
+        response, _ = self._items()
+        self.assertContains(response, 'hx-boost:inherited="true"')
+        self.assertContains(response, "hx-preserve")
+
+
 class DashboardActivityAPITests(TestCase):
     def setUp(self):
         self.user = User.objects.create_user(

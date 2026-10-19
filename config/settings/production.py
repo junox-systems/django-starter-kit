@@ -12,6 +12,12 @@ DMR_SETTINGS.update({Settings.validate_responses: False})
 # ------------------------------------------------------------------------------
 DEBUG = False
 
+# base.py falls back to a public dev key; never serve production with it.
+if SECRET_KEY.startswith("django-insecure"):  # noqa: F405
+    from django.core.exceptions import ImproperlyConfigured
+
+    raise ImproperlyConfigured("SECRET_KEY must be set in production.")
+
 # ALLOWED_HOSTS configuration for production
 # This is required when DEBUG is set to False
 ALLOWED_HOSTS = env.list("ALLOWED_HOSTS", default=["localhost", "127.0.0.1"])

@@ -2,10 +2,10 @@
 {% comment %}
     App shell for authenticated pages: persistent sidebar + top bar.
 
-    Turbo Drive is enabled ONLY inside this shell, via data-turbo="true" on the
-    wrapper (main.js sets Turbo.config.drive.enabled = false globally). The
-    sidebar is data-turbo-permanent, so its Svelte island is mounted once and
-    carried between visits instead of being torn down and rebuilt.
+    htmx boosting is enabled ONLY inside this shell, via hx-boost:inherited on
+    the wrapper (main.js keeps forms browser-native). The sidebar is
+    hx-preserve, so its Svelte island is mounted once and carried between
+    visits instead of being torn down and rebuilt.
 
     Node order matters: Basecoat's `.sidebar + *` rule applies the content
     margin, so the content wrapper MUST be the sidebar's immediate next sibling.
@@ -17,7 +17,7 @@
 {% block footer %}{% endblock %}
 
 {% block body %}
-<div data-controller="sidebar" data-turbo="true">
+<div data-controller="sidebar" hx-boost:inherited="true">
     {{ app_nav|json_script:"app-nav-data" }}
 
     {# Server-rendered so the CSRF token is fresh on every page; the sidebar's #}
@@ -29,7 +29,7 @@
     <aside id="app-sidebar"
            class="sidebar"
            data-side="left"
-           data-turbo-permanent
+           hx-preserve
            aria-label="Main navigation"
            data-sidebar-target="panel"
            data-action="click->sidebar#backdrop keydown.esc@window->sidebar#close"

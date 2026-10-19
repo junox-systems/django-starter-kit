@@ -4,20 +4,28 @@ import "vite/modulepreload-polyfill";
 // import CSS styles
 import "../css/styles.css";
 
-// Turbo Drive — persistent navigation for the authenticated app shell.
-// Importing the package calls Turbo.start() for us.
-import * as Turbo from "@hotwired/turbo";
+// htmx 4 — boosted navigation for the authenticated app shell.
+// Importing the package starts htmx for us.
+import "htmx.org";
 
-// Opt-in, NOT global: only subtrees marked data-turbo="true" use Drive — i.e.
-// the app shell in templates/base_app.html. Marketing pages keep plain page
-// loads (their Three.js island is heavy and has its own lifecycle), and only
-// the shell benefits from a persistent sidebar.
-Turbo.config.drive.enabled = false;
-
-// Forms stay browser-native. Django re-renders an invalid form as HTTP 200,
-// which Turbo Drive rejects ("form responses must redirect"). Django forms +
-// full page loads are the primary pattern here, so leave them alone.
-Turbo.config.forms.mode = "off";
+// Opt-in, NOT global: only subtrees marked hx-boost:inherited="true" are
+// boosted — i.e. the app shell in templates/base_app.html. Marketing pages keep
+// plain page loads (their Three.js island is heavy and has its own lifecycle),
+// and only the shell benefits from a persistent sidebar.
+//
+// Forms stay browser-native. hx-boost covers both links and forms; Django forms
+// + full page loads are the primary pattern here, so refuse to boost a form
+// that only inherited boost. A form with its own hx-post etc. is left alone.
+document.addEventListener("htmx:before:init", (event) => {
+  // htmx retargets events from detached elements to `document`, which has no
+  // .matches — hence the instanceof guard.
+  if (
+    event.target instanceof HTMLFormElement &&
+    !event.target.matches("[hx-action],[hx-get],[hx-post],[hx-put],[hx-patch],[hx-delete]")
+  ) {
+    event.preventDefault();
+  }
+});
 
 // HyperDX — RUM, session replay, and frontend → backend trace linking. Opt-in.
 //
