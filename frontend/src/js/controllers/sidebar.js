@@ -26,8 +26,8 @@ export default class extends Controller {
   }
 
   // Initialise from the target callback, NOT connect(): the sidebar is
-  // data-turbo-permanent, so on a Turbo visit this controller connects to the
-  // new page before Turbo has relocated the sidebar into it. Reading
+  // hx-preserve, so on a boosted visit this controller connects to the new
+  // page before htmx has moved the preserved sidebar back into it. Reading
   // this.panelTarget in connect() throws "Missing target element".
   panelTargetConnected() {
     this.panelTarget.dataset.sidebarInitialized = "";

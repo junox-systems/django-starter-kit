@@ -47,7 +47,7 @@ class AllauthPagesTests(TestCase):
             with self.subTest(url=url):
                 response = self.client.get(url)
                 self.assertEqual(response.status_code, 200)
-                self.assertNotContains(response, 'data-turbo="true"')
+                self.assertNotContains(response, 'hx-boost:inherited="true"')
                 self.assertNotContains(response, "app/Sidebar")
 
     def test_invalid_confirm_and_reset_links_render(self):
@@ -71,7 +71,7 @@ class AllauthPagesTests(TestCase):
             with self.subTest(url=url):
                 response = self.client.get(url)
                 self.assertEqual(response.status_code, 200)
-                self.assertContains(response, 'data-turbo="true"')
+                self.assertContains(response, 'hx-boost:inherited="true"')
                 self.assertContains(response, 'data-svelte-bridge-component-value="app/Sidebar"')
                 self.assertContains(response, 'id="app-nav-data"')
 
@@ -85,7 +85,7 @@ class AllauthPagesTests(TestCase):
         self.client.force_login(passwordless)
         response = self.client.get(reverse("account_set_password"))
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, 'data-turbo="true"')
+        self.assertContains(response, 'hx-boost:inherited="true"')
         self.assertContains(response, 'data-svelte-bridge-component-value="app/Sidebar"')
         self.assertContains(response, 'id="app-nav-data"')
 

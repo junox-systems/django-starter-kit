@@ -9,7 +9,7 @@ Modern Django 5.2 LTS starter kit. Opinionated, lean, production-ready.
 - **Backend:** Django 5.2, Granian (ASGI), ParadeDB/PG17, Redis/Valkey, Celery (django-celery-results, django-celery-beat)
 - **Auth:** django-allauth (OIDC/SSO, social, email-based login)
 - **API:** django-modern-rest (DMR) 0.x — NOT DRF
-- **Frontend:** Django templates + forms (primary) → Turbo Drive inside the app shell → Stimulus 3 mounts Svelte 5 islands → GSAP animations. See **Frontend Formula** below before touching `templates/` or `frontend/src/js/`.
+- **Frontend:** Django templates + forms (primary) → htmx 4 boosted navigation inside the app shell → Stimulus 3 mounts Svelte 5 islands → GSAP animations. See **Frontend Formula** below before touching `templates/` or `frontend/src/js/`.
 - **Styling:** Tailwind CSS v4 + Basecoat (shadcn-compatible tokens, per-site `site.css` style pack)
 - **Build:** Vite, uv (Python), pnpm (JS)
 - **Admin:** stock Django admin (with dj-control-room dashboard: redis, cache, urls, celery, signals panels; guardian, constance, import_export, simple_history)
@@ -34,14 +34,14 @@ frontend/       # JS/CSS assets
     styles.css    # entry: Tailwind + Basecoat base + @source globs
     site.css      # per-site Basecoat style pack — all component visuals
   src/js/
-    main.js       # entry: Turbo config, Stimulus boot, controller auto-register
+    main.js       # entry: htmx config, Stimulus boot, controller auto-register
     controllers/  # Stimulus controllers (auto-registered via import.meta.glob)
     svelte/
       app/        # shell islands (Sidebar)
       dashboard/  # dashboard root + panels
 templates/
   base.html       # public pages
-  base_app.html   # authenticated app shell (Turbo-enabled)
+  base_app.html   # authenticated app shell (htmx-boosted)
   _*.html         # shared partials (header, footer, messages)
   <app>/          # per-app pages
 ```
@@ -99,7 +99,7 @@ Stop at the first rung that holds:
    → Stimulus controller. See `controllers/sidebar.js`, `controllers/theme-toggle.js`.
 4. **Reactive UI with client state** → Svelte island via `svelte-bridge`.
 5. **Must survive navigation** (persistent chrome) → Svelte island +
-   `data-turbo-permanent` + a unique `id`. See `svelte/app/Sidebar.svelte`.
+   `hx-preserve` + a unique `id`. See `svelte/app/Sidebar.svelte`.
 
 Rung 4 is not a reward for complexity — an island costs a chunk, a mount, and a
 data contract. Rungs 1–3 are free.
@@ -164,21 +164,24 @@ Component values are paths relative to `svelte/` without the extension, so
 - Public pages extend `base.html`; logged-in pages extend `base_app.html`. Adding
   an authenticated route means extending `base_app.html`, nothing else.
 
-### Turbo Drive
+### htmx (boosted navigation)
 
-- **Scoped to the app shell, not global.** `main.js` sets
-  `Turbo.config.drive.enabled = false`; `base_app.html` opts in with
-  `data-turbo="true"`. Marketing and allauth pages keep plain loads. Opt one link
-  out with `data-turbo="false"`.
-- **Forms are browser-native:** `Turbo.config.forms.mode = "off"`. Django
-  re-renders an invalid form as HTTP 200, which Turbo Drive rejects. Do not enable
-  form handling without giving every form a redirect-or-422 response.
-- A persistent island needs a unique `id` + `data-turbo-permanent`. `svelte-bridge`
+- **htmx 4, scoped to the app shell, not global.** `base_app.html` opts in with
+  `hx-boost:inherited="true"` (htmx 4 inheritance is explicit). Public pages keep
+  plain loads. Opt one link out with `hx-boost="false"`. A boosted response
+  replaces `<body>` and keeps only the new `<title>` from `<head>`, so every
+  boosted page must share `base.html`'s head assets.
+- **Forms are browser-native:** `main.js` cancels `htmx:before:init` for forms
+  that only inherited boost. A form with its own `hx-post` etc. is left alone.
+- **Links rendered by an island** are not in the DOM when htmx scans the page;
+  `svelte-bridge` calls `htmx.process()` after mounting so they get boosted.
+- A persistent island needs a unique `id` + `hx-preserve`. `svelte-bridge`
   then **adopts** the existing instance instead of remounting, and defers teardown
-  one tick to tell "Turbo is relocating this" from "this is gone". Remove that and
+  one tick to tell "htmx is moving this" from "this is gone". Remove that and
   the island blinks on every visit, or leaks its listeners.
-- A permanent island cannot re-render from server HTML, so anything page-dependent
-  (active nav state) must derive from `location.pathname` on `turbo:load`.
+- A preserved island cannot re-render from server HTML, so anything page-dependent
+  (active nav state) must derive from `location.pathname` on
+  `htmx:after:history:push` and `popstate`.
 
 ### Adding an interactive unit — the recipe
 
@@ -229,8 +232,8 @@ Each of these has already caused a real bug in this repo.
    class + `data-*` variants (`class="btn" data-variant="outline" data-size="sm"`).
    Respect its structural contracts — e.g. `.sidebar + *` applies the content
    margin, so the content wrapper must stay the sidebar's immediate next sibling.
-9. **No htmx.** Removed by design; gone from dependencies, `INSTALLED_APPS`, and
-   `MIDDLEWARE`. Turbo Drive covers navigation.
+9. **htmx is for navigation only.** It boosts links inside the app shell. Turbo
+   was removed; do not add it back. Interactive UI is still a Svelte island.
 10. **Empty states are the default view** on a fresh install, not an edge case.
     Build them as real states.
 
@@ -253,14 +256,14 @@ Each of these has already caused a real bug in this repo.
 
 1. **Never change settings inheritance pattern** — base/dev/production/test split with `from .base import *`
 2. **Never add OIDC fields to User model** — allauth SocialAccount handles it
-3. **Never add htmx back** — removed by design
+3. **Never add Turbo back** — replaced by htmx 4 boosted navigation
 4. **Never create new files outside apps/ for backend code** — everything goes in apps/
 5. **Never tune cacheops/auditlog for hypothetical scale** — starter kit, YAGNI
 6. **Never auto-enable SSL/HSTS** — must be manual per deployment
 7. **Never let Svelte own URLs, navigation, or page chrome** — Django resolves
    URLs and renders structure; islands receive data. See **Frontend Formula**.
-8. **Never enable Turbo form handling** without giving every form a
-   redirect-or-422 response — Django returns HTTP 200 on invalid forms.
+8. **Never let htmx boost forms by inheritance** — forms stay full page loads;
+   `main.js` enforces it.
 
 ## Dependency Management
 
