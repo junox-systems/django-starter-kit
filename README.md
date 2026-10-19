@@ -9,8 +9,8 @@ A modern, production-ready Django starter kit — opinionated, lean, and ready t
 | Package | Purpose |
 |---------|---------|
 | **Django 5.2 LTS** | Core framework |
-| **ParadeDB** (PostgreSQL 17) | Database + BM25 full-text search |
-| **MinIO** | S3-compatible local object storage |
+| **PostgreSQL 18** (pgvector image) | Database, cache, settings and task queue |
+| **RustFS** | S3-compatible media storage in the production stack |
 | **Granian** | Production ASGI server (Rust-based, async-native) |
 | **Whitenoise** | Static file serving |
 | **django-allauth** | Auth — local accounts, OIDC/SSO, social login |
@@ -42,7 +42,8 @@ A modern, production-ready Django starter kit — opinionated, lean, and ready t
 | **ruff** | Linter + formatter |
 | **pytest** | Testing framework |
 | **django-debug-toolbar** | Query analysis in development |
-| **Docker + mise** | Reproducible dev environment |
+| **just** | Task runner (`justfile`; the `Makefile` mirrors it) |
+| **Docker + mise** | Reproducible dev environment (Debian trixie-slim: x86-64 v1+ and arm64) |
 
 ---
 
@@ -58,61 +59,42 @@ A modern, production-ready Django starter kit — opinionated, lean, and ready t
 git clone <repository-url>
 cd django-starter-kit
 
-cp .env.example .env   # configure your environment
+cp .env.example .env   # optional: every key has a dev default
 
-make dev-up            # starts DB, MinIO, Django, Vite, qcluster
-make dev-logs          # follow logs
+just dev               # db, Django, Vite, qcluster + ClickStack analytics
+just logs              # follow logs
+just dev-createsuperuser   # admin@example.com / admin
 ```
 
-First-time setup:
+Migrations run automatically every time the app container starts.
+
+Without analytics (lighter, OTEL off):
 
 ```bash
-make dev-shell
-# inside the container:
-python manage.py migrate
-python manage.py createsuperuser
+just dev-slim          # db + app only
 ```
 
-### Local (services in Docker, app on host)
+ClickStack UI: http://localhost:8080 (no login, local mode).
+OTLP endpoint: http://localhost:4318 (HTTP) / http://localhost:4317 (gRPC).
 
-Run infrastructure only, then start the app processes locally for faster iteration:
+### Local (database in Docker, app on host)
+
+Needs mise (`mise install` provides python, uv, node, pnpm, just).
 
 ```bash
-docker compose -f dev/docker-compose.dev.yml up db s3 -d
+docker compose -f dev/docker-compose.dev.yml up -d db
+echo 'DATABASE_URL=postgresql://postgres:postgres@localhost:5432/db' >> .env
+just install
+just migrate
 
-# Terminal 1 — Django
-make django-dev
-
-# Terminal 2 — Vite (HMR)
-make vite-dev
-
-# Terminal 3 — django-q2 cluster
-make qcluster-dev
+# One terminal each:
+just django-dev        # runserver on :8000
+just vite-dev          # Vite HMR on :5173
+just qcluster-dev      # django-q2 workers + scheduler
 ```
 
-Then:
-
-```bash
-make migrate           # run migrations
-```
-
-### Development with Analytics
-
-Start dev stack with ClickStack observability:
-
-```bash
-make dev-up-analytics
-```
-
-ClickStack UI: http://localhost:8080 (no login — local mode)
-OTLP endpoint: http://localhost:4318 (HTTP) / http://localhost:4317 (gRPC)
-
-Without analytics:
-```bash
-make dev-up
-```
-
-Note: dev compose requires a root `.env` file (referenced by `env_file: ../.env`). An empty one works; create it with `touch .env` if missing.
+Dev keeps media on local disk (`media/`). S3 is configured only in the
+production stack.
 
 ---
 
@@ -142,7 +124,10 @@ Svelte components live in `frontend/src/js/svelte/` and are lazy-loaded via dyna
 | Django | `8000` | Main app |
 | Vite HMR | `5173` | Dev only — proxied by django-vite |
 | PostgreSQL | `5432` | |
-| MinIO | `9000` / `9001` | S3 API / Web UI |
+| ClickStack | `8080` / `4317` / `4318` | `just dev` only: UI / OTLP gRPC / OTLP HTTP |
+
+These ports are published on your host. Stop anything already bound to them
+(a local Postgres, say) before `just dev`.
 
 ---
 
@@ -154,7 +139,9 @@ django-starter-kit/
 │   ├── core/          # BaseModel (UUID + timestamps) — keep lean
 │   ├── users/         # User model (email login, avatar, auditlog)
 │   ├── api/           # API endpoints (DMR)
-│   └── pages/         # Static/marketing pages
+│   ├── pages/         # Static/marketing pages, terms, privacy
+│   ├── dashboard/     # Authenticated home
+│   └── orgs/          # Organizations, roles, email invitations
 ├── config/
 │   ├── settings/
 │   │   ├── base.py        # Shared config
@@ -175,7 +162,7 @@ django-starter-kit/
 │   ├── docker-compose.dev.yml
 │   ├── supervisord.conf
 │   └── init.sh
-├── Makefile
+├── justfile           # Task runner (Makefile mirrors it)
 └── pyproject.toml         # All Python deps (managed by uv)
 ```
 
@@ -184,46 +171,40 @@ django-starter-kit/
 ## Common Commands
 
 ```bash
-# Dev environment
-make dev-up          # Start Docker services
-make dev-down        # Stop Docker services
-make dev-logs        # Follow logs
-make dev-clean       # Destroy containers + volumes
+# Dev environment (Docker)
+just dev             # Start the stack (alias of dev-up)
+just dev-slim        # Same, without analytics
+just stop            # Stop the stack
+just logs            # Follow logs
+just bash            # Shell in the app container
+just shell           # Django shell in the app container
+just dev-clean       # Destroy containers + volumes (deletes the dev DB)
 
-# Local development
-make django-dev      # Granian ASGI server with reload
-make vite-dev        # Vite HMR dev server
-make qcluster-dev    # django-q2 workers + scheduler
+# App on host
+just django-dev      # runserver
+just vite-dev        # Vite HMR dev server
+just qcluster-dev    # django-q2 workers + scheduler
 
 # Database
-make makemigrations  # Generate migrations
-make migrate         # Apply migrations
+just makemigrations  # Generate migrations
+just migrate         # Apply migrations
 
 # Quality
-make lint            # ruff check
-make lint-fix        # ruff check --fix
-make format          # ruff format
-make test            # pytest
+just lint            # ruff check
+just lint-fix        # ruff check --fix
+just format          # ruff format
+just precommit       # all pre-commit hooks
+just test            # pytest
 ```
+
+`make <target>` works for the same names, except `precommit` (just only).
 
 ---
 
 ## Environment Variables
 
-Copy `.env.example` to `.env` and fill in values. Key variables:
-
-```bash
-DJANGO_SETTINGS_MODULE=config.settings.dev   # or .production / .test
-SECRET_KEY=...
-DATABASE_URL=postgresql://postgres:postgres@localhost:5432/db
-
-# Optional — initialises only if set
-SENTRY_DSN=https://...
-
-# Optional — opt-in distributed tracing
-OTEL_ENABLED=true
-OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:4317
-```
+Copy `.env.example` to `.env`. It lists every key the settings read, with
+comments. Real environment variables win over `.env`.
 
 ---
 
@@ -233,10 +214,12 @@ Before deploying:
 
 1. **Set environment:** `ENVIRONMENT=production` + `DJANGO_SETTINGS_MODULE=config.settings.production`
 2. **SSL/TLS:** Configure reverse proxy; then enable `SECURE_PROXY_SSL_HEADER`, `SECURE_SSL_REDIRECT`, and HSTS in `production.py`
-3. **Static files:** `make vite-build && python manage.py collectstatic --no-input`
-4. **Database:** `python manage.py migrate`
-5. **Sentry:** Set `SENTRY_DSN` for error tracking
-6. **Email:** Set `POSTMARK_SERVER_TOKEN` (or swap `EMAIL_BACKEND`)
+3. **Static files:** built into the image (`just vite-build && just collectstatic`)
+4. **Database:** migrations run on container start (`prod/init.sh`) under a Postgres advisory lock, so replicas never migrate concurrently
+5. **Hosts:** set `ALLOWED_HOSTS`, keeping `localhost`: the container healthcheck calls `/healthz/` with `Host: localhost`
+6. **Sentry:** Set `SENTRY_DSN` for error tracking
+7. **Email:** Set `POSTMARK_SERVER_TOKEN` (or swap `EMAIL_BACKEND`)
+8. **Legal:** replace the placeholder text in `templates/pages/terms.html` and `privacy.html`
 
 ### Production (Docker Swarm)
 
@@ -244,10 +227,10 @@ Build image and deploy stack:
 
 ```bash
 export IMAGE_NAME=your-registry/django-starter-kit:latest
-make stack-build
+just stack-build
 docker tag django-starter-kit $IMAGE_NAME
 docker push $IMAGE_NAME
-make stack-deploy
+just stack-deploy
 ```
 
 Required env vars:
@@ -260,7 +243,8 @@ Required env vars:
 
 | Caveat | Detail |
 |--------|--------|
-| **Python 3.14** | Bleeding-edge. Some packages may lack pre-built wheels. `uv` handles source builds. |
+| **Python 3.14** | Recent. Every current dependency ships wheels, so the images carry no compiler; add `build-essential` to the builder if one ever needs a source build. |
+| **Root-owned files** | The dev container runs as root, so files it writes into the bind mount (e.g. `just makemigrations` via `just bash`) are root-owned on the host. `sudo chown -R $USER .` fixes it. |
 | **DMR 0.x** | API framework pre-1.0. Pin version in `pyproject.toml` for stability. |
 | **Granian** | Rust ASGI server — mature but smaller ecosystem than Gunicorn+Uvicorn. |
 | **Postgres does it all** | Cache, sessions and the task queue live in Postgres — no Redis. Add a dedicated cache/broker only when load demands it. |
@@ -273,7 +257,6 @@ Required env vars:
 |-----|---------|
 | [BRIEF.md](BRIEF.md) | Full architecture specification |
 | [DEVELOPMENT.md](DEVELOPMENT.md) | Developer guide — models, frontend patterns, conventions |
-| [AGENT_LOGS.md](AGENT_LOGS.md) | Implementation history |
 | [CHANGELOG.md](CHANGELOG.md) | Release changelog |
 
 ---

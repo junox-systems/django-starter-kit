@@ -12,36 +12,43 @@ The project includes a complete Docker development environment with all necessar
 
 | Service | Image | Purpose |
 |---------|-------|---------|
-| **ParadeDB** | `paradedb/paradedb:0.18.0-pg17` | PostgreSQL 17 + BM25 search extensions |
-| **MinIO** | `bitnami/minio:2025.4.22` | S3-compatible local object storage (UI at `:9001`) |
+| **db** | `pgvector/pgvector:0.8.6-pg18` | PostgreSQL 18: data, cache, settings, task queue |
+| **app** | `dev/Dockerfile` (Debian trixie-slim + mise) | Django, Vite and qcluster under supervisord |
+| **clickstack** | `clickhouse/clickstack-local` | OTEL traces/logs UI on `:8080` (`just dev` only) |
 
-> **Note:** Pin MinIO to `2025.4.22` — newer versions removed the web UI.
+The app waits for the db healthcheck, installs dependencies, runs migrations,
+then starts its processes. Media stays on local disk in dev; S3 (RustFS) lives
+in the production stack only.
 
 ### Development Commands
 
 ```bash
-make dev-up        # Start all services (detached)
-make dev-down      # Stop all services
-make dev-logs      # Follow container logs
-make dev-clean     # Stop and remove volumes (clean slate)
-make dev-restart   # Shortcut: dev-down + dev-up
-make dev-bash      # Shell into the app container
-make dev-shell     # Django manage.py shell inside container
+just dev           # Start all services (detached)
+just dev-slim      # Start without analytics (OTEL off)
+just stop          # Stop all services
+just logs          # Follow container logs
+just dev-clean     # Stop and remove volumes (clean slate; deletes the dev DB)
+just restart       # dev-down + dev-up
+just bash          # Shell into the app container
+just shell         # Django manage.py shell inside container
 ```
+
+The `Makefile` mirrors these targets for `make` users.
 
 ### Local (non-Docker) Dev
 
-Run services via Docker, app locally for faster iteration:
+Run the database in Docker and the app on the host. Point `DATABASE_URL` at
+`localhost` in `.env` (see `.env.example`):
 
 ```bash
-# Terminal 1 — Django (Granian ASGI, auto-reload)
-make django-dev
+# Terminal 1 — Django (runserver, auto-reload)
+just django-dev
 
 # Terminal 2 — Frontend (Vite HMR)
-make vite-dev
+just vite-dev
 
 # Terminal 3 — django-q2 cluster (workers + scheduler)
-make qcluster-dev
+just qcluster-dev
 ```
 
 ---
@@ -59,6 +66,8 @@ Settings are split by environment. Select the active file via `DJANGO_SETTINGS_M
 There is no routing logic in `config/settings/__init__.py` — it is intentionally empty. Set `DJANGO_SETTINGS_MODULE` in your shell, `.env`, or process manager.
 
 ### Key Environment Variables
+
+The full list, with comments, is in `.env.example`.
 
 ```bash
 # Required in production
@@ -189,8 +198,8 @@ Two complementary layers — no overlap:
 - **Production:** `pnpm run build` outputs hashed assets to `frontend/dist/`. Whitenoise serves them.
 
 ```bash
-make vite-dev    # HMR dev server
-make vite-build  # Production build
+just vite-dev    # HMR dev server
+just vite-build  # Production build
 ```
 
 ### Adding a Stimulus Controller
@@ -303,9 +312,10 @@ Opt-in via `OTEL_ENABLED=true`. Instruments Django and psycopg. Exports to any O
 
 The `.github/workflows/ci.yml` pipeline runs on every push and pull request to `main`:
 
-1. **Linting** — `ruff check`
+1. **Linting** — `ruff check` (each step is a `just` recipe)
 2. **Testing** — `pytest` with `config.settings.test`
-3. **Docker Build** — validates the production image builds cleanly
+3. **Frontend build** — `just vite-build`
+4. **Docker Build** — validates the production image builds cleanly
 
 ---
 
@@ -329,7 +339,7 @@ async_task("apps.myapp.tasks.send_welcome_email", str(user.id))
 Start the cluster (workers + scheduler):
 
 ```bash
-make qcluster-dev
+just qcluster-dev
 ```
 
 > **Broker:** the Django database (`Q_CLUSTER["orm"]`) — tasks queue in Postgres, so there is no Redis. Results, failures and schedules are models in the admin under *Django Q*. A task that raises is not re-queued; wrap it with `apps.core.tasks.retry` for backoff retries. Tests run tasks inline (`"sync": True`).
