@@ -46,3 +46,5 @@ class MfaTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'hx-boost:inherited="true"')
         self.assertContains(response, 'name="code"')
+        # QR SVG is black-on-transparent; needs a white plate to show in dark mode.
+        self.assertContains(response, "rounded-md bg-white p-3")
