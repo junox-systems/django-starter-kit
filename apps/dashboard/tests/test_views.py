@@ -65,8 +65,34 @@ class DashboardViewTests(TestCase):
         )
 
         payload = response.context["payload"]
-        self.assertEqual(set(payload), {"activity", "account", "urls"})
+        self.assertEqual(set(payload), {"account"})
         # Must survive a JSON round trip — it is rendered with json_script.
+        json.dumps(payload)
+
+
+class ActivityViewTests(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(
+            email="alice@example.com", username="alice", password="s3cret-pw"
+        )
+
+    def test_requires_login(self):
+        response = self.client.get(reverse("activity"))
+        self.assertEqual(response.status_code, 302)
+        self.assertIn(reverse("account_login"), response.url)
+
+    def test_renders_activity_island_in_app_shell(self):
+        self.client.force_login(self.user)
+        response = self.client.get(reverse("activity"))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'id="activity-payload"')
+        self.assertContains(
+            response, 'data-svelte-bridge-component-value="dashboard/Activity"'
+        )
+        self.assertContains(response, 'hx-boost:inherited="true"')
+
+        payload = response.context["payload"]
+        self.assertEqual(set(payload), {"activity", "urls"})
         json.dumps(payload)
         self.assertEqual(payload["urls"]["activity"], reverse("dashboard-activity"))
 
@@ -161,6 +187,17 @@ class AppNavTests(TestCase):
         _, items = self._items(is_staff=True)
         admin = next(i for i in items if i["label"] == "Admin")
         self.assertIs(admin["boost"], False)
+
+    def test_account_group_holds_activity_profile_and_orgs(self):
+        response, _ = self._items()
+        groups = {
+            g["label"]: [i["label"] for i in g["items"]]
+            for g in response.context["app_nav"]["groups"]
+        }
+        self.assertEqual(groups["Application"], ["Dashboard"])
+        self.assertEqual(
+            groups["Account"][:3], ["Activity", "Profile", "Organizations"]
+        )
 
     def test_sidebar_is_preserved_across_boosted_visits(self):
         response, _ = self._items()
