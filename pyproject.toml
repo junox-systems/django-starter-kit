@@ -51,6 +51,7 @@ dev = [
     "django-stubs>=5.2.9,<5.3",
     "pytest>=9.1.1",
     "pytest-django>=4.14.0",
+    "pytest-playwright>=0.10.0",
     "ruff==0.17.1",
 ]
 
@@ -68,3 +69,6 @@ select = ["E4", "E7", "E9", "F"]
 DJANGO_SETTINGS_MODULE = "config.settings.test"
 python_files = ["tests.py", "test_*.py", "*_tests.py"]
 testpaths = ["."]
+# Browser tests need a Vite build + Chromium; run them with `just e2e`.
+addopts = "-m 'not e2e'"
+markers = ["e2e: browser tests (pytest-playwright), run via `just e2e`"]

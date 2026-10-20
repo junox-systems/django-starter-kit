@@ -33,6 +33,12 @@ precommit:
 test:
     DJANGO_SETTINGS_MODULE=config.settings.test uv run pytest
 
+# Browser tests. Test settings read the built Vite manifest, so build first.
+# Playwright's sync API runs an event loop, hence DJANGO_ALLOW_ASYNC_UNSAFE.
+e2e:
+    cd frontend && pnpm run build
+    DJANGO_ALLOW_ASYNC_UNSAFE=true DJANGO_SETTINGS_MODULE=config.settings.test uv run pytest -m e2e
+
 #### DOCKER DEV ####
 
 dev-up: && (dev-urls "analytics")

@@ -48,14 +48,7 @@
                     <h1 class="font-heading text-base font-semibold tracking-tight">{% block page_title %}{% endblock %}</h1>
                 </div>
                 <div class="flex items-center gap-2">
-                    <button type="button" class="btn size-9" data-variant="ghost" data-size="icon" data-controller="theme-toggle" data-action="click->theme-toggle#toggle" aria-pressed="false" aria-label="Toggle theme">
-                        <span class="block dark:hidden">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-sun"><circle cx="12" cy="12" r="4" /><path d="M12 2v2" /><path d="M12 20v2" /><path d="m4.93 4.93 1.41 1.41" /><path d="m17.66 17.66 1.41 1.41" /><path d="M2 12h2" /><path d="M20 12h2" /><path d="m6.34 17.66-1.41 1.41" /><path d="m19.07 4.93-1.41 1.41" /></svg>
-                        </span>
-                        <span class="hidden dark:block">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-moon"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z" /></svg>
-                        </span>
-                    </button>
+                    {% include "_theme_toggle.html" %}
                     <a href="{% url 'profile' %}" class="hover:bg-muted flex items-center gap-2 rounded-md px-2 py-1" aria-label="Your profile">
                         {% if user.avatar %}
                             <img class="size-7 rounded-full object-cover" src="{{ user.avatar_thumbnail.url }}" alt="">
