@@ -29,14 +29,5 @@
     "@tailwindcss/vite": "^4.3.3",
     "@types/three": "0.186.0",
     "tailwindcss": "^4.3.3"
-  },
-  "pnpm": {
-    "overrides": {
-      "fflate": ">=0.7.5",
-      "esbuild": ">=0.28.1"
-    },
-    "onlyBuiltDependencies": [
-      "protobufjs"
-    ]
   }
 }
