@@ -573,8 +573,10 @@ dev = [
     { name = "django-stubs" },
     { name = "pytest" },
     { name = "pytest-django" },
-    { name = "pytest-playwright" },
     { name = "ruff" },
+]
+e2e = [
+    { name = "pytest-playwright" },
 ]
 
 [package.metadata]
@@ -613,9 +615,9 @@ dev = [
     { name = "django-stubs", specifier = ">=5.2.9,<5.3" },
     { name = "pytest", specifier = ">=9.1.1" },
     { name = "pytest-django", specifier = ">=4.14.0" },
-    { name = "pytest-playwright", specifier = ">=0.10.0" },
     { name = "ruff", specifier = "==0.17.1" },
 ]
+e2e = [{ name = "pytest-playwright", specifier = ">=0.10.0" }]
 
 [[package]]
 name = "django-storages"

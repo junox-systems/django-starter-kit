@@ -45,14 +45,18 @@ dependencies = [
 ]
 
 # Dev-only: the production image runs `uv sync --no-dev`.
+# e2e is not a default group: browser tests run on the host via `just e2e`,
+# so containers and image builds never download Playwright.
 [dependency-groups]
 dev = [
     "django-debug-toolbar>=8.0.0",
     "django-stubs>=5.2.9,<5.3",
     "pytest>=9.1.1",
     "pytest-django>=4.14.0",
-    "pytest-playwright>=0.10.0",
     "ruff==0.17.1",
+]
+e2e = [
+    "pytest-playwright>=0.10.0",
 ]
 
 [tool.ruff]

@@ -37,7 +37,7 @@ test:
 # Playwright's sync API runs an event loop, hence DJANGO_ALLOW_ASYNC_UNSAFE.
 e2e:
     cd frontend && pnpm run build
-    DJANGO_ALLOW_ASYNC_UNSAFE=true DJANGO_SETTINGS_MODULE=config.settings.test uv run pytest -m e2e
+    DJANGO_ALLOW_ASYNC_UNSAFE=true DJANGO_SETTINGS_MODULE=config.settings.test uv run --group e2e pytest -m e2e
 
 #### DOCKER DEV ####
 
