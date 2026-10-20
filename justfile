@@ -33,11 +33,12 @@ precommit:
 test:
     DJANGO_SETTINGS_MODULE=config.settings.test uv run pytest
 
-# Browser tests. Test settings read the built Vite manifest, so build first.
+# Browser tests against the built assets, not a dev server: ENVIRONMENT=test
+# turns off django-vite dev_mode (default "development" points at :5173), which
+# then reads the manifest from STATIC_ROOT — hence collectstatic.
 # Playwright's sync API runs an event loop, hence DJANGO_ALLOW_ASYNC_UNSAFE.
-e2e:
-    cd frontend && pnpm run build
-    DJANGO_ALLOW_ASYNC_UNSAFE=true DJANGO_SETTINGS_MODULE=config.settings.test uv run --group e2e pytest -m e2e
+e2e: vite-build collectstatic
+    ENVIRONMENT=test DJANGO_ALLOW_ASYNC_UNSAFE=true DJANGO_SETTINGS_MODULE=config.settings.test uv run --group e2e pytest -m e2e
 
 #### DOCKER DEV ####
 

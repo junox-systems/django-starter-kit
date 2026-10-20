@@ -23,7 +23,7 @@ SHELL ["/bin/bash", "-c"]
 
 COPY mise.toml /app/mise.toml
 COPY pyproject.toml uv.lock /app/
-COPY frontend/package.json frontend/pnpm-lock.yaml ./frontend/
+COPY frontend/package.json frontend/pnpm-lock.yaml frontend/pnpm-workspace.yaml ./frontend/
 
 RUN mise trust && mise install
 
