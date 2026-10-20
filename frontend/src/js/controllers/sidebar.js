@@ -14,10 +14,16 @@ import { Controller } from "@hotwired/stimulus";
 export default class extends Controller {
   static targets = ["panel"];
 
-  connect() {
+  // initialize(), not connect(): Stimulus fires panelTargetConnected() BEFORE
+  // connect(), and sync() needs this.desktop. Throwing there aborted every
+  // later controller on the page — the theme toggle never connected.
+  initialize() {
     // Tailwind's `md` breakpoint. Keep in sync with the CSS if that changes.
     this.desktop = window.matchMedia("(min-width: 48rem)");
     this.sync = this.sync.bind(this);
+  }
+
+  connect() {
     this.desktop.addEventListener("change", this.sync);
   }
 
