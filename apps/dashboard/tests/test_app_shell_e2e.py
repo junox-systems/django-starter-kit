@@ -73,3 +73,15 @@ def test_toggle_on_dashboard_survives_boosted_nav(logged_in, live_server, errors
     page.click(TOGGLE)
     assert is_dark(page) is not dark
     assert errors == []
+
+
+def test_activity_page_mounts_from_sidebar(logged_in, live_server, errors):
+    page = logged_in
+    page.goto(live_server.url + reverse("dashboard"))
+    page.click(f"#app-sidebar a[href='{reverse('activity')}']")
+    page.wait_for_url(f"**{reverse('activity')}")
+    page.get_by_role("heading", name="Recent activity").wait_for()
+    page.get_by_role("heading", name="No activity yet").wait_for()
+    page.get_by_role("button", name="Refresh").click()
+    page.get_by_role("button", name="Refresh").wait_for()
+    assert errors == []

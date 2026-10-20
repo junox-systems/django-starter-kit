@@ -1,7 +1,7 @@
 <script>
   import Panel from "./Panel.svelte";
 
-  // Data and refresh state are owned by the Dashboard root — this child just
+  // Data and refresh state are owned by the Activity root — this child just
   // renders them and asks for a refresh.
   let { entries, refreshing = false, error = "", onrefresh } = $props();
 

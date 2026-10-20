@@ -22,6 +22,9 @@ def _item(label, urlname, icon, **extra):
 def _groups(is_staff):
     """Cached: these URLs are static, and this runs on every request."""
     account = [
+        _item("Activity", "activity", "activity"),
+        _item("Profile", "profile", "user"),
+        _item("Organizations", "orgs", "users"),
         _item("Email addresses", "account_email", "mail"),
         _item("Password", "account_change_password", "key"),
         _item("Two-factor", "mfa_index", "smartphone"),
@@ -34,11 +37,7 @@ def _groups(is_staff):
     return [
         {
             "label": "Application",
-            "items": [
-                _item("Dashboard", "dashboard", "dashboard"),
-                _item("Profile", "profile", "user"),
-                _item("Organizations", "orgs", "users"),
-            ],
+            "items": [_item("Dashboard", "dashboard", "dashboard")],
         },
         {"label": "Account", "items": account},
     ]
