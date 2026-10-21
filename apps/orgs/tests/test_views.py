@@ -103,10 +103,10 @@ class OrgSwitchTests(OrgTestCase):
         self.assertRedirects(response, reverse("dashboard"))
         page = self.client.get(reverse("dashboard"))
         self.assertEqual(page.context["payload"]["org"]["org"]["name"], "Globex")
-        # App bar switcher lists both orgs with the current one selected.
+        # Dashboard switcher lists both orgs with the current one selected.
         self.assertContains(page, 'id="org-switcher"')
-        self.assertContains(page, f'value="{other.pk}" selected')
-        self.assertContains(page, f'value="{self.org.pk}"')
+        self.assertContains(page, f'data-value="{other.pk}" aria-selected="true"')
+        self.assertContains(page, f'data-value="{self.org.pk}"')
 
     def test_switcher_hidden_with_one_org(self):
         self.client.force_login(self.member)

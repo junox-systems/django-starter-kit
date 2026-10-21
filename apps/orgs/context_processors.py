@@ -1,5 +1,5 @@
 # apps/orgs/context_processors.py
-"""Organization switcher data for the app shell (base_app.html)."""
+"""Organization switcher data for the dashboard (dashboard/index.html)."""
 
 from django.utils.functional import SimpleLazyObject
 

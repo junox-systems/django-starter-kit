@@ -46,7 +46,6 @@
                     <h1 class="font-heading text-base font-semibold tracking-tight">{% block page_title %}{% endblock %}</h1>
                 </div>
                 <div class="flex items-center gap-2">
-                    <c-org-switcher action="{% url 'org_switch' %}" :current="org_switcher.current" :organizations="org_switcher.organizations" />
                     <c-theme-toggle />
                     <a href="{% url 'profile' %}" class="hover:bg-muted flex items-center gap-2 rounded-md px-2 py-1" aria-label="Your profile">
                         <c-avatar src="{% if user.avatar %}{{ user.avatar_thumbnail.url }}{% endif %}" alt="" initial="{{ user.get_full_name|default:user.email|first }}" class="size-7" />

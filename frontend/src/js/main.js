@@ -8,6 +8,11 @@ import "../css/styles.css";
 // Importing the package starts htmx for us.
 import "htmx.org";
 
+// Basecoat JS for the components we use (custom select). The core starts a
+// MutationObserver, so components in htmx-swapped bodies init too.
+import "basecoat-css/basecoat";
+import "basecoat-css/select";
+
 // Opt-in, NOT global: only subtrees marked hx-boost:inherited="true" are
 // boosted — i.e. the app shell in templates/base_app.html. Marketing pages keep
 // plain page loads (their Three.js island is heavy and has its own lifecycle),
