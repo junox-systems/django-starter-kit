@@ -8,13 +8,7 @@
   <c-card body_class="border-t">
     <c-slot name="header">
       <header class="flex items-center gap-4 p-5">
-        <div class="avatar" data-size="lg">
-          {% if user.avatar %}
-            <img src="{{ user.avatar_thumbnail.url }}" alt="{{ user.get_full_name|default:user.email }}" width="40" height="40">
-          {% else %}
-            <span>{% with initial=user.first_name|slice:":1"|add:user.last_name|slice:":1" %}{{ initial|default:user.username|slice:":1"|upper }}{% endwith %}</span>
-          {% endif %}
-        </div>
+        <c-avatar src="{% if user.avatar %}{{ user.avatar_thumbnail.url }}{% endif %}" alt="{{ user.get_full_name|default:user.email }}" initial="{{ user.first_name|slice:':1'|default:user.username|slice:':1' }}" size="lg" />
         <div class="min-w-0">
           <h2 class="text-3xl font-bold">{{ user.get_full_name|default:user.email }}</h2>
           <p class="text-muted-foreground mt-1 text-sm">@{{ user.username }}</p>
@@ -35,6 +29,13 @@
         <dd class="mt-0.5">{{ user.last_login|date:"F j, Y, g:i a" }}</dd>
       </div>
     </dl>
+  </c-card>
+
+  <c-card title="Edit profile" description="Change your name, username or photo.">
+    <c-form enctype="multipart/form-data">
+      <c-fields :form="form" />
+      <c-btn type="submit">Save changes</c-btn>
+    </c-form>
   </c-card>
 
   <c-card title="Account settings" description="Manage your password, email addresses and two-factor authentication." body_class="flex flex-wrap gap-2">

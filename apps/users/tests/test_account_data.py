@@ -41,6 +41,20 @@ class AccountDataTests(TestCase):
         self.assertNotIn("extra_data", data["social_accounts"][0])
         self.assertEqual(data["organizations"], [{"name": "Solo", "roles": ["owner"]}])
 
+    def test_export_includes_mfa_devices_without_secrets(self):
+        from allauth.mfa.models import Authenticator
+
+        Authenticator.objects.create(
+            user=self.user,
+            type=Authenticator.Type.TOTP,
+            data={"secret": "JBSWY3DPEHPK3PXP"},
+        )
+        self.reauth()
+        response = self.client.get(reverse("export_data"))
+        data = json.loads(response.content)
+        self.assertEqual(data["mfa_authenticators"][0]["type"], "totp")
+        self.assertNotIn("JBSWY3DPEHPK3PXP", response.content.decode())
+
     def test_delete_requires_matching_email(self):
         self.reauth()
         self.client.post(reverse("delete_account"), {"confirm": "wrong@example.com"})

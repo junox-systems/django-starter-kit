@@ -5,6 +5,7 @@ from django.contrib import messages
 from django.contrib.auth import logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.db import transaction
 from django.http import JsonResponse
 from django.shortcuts import redirect, render
 from django.views.decorators.http import require_http_methods
@@ -12,13 +13,28 @@ from django.views.generic import TemplateView
 
 from apps.orgs.models import release_user
 
+from .forms import ProfileForm
+
 
 class ProfileView(LoginRequiredMixin, TemplateView):
     template_name = "users/profile.html"
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context.setdefault("form", ProfileForm(instance=self.request.user))
+        return context
+
+    def post(self, request, *args, **kwargs):
+        form = ProfileForm(request.POST, request.FILES, instance=request.user)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Profile updated.")
+            return redirect("profile")
+        return self.render_to_response(self.get_context_data(form=form))
+
 
 def user_export(user):
-    """Everything this kit stores about a user. No secrets: no password hash, no tokens."""
+    """Account and sign-in data. No secrets: no password hash, no TOTP seed, no tokens."""
     return {
         "email": user.email,
         "username": user.username,
@@ -40,6 +56,14 @@ def user_export(user):
         "social_accounts": [
             {"provider": a.provider, "uid": a.uid} for a in user.socialaccount_set.all()
         ],
+        "mfa_authenticators": [
+            {
+                "type": a.type,
+                "created_at": a.created_at.isoformat(),
+                "last_used_at": a.last_used_at.isoformat() if a.last_used_at else None,
+            }
+            for a in user.authenticator_set.all().order_by("created_at")
+        ],
     }
 
 
@@ -60,13 +84,15 @@ def delete_account(request):
             messages.error(request, "Type your email address to confirm.")
             return redirect("delete_account")
         user = request.user
+        # One transaction: release_user can delete orgs or hand over ownership.
+        with transaction.atomic():
+            release_user(user)
+            # Erase the user's own change history too (it holds their old values);
+            # entries they authored elsewhere keep the change with actor=NULL.
+            with disable_auditlog():
+                LogEntry.objects.get_for_object(user).delete()
+                user.delete()
         logout(request)
-        release_user(user)
-        # Erase the user's own change history too (it holds their old values);
-        # entries they authored elsewhere keep the change with actor=NULL.
-        with disable_auditlog():
-            LogEntry.objects.get_for_object(user).delete()
-            user.delete()
         messages.success(request, "Your account has been deleted.")
         return redirect("home")
     return render(request, "users/delete_account.html")

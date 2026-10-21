@@ -1,6 +1,7 @@
-from django.contrib import admin
-from django.urls import path, include
 from django.conf import settings
+from django.conf.urls.static import static
+from django.contrib import admin
+from django.urls import include, path
 
 from dmr.openapi import build_schema
 from dmr.openapi.views import SwaggerView, OpenAPIJsonView
@@ -50,3 +51,6 @@ if settings.DEBUG:
         urlpatterns.insert(0, path("__debug__/", include(debug_toolbar.urls)))
     except ImportError:
         pass
+
+    # Serve uploaded media in dev. In production the web server or S3 does it.
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

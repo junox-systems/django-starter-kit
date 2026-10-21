@@ -49,13 +49,7 @@
                     <c-org-switcher action="{% url 'org_switch' %}" :current="org_switcher.current" :organizations="org_switcher.organizations" />
                     <c-theme-toggle />
                     <a href="{% url 'profile' %}" class="hover:bg-muted flex items-center gap-2 rounded-md px-2 py-1" aria-label="Your profile">
-                        {% if user.avatar %}
-                            <img class="size-7 rounded-full object-cover" src="{{ user.avatar_thumbnail.url }}" alt="">
-                        {% else %}
-                            <span class="bg-primary text-primary-foreground grid size-7 place-items-center rounded-full text-xs font-medium">
-                                {{ user.get_full_name|default:user.email|first|upper }}
-                            </span>
-                        {% endif %}
+                        <c-avatar src="{% if user.avatar %}{{ user.avatar_thumbnail.url }}{% endif %}" alt="" initial="{{ user.get_full_name|default:user.email|first }}" class="size-7" />
                         <span class="text-muted-foreground hidden text-sm sm:inline">{{ user.get_full_name|default:user.email }}</span>
                     </a>
                 </div>

@@ -183,6 +183,7 @@ All server markup built from `templates/cotton/`. Pages compose; never repeat Ba
 | `<c-fields :form="form" />` | whole Django form (non-field errors + each field) |
 | `<c-field for label help errors>` | one hand-built control; control in slot |
 | `<c-center class="max-w-md">` | centered logged-out page (auth) |
+| `<c-avatar src alt initial size>` | avatar image or initials fallback. `size` = `sm` / `lg` |
 | `<c-header>` `<c-footer>` `<c-messages>` `<c-theme-toggle>` `<c-icon.*>` | chrome |
 
 ```html
