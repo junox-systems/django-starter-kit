@@ -1408,6 +1408,14 @@
     @apply bg-popover text-popover-foreground border shadow-lg rounded-2xl;
   }
 
+  .toast[data-category='error'] .toast-content > svg {
+    @apply text-destructive;
+  }
+
+  .toaster .toast {
+    @apply motion-reduce:animate-none motion-reduce:transition-none;
+  }
+
   /* Slider */
   .field > input[type='range'],
   .input[type='range'] {

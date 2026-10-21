@@ -184,7 +184,8 @@ All server markup built from `templates/cotton/`. Pages compose; never repeat Ba
 | `<c-field for label help errors>` | one hand-built control; control in slot |
 | `<c-center class="max-w-md">` | centered logged-out page (auth) |
 | `<c-avatar src alt initial size>` | avatar image or initials fallback. `size` = `sm` / `lg` |
-| `<c-header>` `<c-footer>` `<c-messages>` `<c-theme-toggle>` `<c-icon.*>` | chrome |
+| `<c-messages>` | Django messages → Basecoat toasts. Once, end of `base.html`. Never `toaster.toast()` with server data — unescaped |
+| `<c-header>` `<c-footer>` `<c-theme-toggle>` `<c-icon.*>` | chrome |
 
 ```html
 <c-card title="New organization">

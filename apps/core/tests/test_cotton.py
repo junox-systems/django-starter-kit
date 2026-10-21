@@ -1,4 +1,8 @@
-from django.test import TestCase
+from django.contrib import messages
+from django.contrib.messages.storage.fallback import FallbackStorage
+from django.contrib.sessions.middleware import SessionMiddleware
+from django.template.loader import render_to_string
+from django.test import RequestFactory, TestCase
 from django.urls import reverse
 
 from apps.orgs.models import Organization
@@ -45,3 +49,52 @@ class CottonPagesTests(TestCase):
         )
         self.assertContains(response, 'data-variant="destructive" role="alert"')
         self.assertContains(response, 'name="csrfmiddlewaretoken"')
+
+
+class MessagesToastTests(TestCase):
+    """Django messages render as Basecoat toasts, escaped, one category per level."""
+
+    def render(self, *pairs):
+        request = RequestFactory().get("/")
+        SessionMiddleware(lambda r: None).process_request(request)
+        request._messages = FallbackStorage(request)
+        for level, text in pairs:
+            messages.add_message(request, level, text, extra_tags="extra")
+        return render_to_string("cotton/messages.html", request=request)
+
+    def test_categories_and_persistence(self):
+        html = self.render(
+            (messages.SUCCESS, "Saved."),
+            (messages.ERROR, "Nope."),
+            (messages.WARNING, "Careful."),
+        )
+        self.assertIn('id="toaster"', html)
+        self.assertNotIn("<c-", html)
+        self.assertInHTML(
+            '<div class="toast" role="status" aria-atomic="true" data-category="success">'
+            '<div class="toast-content">'
+            '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-circle-check" aria-hidden="true"><circle cx="12" cy="12" r="10" /><path d="m9 12 2 2 4-4" /></svg>'
+            "<section><h2>Saved.</h2></section></div></div>",
+            html,
+        )
+        # Errors announce assertively; errors + warnings stay until dismissed,
+        # and level_tag ignores extra_tags.
+        self.assertRegex(
+            html,
+            r'role="alert"\s+aria-atomic="true"\s+data-category="error"\s+data-duration="-1"',
+        )
+        self.assertRegex(
+            html,
+            r'role="status"\s+aria-atomic="true"\s+data-category="warning"\s+data-duration="-1"',
+        )
+        self.assertEqual(html.count("data-toast-cancel"), 2)
+
+    def test_escapes_message_text(self):
+        html = self.render((messages.SUCCESS, "<b>bold</b>"))
+        self.assertIn("&lt;b&gt;bold&lt;/b&gt;", html)
+        self.assertNotIn("<b>bold</b>", html)
+
+    def test_no_messages_empty_toaster(self):
+        html = self.render()
+        self.assertIn('id="toaster"', html)
+        self.assertNotIn("<template", html)
