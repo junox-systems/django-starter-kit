@@ -146,6 +146,23 @@ class ProfileEditTests(TestCase):
         self.assertNotContains(response, "@bob")
         self.assertEqual(response.context["user"].first_name, "")
 
+    def test_username_taken_ignores_case(self):
+        User.objects.create_user(
+            email="bob@example.com", username="bob", password="s3cret-pw"
+        )
+        response = self.client.post(
+            reverse("profile"),
+            {"first_name": "", "last_name": "", "username": "BOB"},
+        )
+        self.assertIn("username", response.context["form"].errors)
+
+    def test_username_case_change_of_own_name_allowed(self):
+        response = self.client.post(
+            reverse("profile"),
+            {"first_name": "", "last_name": "", "username": "Alice"},
+        )
+        self.assertRedirects(response, reverse("profile"))
+
     def test_profile_renders_edit_form(self):
         response = self.client.get(reverse("profile"))
         self.assertContains(response, 'name="first_name"')
