@@ -1,4 +1,15 @@
 {% extends "base_app.html" %}
+{% comment %}
+    Profile page (users.views.ProfileView), four cards top to bottom:
+      1. Summary: avatar, name, read-only account info.
+      2. Edit profile: `form` = users.forms.ProfileForm (first/last name,
+         username, avatar), rendered whole by the fields component. POSTs back
+         to this view; invalid input re-renders here with errors, success
+         redirects with a "Profile updated." toast. Add or change editable
+         fields in ProfileForm.Meta.fields, not here.
+      3. Account settings: allauth's password, email and MFA pages; log out.
+      4. Your data: JSON export and account deletion.
+{% endcomment %}
 
 {% block title %}Profile — Django Starter Kit{% endblock %}
 {% block page_title %}Profile{% endblock %}
@@ -10,7 +21,7 @@
       <header class="flex items-center gap-4 p-5">
         <c-avatar src="{% if user.avatar %}{{ user.avatar_thumbnail.url }}{% endif %}" alt="{{ user.get_full_name|default:user.email }}" initial="{{ user.first_name|slice:':1'|default:user.username|slice:':1' }}" size="lg" />
         <div class="min-w-0">
-          <h2 class="text-3xl font-bold">{{ user.get_full_name|default:user.email }}</h2>
+          <h2 class="text-3xl font-bold break-words">{{ user.get_full_name|default:user.email }}</h2>
           <p class="text-muted-foreground mt-1 text-sm">@{{ user.username }}</p>
         </div>
       </header>
@@ -43,7 +54,7 @@
     <c-btn href="{% url 'account_email' %}" variant="secondary">Email Addresses</c-btn>
     <c-btn href="{% url 'mfa_index' %}" variant="secondary">Two-factor</c-btn>
     <c-form action="{% url 'account_logout' %}">
-      <c-btn type="submit" variant="ghost">Logout</c-btn>
+      <c-btn type="submit" variant="destructive">Log out</c-btn>
     </c-form>
   </c-card>
 
