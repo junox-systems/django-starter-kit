@@ -438,18 +438,6 @@ wheels = [
 ]
 
 [[package]]
-name = "django-guardian"
-version = "3.5.1"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "django" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/83/ae/5d211238341c393cd8a3ca916acb45bacd5141bd438cc7dbe23d8decab83/django_guardian-3.5.1.tar.gz", hash = "sha256:05e96e729dfaaeea1f938ba475062b4b2b07d4193bbfaa3ef23611336d122ca1", size = 120168, upload-time = "2026-10-16T18:58:16.033Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/ff/cf/4542ab5e477efd11c131b09260b7f81021494852f2ae2719c048d53f72a1/django_guardian-3.5.1-py3-none-any.whl", hash = "sha256:961cda884db361a8dd8d1efc6d890d7a90991f56a1bafe5d3f6239663ec03aec", size = 156704, upload-time = "2026-10-16T18:58:14.482Z" },
-]
-
-[[package]]
 name = "django-imagekit"
 version = "6.1.1"
 source = { registry = "https://pypi.org/simple" }
@@ -561,7 +549,6 @@ dependencies = [
     { name = "django-cors-headers" },
     { name = "django-cotton" },
     { name = "django-environ" },
-    { name = "django-guardian" },
     { name = "django-imagekit" },
     { name = "django-import-export" },
     { name = "django-modern-rest", extra = ["jwt", "msgspec", "openapi"] },
@@ -604,7 +591,6 @@ requires-dist = [
     { name = "django-cors-headers", specifier = ">=4.3.0" },
     { name = "django-cotton", specifier = ">=2.8.0" },
     { name = "django-environ", specifier = ">=0.11.2" },
-    { name = "django-guardian", specifier = ">=3.3.1" },
     { name = "django-imagekit", specifier = ">=5.0.0" },
     { name = "django-import-export", specifier = ">=4.4.1" },
     { name = "django-modern-rest", extras = ["jwt", "msgspec", "openapi"], specifier = ">=0.16.0" },

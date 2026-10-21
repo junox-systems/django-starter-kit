@@ -24,7 +24,7 @@ Django 5.2 LTS starter kit. Modular monolith. Lean, opinionated, prod-ready. Sin
 | Config | `django-environ` (`env.db()`, `env.bool()`); all vars in `.env.example` |
 | Storage | `django-storages` S3-compatible; falls back to local FS without `AWS_*`. `django-imagekit` avatar thumbs |
 | Email | `django-anymail` (Postmark / SES) |
-| Admin | stock admin + dj-control-room (cache, urls, signals panels), guardian, constance, import_export, auditlog |
+| Admin | stock admin + dj-control-room (cache, urls, signals panels), constance, import_export, auditlog |
 | Observability | Sentry (if `SENTRY_DSN`; 10% traces, no PII). OTEL opt-in `OTEL_ENABLED=true`: Django + psycopg only, any OTLP backend |
 | Tooling | ruff, pytest, django-debug-toolbar (`/__debug__/`) |
 
@@ -37,7 +37,7 @@ apps/           # ALL backend code. Never at project root
   api/          # DMR controllers + schemas/
   pages/        # static/marketing pages
   dashboard/    # /dashboard/ — panel payloads, no models
-  orgs/         # orgs, memberships (owner/member), email invitations
+  orgs/         # orgs, memberships, RBAC roles (rbac.py), email invitations
 config/
   settings/     # base / dev / production / test
   asgi.py       # ASGI + OTEL init
@@ -93,6 +93,27 @@ async_task("apps.myapp.tasks.send_welcome_email", str(user.id))
 ```
 - Failed task not re-queued → wrap with `apps.core.tasks.retry` for backoff.
 - Results/failures/schedules: admin → *Django Q*. Tests run inline (`"sync": True`).
+
+### Orgs & RBAC
+Modeled on **ANSI INCITS 359-2004**, *Information Technology – Role Based Access Control* (Core + Limited Role Hierarchies; superseded by INCITS 359-2012 (R2022)). Text: https://www.cs.purdue.edu/homes/ninghui/readings/AccessControl/ANSI+INCITS+359-2004.pdf · NIST: https://csrc.nist.gov/projects/role-based-access-control. Design reference, not a compliance claim.
+
+| Standard | Here |
+|---|---|
+| USERS / ROLES | `User` / `orgs.Role` (global rows, admin-editable) |
+| OPS × OBS = PRMS | Django `Permission` (codename × content type), objects scoped to one org |
+| UA | `Membership.roles` (per organization) |
+| PA | `Role.permissions` |
+| RH (limited) | `Role.descendant`: one immediate junior, inherits its perms, acyclic |
+| SESSIONS | Django session key `rbac` = membership + active roles |
+
+- Functional spec = `apps/orgs/rbac.py`, one function per standard function (`assign_user`, `check_access`, `add_inheritance`, …). Change roles/assignments through it, never raw `.roles.add()` in views.
+- Access check: `rbac.check_access(request, "app.codename", obj)`. Org-owned model → `organization` FK; check resolves through it, denies other orgs.
+- Org pages call `rbac.activate(request, membership)`: viewing an org makes it the session org. App bar switcher → `org_switch`.
+- Delegated admin (our policy, not 359): `can_administer_role` / `can_manage_member` — no one grants or removes more than they hold. Last owner protected (`Organization.lock()` + `ensure_owner_remains`).
+- Defaults owner ⊇ admin ⊇ member seeded on `post_migrate` (`seed_default_roles`); fills only missing roles / empty perm sets. Never overwrite operator edits.
+- Signup → personal org (`signals.py`). Users can still have zero orgs (admin-created, left all) → `current_session()` is `None` → empty state.
+- New org-level operation = add to `Organization.Meta.permissions` + grant in `DEFAULT_ROLES`. No per-org custom roles or SSD/DSD yet (YAGNI).
+- No django-guardian. Per-object grants for one user only if a real need appears.
 
 ## Frontend Formula
 

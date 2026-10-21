@@ -4,7 +4,9 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.urls import reverse
 from django.views.generic import TemplateView
 
-from .panels import account_payload, activity_payload
+from apps.orgs.rbac import current_session
+
+from .panels import account_payload, activity_payload, org_payload
 
 
 class DashboardView(LoginRequiredMixin, TemplateView):
@@ -16,7 +18,10 @@ class DashboardView(LoginRequiredMixin, TemplateView):
         context = super().get_context_data(**kwargs)
         user = self.request.user
         # One payload dict -> one json_script node -> props of the Svelte root.
-        context["payload"] = {"account": account_payload(user)}
+        context["payload"] = {
+            "account": account_payload(user),
+            "org": org_payload(current_session(self.request)),
+        }
         return context
 
 

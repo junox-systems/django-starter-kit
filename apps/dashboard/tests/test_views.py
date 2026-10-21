@@ -65,7 +65,7 @@ class DashboardViewTests(TestCase):
         )
 
         payload = response.context["payload"]
-        self.assertEqual(set(payload), {"account"})
+        self.assertEqual(set(payload), {"account", "org"})
         # Must survive a JSON round trip — it is rendered with json_script.
         json.dumps(payload)
 

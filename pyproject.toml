@@ -37,7 +37,6 @@ dependencies = [
     "django-auditlog>=3.0.0",
     # Utilities
     "django-constance>=4.3.5",
-    "django-guardian>=3.3.1",
     "django-import-export>=4.4.1",
     "opentelemetry-instrumentation-asgi>=0.62b1",
     "dj-control-room[cache,urls,signals]>=1.8.1",

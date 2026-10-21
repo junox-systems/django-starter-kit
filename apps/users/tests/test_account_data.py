@@ -5,7 +5,7 @@ from auditlog.models import LogEntry
 from django.test import TestCase
 from django.urls import reverse
 
-from apps.orgs.models import Membership, Organization
+from apps.orgs.models import Organization
 from apps.users.models import User
 
 
@@ -45,8 +45,7 @@ class AccountDataTests(TestCase):
         self.assertTrue(User.objects.filter(pk=self.user.pk).exists())
 
     def test_delete_removes_user_and_logs_out(self):
-        org = Organization.objects.create(name="Solo")
-        Membership.objects.create(organization=org, user=self.user, role="owner")
+        Organization.create_with_owner("Solo", self.user)
         self.reauth()
         self.assertTrue(LogEntry.objects.filter(object_pk=str(self.user.pk)).exists())
         page = self.client.get(reverse("delete_account"))

@@ -11,7 +11,11 @@
         {% for m in memberships %}
           <li class="flex items-center justify-between gap-3 py-3">
             <a href="{% url 'org_detail' m.organization.pk %}" class="font-medium underline-offset-4 hover:underline">{{ m.organization.name }}</a>
-            <c-badge variant="{% if m.is_owner %}primary{% else %}secondary{% endif %}">{{ m.get_role_display }}</c-badge>
+            <span class="flex gap-1">
+              {% for role in m.roles.all %}
+                <c-badge variant="{% if role.name == 'owner' %}primary{% else %}secondary{% endif %}">{{ role.name|capfirst }}</c-badge>
+              {% endfor %}
+            </span>
           </li>
         {% endfor %}
       </ul>

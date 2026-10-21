@@ -14,6 +14,7 @@ A modern, production-ready Django starter kit — opinionated, lean, and ready t
 | **Whitenoise** | Static file serving |
 | **django-allauth** | Auth — local accounts, OIDC/SSO, social login |
 | **django-auditlog** | Automatic model change tracking |
+| **Organizations + RBAC** (`apps/orgs`) | Teams, email invitations, role-based access control after ANSI INCITS 359-2004 |
 | **django-imagekit** | On-demand image processing (avatar thumbnails) |
 | **django-storages** | S3-compatible media file backend |
 | **django-anymail** | Transactional email (Postmark / AWS SES) |
@@ -99,6 +100,32 @@ production stack.
 
 ---
 
+## Organizations & Access Control
+
+Every account starts with a personal organization (`<username>'s workspace`). Users join more through email invitations and switch between them in the app bar. The dashboard shows the current one.
+
+Access inside an organization is **role-based access control (RBAC)**. It is modeled on:
+
+> **ANSI INCITS 359-2004**, *American National Standard for Information Technology – Role Based Access Control*. American National Standards Institute / InterNational Committee for Information Technology Standards, 2004. Superseded by INCITS 359-2012 (R2022).
+>
+> - Text: <https://www.cs.purdue.edu/homes/ninghui/readings/AccessControl/ANSI+INCITS+359-2004.pdf>
+> - NIST RBAC project (adoption, title, history): <https://csrc.nist.gov/projects/role-based-access-control>
+
+Implemented components: **Core RBAC** (§5.1, §6.1) and **Limited Role Hierarchies** (§5.2, §6.2.2). Separation-of-duty constraints (§5.3) are optional in the standard and not implemented. This is a design reference, not a certified compliance claim.
+
+| Default role | Inherits | Adds |
+|---|---|---|
+| `owner` | admin | rename and delete the organization |
+| `admin` | member | invite people, assign roles, remove members |
+| `member` | — | view the organization |
+
+- Roles and their permissions are data: edit them in the admin under *Orgs → Roles*. Defaults are re-seeded only when missing.
+- Check access with `rbac.check_access(request, "app_label.codename", obj)`. Models owned by an organization get checks for free through an `organization` foreign key.
+- Nobody can grant or remove more than they hold, and every organization keeps at least one owner.
+- Implementation and the mapping from the standard's functions: `apps/orgs/rbac.py`, `apps/orgs/models.py`.
+
+---
+
 ## Frontend Architecture
 
 **Primary rendering: Django templates composed from [django-cotton](https://django-cotton.com) components + HTML forms.** Standard full-page loads for most interactions. Components live in `templates/cotton/` (`cotton/card.html` → `<c-card>`):
@@ -156,7 +183,7 @@ django-starter-kit/
 │   ├── api/           # API endpoints (DMR)
 │   ├── pages/         # Static/marketing pages, terms, privacy
 │   ├── dashboard/     # Authenticated home
-│   └── orgs/          # Organizations, roles, email invitations
+│   └── orgs/          # Organizations, RBAC roles (INCITS 359), email invitations
 ├── config/
 │   ├── settings/
 │   │   ├── base.py        # Shared config

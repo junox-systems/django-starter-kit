@@ -61,7 +61,6 @@ INSTALLED_APPS = [
     "dj_control_room",
     "django_q",
     "constance",
-    "guardian",
     "import_export",
     "allauth",
     "allauth.account",
@@ -137,6 +136,7 @@ TEMPLATES = [
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
                 "apps.dashboard.context_processors.app_nav",
+                "apps.orgs.context_processors.current_org",
             ],
         },
     },
@@ -158,7 +158,6 @@ AUTH_USER_MODEL = "users.User"
 AUTHENTICATION_BACKENDS = (
     "django.contrib.auth.backends.ModelBackend",
     "allauth.account.auth_backends.AuthenticationBackend",
-    "guardian.backends.ObjectPermissionBackend",
 )
 # Declared explicitly — LoginRequiredMixin depends on it, and Django's default
 # only happened to match allauth's mount point by coincidence.

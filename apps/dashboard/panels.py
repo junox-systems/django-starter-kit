@@ -78,3 +78,22 @@ def account_payload(user) -> dict:
         ],
         "last_login": user.last_login.isoformat() if user.last_login else None,
     }
+
+
+def org_payload(session) -> dict:
+    """The current organization: the RBAC session's org and the roles active in it.
+
+    `session` is apps.orgs.rbac.current_session(request); None means the user
+    belongs to no organization, which the panel renders as an empty state.
+    """
+    if session is None:
+        return {"org": None, "urls": {"orgs": reverse("orgs")}}
+    org = session.organization
+    return {
+        "org": {
+            "name": org.name,
+            "roles": sorted(role.name for role in session.roles),
+            "member_count": org.memberships.count(),
+        },
+        "urls": {"orgs": reverse("orgs"), "org": reverse("org_detail", args=[org.pk])},
+    }

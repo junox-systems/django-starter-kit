@@ -4,6 +4,7 @@ from . import views
 
 urlpatterns = [
     path("", views.org_list, name="orgs"),
+    path("switch/", views.org_switch, name="org_switch"),
     path("<uuid:pk>/", views.org_detail, name="org_detail"),
     path("<uuid:pk>/delete/", views.org_delete, name="org_delete"),
     path(
