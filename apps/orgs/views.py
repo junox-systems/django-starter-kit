@@ -68,7 +68,7 @@ def org_list(request):
 @login_required
 @require_http_methods(["GET", "POST"])
 def org_detail(request, pk):
-    membership = _membership(request, pk)
+    membership = _require(request, pk, "orgs.view_organization")
     org = membership.organization
     can_invite = rbac.check_access(request, "orgs.invite_member", org)
     form = InviteForm(request.POST or None)

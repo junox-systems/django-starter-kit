@@ -115,13 +115,13 @@ Implemented components: **Core RBAC** (§5.1, §6.1) and **Limited Role Hierarch
 
 | Default role | Inherits | Adds |
 |---|---|---|
-| `owner` | admin | rename and delete the organization |
+| `owner` | admin | delete the organization (`change_organization` reserved for org settings) |
 | `admin` | member | invite people, assign roles, remove members |
 | `member` | — | view the organization |
 
-- Roles and their permissions are data: edit them in the admin under *Orgs → Roles*. Defaults are re-seeded only when missing.
+- Roles and their permissions are data: edit them in the admin under *Orgs → Roles*. Your edits are kept; only a missing default role is recreated.
 - Check access with `rbac.check_access(request, "app_label.codename", obj)`. Models owned by an organization get checks for free through an `organization` foreign key.
-- Nobody can grant or remove more than they hold, and every organization keeps at least one owner.
+- Nobody can grant or remove more than they hold. Every organization keeps at least one owner, and every member keeps at least one role.
 - Implementation and the mapping from the standard's functions: `apps/orgs/rbac.py`, `apps/orgs/models.py`.
 
 ---

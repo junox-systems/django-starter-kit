@@ -5,17 +5,31 @@ import django.db.models.deletion
 from django.conf import settings
 from django.db import migrations, models
 
-# Frozen copy of the default hierarchy (apps.orgs.rbac.DEFAULT_ROLES). The
-# post_migrate seed grants the permissions once auth has created them.
+# Frozen copy of apps.orgs.rbac.DEFAULT_ROLES: (name, description,
+# descendant, codenames on Organization). Senior roles inherit the rest.
 ROLES = [
-    ("member", "Uses the organization.", None),
-    ("admin", "Invites people and manages members.", "member"),
+    ("member", "Uses the organization.", None, ["view_organization"]),
+    (
+        "admin",
+        "Invites people and manages members.",
+        "member",
+        ["invite_member", "manage_members"],
+    ),
     (
         "owner",
-        "Full control, including renaming and deleting the organization.",
+        "Full control, including deleting the organization.",
         "admin",
+        ["change_organization", "delete_organization"],
     ),
 ]
+PERMISSION_NAMES = {
+    "add_organization": "Can add organization",
+    "change_organization": "Can change organization",
+    "delete_organization": "Can delete organization",
+    "view_organization": "Can view organization",
+    "invite_member": "Can invite people to the organization",
+    "manage_members": "Can assign roles to and remove members",
+}
 
 
 def roles_from_role_field(apps, schema_editor):
@@ -24,15 +38,30 @@ def roles_from_role_field(apps, schema_editor):
     Users without any organization get a personal one, like new signups.
     """
     Role = apps.get_model("orgs", "Role")
+    ContentType = apps.get_model("contenttypes", "ContentType")
+    Permission = apps.get_model("auth", "Permission")
     Membership = apps.get_model("orgs", "Membership")
     Organization = apps.get_model("orgs", "Organization")
     User = apps.get_model(*settings.AUTH_USER_MODEL.split("."))
+    # Permission rows normally appear after migrate (post_migrate); the roles
+    # need them now, so create them here. auth's hook later finds them present.
+    org_type, _ = ContentType.objects.get_or_create(
+        app_label="orgs", model="organization"
+    )
+    perms = {
+        codename: Permission.objects.get_or_create(
+            content_type=org_type, codename=codename, defaults={"name": name}
+        )[0]
+        for codename, name in PERMISSION_NAMES.items()
+    }
     roles = {}
-    for name, description, descendant in ROLES:
-        roles[name], _ = Role.objects.get_or_create(
+    for name, description, descendant, codenames in ROLES:
+        roles[name], created = Role.objects.get_or_create(
             name=name,
             defaults={"description": description, "descendant": roles.get(descendant)},
         )
+        if created:
+            roles[name].permissions.add(*(perms[c] for c in codenames))
     for membership in Membership.objects.all():
         membership.roles.add(roles["owner" if membership.role == "owner" else "member"])
     for user in User.objects.filter(is_active=True, memberships__isnull=True):
@@ -55,6 +84,7 @@ def role_field_from_roles(apps, schema_editor):
 class Migration(migrations.Migration):
     dependencies = [
         ("auth", "0012_alter_user_first_name_max_length"),
+        ("contenttypes", "0002_remove_content_type_name"),
         ("orgs", "0001_initial"),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
         # The guardian cleanup removes AnonymousUser before personal orgs are made.

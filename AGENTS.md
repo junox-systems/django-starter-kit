@@ -104,13 +104,14 @@ Modeled on **ANSI INCITS 359-2004**, *Information Technology – Role Based Acce
 | UA | `Membership.roles` (per organization) |
 | PA | `Role.permissions` |
 | RH (limited) | `Role.descendant`: one immediate junior, inherits its perms, acyclic |
-| SESSIONS | Django session key `rbac` = membership + active roles |
+| SESSIONS | Django session key `rbac` = membership + dropped roles; active = authorized − dropped |
 
 - Functional spec = `apps/orgs/rbac.py`, one function per standard function (`assign_user`, `check_access`, `add_inheritance`, …). Change roles/assignments through it, never raw `.roles.add()` in views.
 - Access check: `rbac.check_access(request, "app.codename", obj)`. Org-owned model → `organization` FK; check resolves through it, denies other orgs.
 - Org pages call `rbac.activate(request, membership)`: viewing an org makes it the session org. App bar switcher → `org_switch`.
-- Delegated admin (our policy, not 359): `can_administer_role` / `can_manage_member` — no one grants or removes more than they hold. Last owner protected (`Organization.lock()` + `ensure_owner_remains`).
-- Defaults owner ⊇ admin ⊇ member seeded on `post_migrate` (`seed_default_roles`); fills only missing roles / empty perm sets. Never overwrite operator edits.
+- Delegated admin (our policy, not 359): `can_administer_role` / `can_manage_member` — no one grants or removes more than they hold. Under `Organization.lock()`: last owner keeps owner, every member keeps ≥1 role. Org pages need `orgs.view_organization`.
+- Defaults owner ⊇ admin ⊇ member: created + granted by migration `orgs 0002`; `post_migrate` (`seed_default_roles`) recreates only missing ones (test DBs, deleted defaults). Existing roles never touched — operator edits survive.
+- Role assigned mid-session = active next request; deassigned = gone next request. No re-login needed.
 - Signup → personal org (`signals.py`). Users can still have zero orgs (admin-created, left all) → `current_session()` is `None` → empty state.
 - New org-level operation = add to `Organization.Meta.permissions` + grant in `DEFAULT_ROLES`. No per-org custom roles or SSD/DSD yet (YAGNI).
 - No django-guardian. Per-object grants for one user only if a real need appears.

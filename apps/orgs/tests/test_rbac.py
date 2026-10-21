@@ -71,12 +71,19 @@ class CoreAdministrativeCommandTests(RBACTestCase):
     def test_assign_and_deassign_validity(self):
         with self.assertRaises(rbac.RBACError):
             rbac.assign_user(self.bob_m, role(MEMBER))  # already assigned
+        rbac.assign_user(self.bob_m, role(ADMIN))
         rbac.deassign_user(self.bob_m, role(MEMBER))
         with self.assertRaises(rbac.RBACError):
             rbac.deassign_user(self.bob_m, role(MEMBER))  # no longer assigned
 
+    def test_member_keeps_at_least_one_role(self):
+        with self.assertRaisesMessage(rbac.RBACError, "at least one role"):
+            rbac.deassign_user(self.bob_m, role(MEMBER))
+        self.assertEqual([r.name for r in self.bob_m.roles.all()], [MEMBER])
+
     def test_last_owner_cannot_be_deassigned(self):
-        with self.assertRaises(ValidationError):
+        rbac.assign_user(self.acme, role(MEMBER))
+        with self.assertRaisesMessage(ValidationError, "needs an owner"):
             rbac.deassign_user(self.acme, role(OWNER))
         rbac.assign_user(self.bob_m, role(OWNER))
         rbac.deassign_user(self.acme, role(OWNER))  # bob still owns it
@@ -163,20 +170,34 @@ class SessionFunctionTests(RBACTestCase):
         with self.assertRaises(rbac.RBACError):
             rbac.add_active_role(request, role(ADMIN))
 
-    def test_session_survives_requests_and_drops_deassigned_roles(self):
+    def test_session_tracks_assignments_across_requests(self):
         session = SessionStore()
         rbac.create_session(request_for(self.bob, session), self.bob_m)
+        # AssignUser during a session: the new role is active on the next request.
         rbac.assign_user(self.bob_m, role(ADMIN))
-        self.assertFalse(  # assigning does not activate; a new session would
+        self.assertTrue(
             rbac.check_access(
                 request_for(self.bob, session), "orgs.invite_member", self.org
             )
         )
-        # Admin inherits member, so member stays authorized until both go.
+        # Admin inherits member, so member stays active while admin is held.
         rbac.deassign_user(self.bob_m, role(MEMBER))
-        self.assertEqual(len(rbac.session_roles(request_for(self.bob, session))), 1)
+        names = {r.name for r in rbac.session_roles(request_for(self.bob, session))}
+        self.assertEqual(names, {ADMIN, MEMBER})
+        # DeassignUser during a session: the role is inactive on the next request.
+        rbac.assign_user(self.bob_m, role(MEMBER))
         rbac.deassign_user(self.bob_m, role(ADMIN))
-        self.assertEqual(rbac.session_roles(request_for(self.bob, session)), [])
+        later = request_for(self.bob, session)
+        self.assertEqual([r.name for r in rbac.session_roles(later)], [MEMBER])
+        self.assertFalse(rbac.check_access(later, "orgs.invite_member", self.org))
+
+    def test_dropped_role_stays_dropped_across_requests(self):
+        session = SessionStore()
+        rbac.create_session(request_for(self.alice, session), self.acme)
+        rbac.drop_active_role(request_for(self.alice, session), role(OWNER))
+        later = request_for(self.alice, session)
+        self.assertNotIn(OWNER, {r.name for r in rbac.session_roles(later)})
+        self.assertFalse(rbac.check_access(later, "orgs.delete_organization", self.org))
 
     def test_check_access_scopes_object_type_and_organization(self):
         request = request_for(self.alice)

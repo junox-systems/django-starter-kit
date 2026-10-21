@@ -1,10 +1,11 @@
 {% comment %}
     App-bar organization switcher. Native form, no JS: pick an organization,
     press Switch, the server moves the RBAC session and reloads the dashboard.
+    Renders nothing for users in fewer than two organizations.
     <c-org-switcher action="{% url 'org_switch' %}" :current="org" :organizations="orgs" />
 {% endcomment %}
 <c-vars action current organizations />
-{% if organizations %}
+{% if organizations|length > 1 %}
 <c-form action="{{ action }}" class="flex items-center gap-2">
     <label for="org-switcher" class="sr-only">Organization</label>
     <select id="org-switcher" name="organization" class="select max-w-40 truncate" data-size="sm">

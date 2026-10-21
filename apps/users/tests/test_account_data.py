@@ -27,6 +27,7 @@ class AccountDataTests(TestCase):
         self.assertTrue(response.url.startswith(reverse("account_reauthenticate")))
 
     def test_export_contains_user_data_but_no_secrets(self):
+        Organization.create_with_owner("Solo", self.user)
         self.reauth()
         response = self.client.get(reverse("export_data"))
         self.assertEqual(response.status_code, 200)
@@ -38,6 +39,7 @@ class AccountDataTests(TestCase):
         )
         self.assertNotIn("password", response.content.decode())
         self.assertNotIn("extra_data", data["social_accounts"][0])
+        self.assertEqual(data["organizations"], [{"name": "Solo", "roles": ["owner"]}])
 
     def test_delete_requires_matching_email(self):
         self.reauth()

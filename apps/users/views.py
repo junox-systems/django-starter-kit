@@ -32,8 +32,10 @@ def user_export(user):
             for e in user.emailaddress_set.all()
         ],
         "organizations": [
-            {"name": m.organization.name, "role": m.role}
-            for m in user.memberships.select_related("organization")
+            {"name": m.organization.name, "roles": [r.name for r in m.roles.all()]}
+            for m in user.memberships.select_related("organization").prefetch_related(
+                "roles"
+            )
         ],
         "social_accounts": [
             {"provider": a.provider, "uid": a.uid} for a in user.socialaccount_set.all()

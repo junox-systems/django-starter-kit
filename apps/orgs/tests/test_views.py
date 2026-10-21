@@ -85,7 +85,7 @@ class PersonalOrganizationTests(TestCase):
         self.client.force_login(user)
         payload = self.client.get(reverse("dashboard")).context["payload"]["org"]
         self.assertEqual(payload["org"]["name"], "sam's workspace")
-        self.assertEqual(payload["org"]["roles"], [ADMIN, MEMBER, OWNER])
+        self.assertEqual(payload["org"]["roles"], [OWNER])
 
     def test_dashboard_empty_state_without_org(self):
         self.client.force_login(make_user("sam"))
@@ -107,6 +107,12 @@ class OrgSwitchTests(OrgTestCase):
         self.assertContains(page, 'id="org-switcher"')
         self.assertContains(page, f'value="{other.pk}" selected')
         self.assertContains(page, f'value="{self.org.pk}"')
+
+    def test_switcher_hidden_with_one_org(self):
+        self.client.force_login(self.member)
+        self.assertNotContains(
+            self.client.get(reverse("dashboard")), 'id="org-switcher"'
+        )
 
     def test_rejects_foreign_and_malformed_ids(self):
         self.client.force_login(self.outsider)
@@ -143,6 +149,27 @@ class OrgDetailTests(OrgTestCase):
             response = self.client.post(self.detail, {"email": email})
             self.assertContains(response, "Already a member.")
         self.assertFalse(Invitation.objects.exists())
+
+    def test_only_inviters_revoke_invitations(self):
+        invitation = Invitation.objects.create(
+            organization=self.org, email="x@example.com"
+        )
+        url = reverse("invitation_revoke", args=[self.org.pk, invitation.pk])
+        self.client.force_login(self.member)
+        self.assertEqual(self.client.post(url).status_code, 403)
+        self.client.force_login(self.owner)
+        self.assertRedirects(self.client.post(url), self.detail)
+        self.assertFalse(Invitation.objects.exists())
+
+    def test_promotion_applies_without_new_login(self):
+        self.client.force_login(self.member)
+        self.client.get(self.detail)  # RBAC session open as plain member
+        self.assertEqual(
+            self.client.post(self.detail, {"email": "o@example.com"}).status_code, 403
+        )
+        self.member_m.roles.add(role(ADMIN))
+        response = self.client.post(self.detail, {"email": "o@example.com"})
+        self.assertRedirects(response, self.detail)
 
     def test_pending_invitations_are_capped(self):
         Invitation.objects.bulk_create(
@@ -261,6 +288,13 @@ class MembershipRoleTests(OrgTestCase):
             {"role": role(role_name).pk},
         )
 
+    def toggle_follow(self, membership, role_name):
+        return self.client.post(
+            reverse("membership_role", args=[self.org.pk, membership.pk]),
+            {"role": role(role_name).pk},
+            follow=True,
+        )
+
     def names(self, membership):
         return sorted(r.name for r in membership.roles.all())
 
@@ -268,8 +302,21 @@ class MembershipRoleTests(OrgTestCase):
         self.client.force_login(self.owner)
         self.toggle(self.member_m, OWNER)
         self.assertEqual(self.names(self.member_m), [MEMBER, OWNER])
+        # Stepping down: keep a role, then drop owner (another owner remains).
+        self.toggle(self.owner_m, MEMBER)
         self.toggle(self.owner_m, OWNER)
-        self.assertEqual(self.names(self.owner_m), [])
+        self.assertEqual(self.names(self.owner_m), [MEMBER])
+
+    def test_members_last_role_cannot_be_revoked(self):
+        self.client.force_login(self.owner)
+        response = self.toggle_follow(self.member_m, MEMBER)
+        self.assertContains(response, "at least one role")
+        self.assertEqual(self.names(self.member_m), [MEMBER])
+
+    def test_member_without_view_permission_gets_403(self):
+        self.member_m.roles.set([])  # e.g. an operator emptied it in the admin
+        self.client.force_login(self.member)
+        self.assertEqual(self.client.get(self.detail).status_code, 403)
 
     def test_member_cannot_change_roles(self):
         self.client.force_login(self.member)
@@ -309,3 +356,41 @@ class ReleaseUserTests(OrgTestCase):
         self.member_m.refresh_from_db()
         self.assertTrue(self.member_m.is_owner)
         self.assertFalse(Organization.objects.filter(pk=solo.pk).exists())
+
+
+class RoleAdminTests(TestCase):
+    def setUp(self):
+        self.admin_user = User.objects.create_superuser(
+            email="root@example.com", username="root", password=PASSWORD
+        )
+        self.client.force_login(self.admin_user)
+
+    def test_owner_role_cannot_be_deleted_in_admin(self):
+        owner = role(OWNER)
+        page = self.client.get(reverse("admin:orgs_role_delete", args=[owner.pk]))
+        self.assertEqual(page.status_code, 403)
+        self.client.post(
+            reverse("admin:orgs_role_changelist"),
+            {
+                "action": "delete_selected",
+                "_selected_action": [owner.pk, role(ADMIN).pk],
+                "post": "yes",
+            },
+        )
+        # The whole bulk delete is refused while owner is selected.
+        self.assertEqual(Role.objects.filter(name__in=[OWNER, ADMIN]).count(), 2)
+
+    def test_admin_rejects_hierarchy_cycle(self):
+        member = role(MEMBER)
+        response = self.client.post(
+            reverse("admin:orgs_role_change", args=[member.pk]),
+            {
+                "name": "member",
+                "description": member.description,
+                "descendant": role(OWNER).pk,
+                "permissions": [],
+            },
+        )
+        self.assertContains(response, "cycle")
+        member.refresh_from_db()
+        self.assertIsNone(member.descendant)

@@ -16,12 +16,19 @@ def remove_guardian(apps, schema_editor):
         if table in existing:
             schema_editor.execute(f"DROP TABLE {schema_editor.quote_name(table)}")
     schema_editor.execute("DELETE FROM django_migrations WHERE app = 'guardian'")
+    # Cascades to guardian's auth Permission rows (and any grants of them).
+    apps.get_model("contenttypes", "ContentType").objects.filter(
+        app_label="guardian"
+    ).delete()
     apps.get_model("users", "User").objects.filter(
         email__iexact="AnonymousUser"
     ).delete()
 
 
 class Migration(migrations.Migration):
-    dependencies = [("users", "0001_squashed_0003_alter_user_id")]
+    dependencies = [
+        ("users", "0001_squashed_0003_alter_user_id"),
+        ("contenttypes", "0002_remove_content_type_name"),
+    ]
 
     operations = [migrations.RunPython(remove_guardian, migrations.RunPython.noop)]

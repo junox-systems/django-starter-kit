@@ -25,22 +25,26 @@ Two deliberate extensions, both outside the standard:
   `can_manage_member` (no one can grant or remove more than they hold).
 
 Sessions: the RBAC session rides in the Django session under SESSION_KEY as
-{"membership": <id>, "roles": [<role id>, ...]}. Logging out flushes the
-Django session, which is DeleteSession.
+{"membership": <id>, "dropped": [<role id>, ...]}. Active roles are the
+user's authorized roles minus the ones they dropped, so session_roles is
+always a subset of the authorized roles (§6.2.1.2). Implementation
+decision: a role assigned during a session becomes active at once, and a
+deassigned or deleted role stops being active at once. Logging out flushes
+the Django session, which is DeleteSession.
 """
 
+import uuid
 from collections import defaultdict
 from dataclasses import dataclass, field
 
 from django.apps import apps as global_apps
-
 from django.contrib.auth import get_user_model
 from django.contrib.auth.management import create_permissions
 from django.contrib.auth.models import Permission
 from django.core.exceptions import ValidationError
 from django.db import transaction
 
-from .models import MEMBER, OWNER, ADMIN, Membership, Organization, Role
+from .models import ADMIN, MEMBER, OWNER, Membership, Organization, Role
 
 SESSION_KEY = "rbac"
 
@@ -145,15 +149,20 @@ def assign_user(membership, role):
 def deassign_user(membership, role):
     """DeassignUser. Valid iff the user is assigned to `role` in this organization.
 
-    Sessions: the role is inactivated in the user's sessions on their next
-    request. Organization invariant: the last owner cannot lose the role.
+    Sessions: the role stops being active on the user's next request.
+    Organization invariants (application policy, checked under the org lock):
+    the last owner keeps the owner role, and a member keeps at least one role
+    (remove the member instead).
     """
     with transaction.atomic():
         membership.organization.lock()
-        if not membership.roles.filter(pk=role.pk).exists():
+        assigned = set(membership.roles.values_list("pk", flat=True))
+        if role.pk not in assigned:
             raise RBACError(f"Not assigned to {role}.")
         if role.name == OWNER:
             membership.organization.ensure_owner_remains(membership)
+        if assigned == {role.pk}:
+            raise RBACError("A member needs at least one role. Remove them instead.")
         membership.roles.remove(role)
 
 
@@ -236,17 +245,22 @@ class Session:
         return self.membership.organization
 
 
-def _store(request, membership, role_ids):
-    data = {
-        "membership": str(membership.pk),
-        "roles": sorted(str(pk) for pk in role_ids),
-    }
-    # Assign only on change: every assignment marks the session for saving.
+def _store(request, membership, dropped=()):
+    """Save the session (only on change) and build it for this request."""
+    authorized = {r.pk for r in authorized_roles(membership)}
+    dropped = {pk for pk in map(_as_uuid, dropped) if pk in authorized}
+    data = {"membership": str(membership.pk), "dropped": sorted(map(str, dropped))}
+    # Assign only on change: every assignment marks the Django session dirty.
     if request.session.get(SESSION_KEY) != data:
         request.session[SESSION_KEY] = data
-    roles = list(Role.objects.filter(pk__in=role_ids))
-    request._rbac_session = Session(membership, roles, _permissions_of(role_ids))
+    active = authorized - dropped
+    roles = list(Role.objects.filter(pk__in=active))
+    request._rbac_session = Session(membership, roles, _permissions_of(active))
     return request._rbac_session
+
+
+def _as_uuid(value):
+    return value if isinstance(value, uuid.UUID) else uuid.UUID(str(value))
 
 
 def create_session(request, membership, active_roles=None):
@@ -263,7 +277,7 @@ def create_session(request, membership, active_roles=None):
     wanted = authorized if active_roles is None else {r.pk for r in active_roles}
     if not wanted <= authorized:
         raise RBACError("Active roles must be authorized for the user.")
-    return _store(request, membership, wanted)
+    return _store(request, membership, authorized - wanted)
 
 
 def delete_session(request):
@@ -275,10 +289,8 @@ def delete_session(request):
 def current_session(request):
     """The request's RBAC session, created on first use; None for users without organizations.
 
-    Implementation decision for DeassignUser, DeleteRole and removed
-    memberships: a role the user is no longer authorized for is inactivated
-    on the next request; a session whose membership is gone is replaced by
-    one for the user's oldest remaining membership.
+    A session whose membership is gone (left, removed, org deleted) is
+    replaced by one for the user's oldest remaining membership.
     """
     if hasattr(request, "_rbac_session"):
         return request._rbac_session
@@ -286,23 +298,14 @@ def current_session(request):
     if not request.user.is_authenticated:
         return None
     data = request.session.get(SESSION_KEY) or {}
-    membership = (
-        Membership.objects.select_related("organization")
-        .filter(pk=data.get("membership"), user=request.user)
-        .first()
-        if data.get("membership")
-        else None
-    )
+    memberships = request.user.memberships.select_related("organization")
+    membership = None
+    if data.get("membership"):
+        membership = memberships.filter(pk=data["membership"]).first()
     if membership is None:
-        membership = (
-            request.user.memberships.select_related("organization")
-            .order_by("created_at")
-            .first()
-        )
+        membership = memberships.order_by("created_at").first()
         return create_session(request, membership) if membership else None
-    authorized = {str(r.pk) for r in authorized_roles(membership)}
-    active = [pk for pk in data.get("roles", []) if pk in authorized]
-    return _store(request, membership, active)
+    return _store(request, membership, data.get("dropped", []))
 
 
 def activate(request, membership):
@@ -313,6 +316,11 @@ def activate(request, membership):
     return create_session(request, membership)
 
 
+def _dropped(session):
+    authorized = {r.pk for r in authorized_roles(session.membership)}
+    return authorized - {r.pk for r in session.roles}
+
+
 def add_active_role(request, role):
     """AddActiveRole. Valid iff the user is authorized for `role` and it is not active yet."""
     session = _require_session(request)
@@ -320,18 +328,15 @@ def add_active_role(request, role):
         raise RBACError(f"Not authorized for {role}.")
     if role.pk in {r.pk for r in session.roles}:
         raise RBACError(f"{role} is already active.")
-    return _store(
-        request, session.membership, {r.pk for r in session.roles} | {role.pk}
-    )
+    return _store(request, session.membership, _dropped(session) - {role.pk})
 
 
 def drop_active_role(request, role):
     """DropActiveRole. Valid iff `role` is active in the session."""
     session = _require_session(request)
-    active = {r.pk for r in session.roles}
-    if role.pk not in active:
+    if role.pk not in {r.pk for r in session.roles}:
         raise RBACError(f"{role} is not active.")
-    return _store(request, session.membership, active - {role.pk})
+    return _store(request, session.membership, _dropped(session) | {role.pk})
 
 
 def check_access(request, perm, obj):
@@ -537,7 +542,7 @@ DEFAULT_ROLES = [
     ),
     (
         OWNER,
-        "Full control, including renaming and deleting the organization.",
+        "Full control, including deleting the organization.",
         ADMIN,
         ["orgs.change_organization", "orgs.delete_organization"],
     ),
@@ -545,10 +550,12 @@ DEFAULT_ROLES = [
 
 
 def seed_default_roles(sender, using="default", **kwargs):
-    """post_migrate hook: create missing default roles; grant defaults to roles holding nothing.
+    """post_migrate hook: create any missing default role with its default permissions.
 
-    Idempotent and non-destructive: roles an operator edited in the admin keep
-    their permissions and hierarchy.
+    Idempotent and non-destructive: existing roles are never touched, so
+    operator edits in the admin (permissions, hierarchy) survive every
+    migrate. Fresh databases get their roles from migration orgs 0002; this
+    covers test databases built without migrations and deleted defaults.
     """
     try:
         # Migrated to a state before the Role table (e.g. `migrate orgs 0001`).
@@ -562,8 +569,9 @@ def seed_default_roles(sender, using="default", **kwargs):
         role, created = Role.objects.get_or_create(
             name=name, defaults={"description": description}
         )
-        if created and descendant:
-            role.descendant = Role.objects.get(name=descendant)
+        if not created:
+            continue
+        if descendant:
+            role.descendant = Role.objects.filter(name=descendant).first()
             role.save(update_fields=["descendant", "updated_at"])
-        if not role.permissions.exists():
-            role.permissions.add(*(_permission(p) for p in perms))
+        role.permissions.add(*(_permission(p) for p in perms))

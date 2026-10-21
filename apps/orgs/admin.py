@@ -1,4 +1,4 @@
-from django.contrib import admin, messages
+from django.contrib import admin
 
 from .models import OWNER, Invitation, Membership, Organization, Role
 
@@ -29,16 +29,11 @@ class RoleAdmin(admin.ModelAdmin):
     filter_horizontal = ["permissions"]
 
     def has_delete_permission(self, request, obj=None):
-        # Every organization must keep an owner; see rbac.delete_role.
+        # Every organization must keep an owner; see rbac.delete_role. Also
+        # blocks bulk "delete selected" when the owner role is selected.
         if obj is not None and obj.name == OWNER:
             return False
         return super().has_delete_permission(request, obj)
-
-    def delete_queryset(self, request, queryset):
-        # Bulk "delete selected" bypasses has_delete_permission(obj); skip owner here too.
-        if queryset.filter(name=OWNER).exists():
-            self.message_user(request, "The owner role was kept.", messages.WARNING)
-        super().delete_queryset(request, queryset.exclude(name=OWNER))
 
 
 @admin.register(Invitation)
