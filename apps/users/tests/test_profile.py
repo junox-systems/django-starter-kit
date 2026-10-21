@@ -10,9 +10,9 @@ from apps.orgs.models import Organization
 from apps.users.models import User
 
 
-def image_upload(name="avatar.png", size=None):
+def image_upload(name="avatar.png", size=None, dimensions=(10, 10)):
     buffer = BytesIO()
-    Image.new("RGB", (10, 10), "red").save(buffer, "PNG")
+    Image.new("RGB", dimensions, "red").save(buffer, "PNG")
     data = buffer.getvalue()
     if size:
         data = data + b"\0" * (size - len(data))
@@ -107,6 +107,45 @@ class ProfileEditTests(TestCase):
         self.user.refresh_from_db()
         self.assertFalse(self.user.avatar)
 
+    def test_profile_rejects_huge_pixel_avatar(self):
+        response = self.client.post(
+            reverse("profile"),
+            {
+                "first_name": "",
+                "last_name": "",
+                "username": "alice",
+                "avatar": image_upload("huge.png", dimensions=(4097, 4097)),
+            },
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("avatar", response.context["form"].errors)
+
+    def test_profile_saves_when_stored_avatar_file_is_missing(self):
+        self.user.avatar.save("avatar.png", image_upload(), save=True)
+        self.user.avatar.storage.delete(self.user.avatar.name)
+
+        response = self.client.post(
+            reverse("profile"),
+            {"first_name": "Alice", "last_name": "", "username": "alice"},
+        )
+
+        self.assertRedirects(response, reverse("profile"))
+        self.user.refresh_from_db()
+        self.assertEqual(self.user.first_name, "Alice")
+
+    def test_invalid_post_does_not_show_unsaved_values(self):
+        User.objects.create_user(
+            email="bob@example.com", username="bob", password="s3cret-pw"
+        )
+        response = self.client.post(
+            reverse("profile"),
+            {"first_name": "Mallory", "last_name": "", "username": "bob"},
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("username", response.context["form"].errors)
+        self.assertNotContains(response, "@bob")
+        self.assertEqual(response.context["user"].first_name, "")
+
     def test_profile_renders_edit_form(self):
         response = self.client.get(reverse("profile"))
         self.assertContains(response, 'name="first_name"')
@@ -152,6 +191,13 @@ class AvatarFilesTests(TestCase):
 
         self.assertFalse(storage.exists(old_name))
         self.assertTrue(storage.exists(self.user.avatar.name))
+
+    def test_reused_filename_gets_new_name(self):
+        self.user.avatar.save("image.jpg", image_upload("image.jpg"), save=True)
+        first = self.user.avatar.name
+        self.user.avatar.save("image.jpg", image_upload("image.jpg"), save=True)
+        self.assertNotEqual(first, self.user.avatar.name)
+        self.assertTrue(self.user.avatar.name.endswith(".jpg"))
 
     def test_deleting_user_deletes_avatar_and_thumbnail(self):
         self.user.avatar.save("avatar.png", image_upload(), save=True)

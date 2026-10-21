@@ -14,6 +14,7 @@ from django.views.generic import TemplateView
 from apps.orgs.models import release_user
 
 from .forms import ProfileForm
+from .models import User
 
 
 class ProfileView(LoginRequiredMixin, TemplateView):
@@ -25,7 +26,9 @@ class ProfileView(LoginRequiredMixin, TemplateView):
         return context
 
     def post(self, request, *args, **kwargs):
-        form = ProfileForm(request.POST, request.FILES, instance=request.user)
+        # Fresh row: an invalid form would leave unsaved values on request.user.
+        user = User.objects.get(pk=request.user.pk)
+        form = ProfileForm(request.POST, request.FILES, instance=user)
         if form.is_valid():
             form.save()
             messages.success(request, "Profile updated.")

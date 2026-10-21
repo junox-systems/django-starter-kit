@@ -49,10 +49,12 @@ def delete_replaced_avatar(sender, instance, created, **kwargs):
     instance._old_avatar_name = None
     if created or not old_name or old_name == instance.avatar.name:
         return
-    transaction.on_commit(lambda: _delete_avatar_files(old_name))
+    transaction.on_commit(lambda: _delete_avatar_files(old_name), robust=True)
 
 
 @receiver(post_delete, sender=User)
 def delete_avatar_on_user_delete(sender, instance, **kwargs):
     if instance.avatar.name:
-        transaction.on_commit(lambda: _delete_avatar_files(instance.avatar.name))
+        transaction.on_commit(
+            lambda: _delete_avatar_files(instance.avatar.name), robust=True
+        )

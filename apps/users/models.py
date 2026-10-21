@@ -1,5 +1,8 @@
 # apps/users/models.py
 
+from pathlib import Path
+from uuid import uuid4
+
 from django.contrib.auth.models import AbstractUser
 from django.contrib.auth.validators import UnicodeUsernameValidator
 from django.core.validators import MaxLengthValidator
@@ -13,8 +16,12 @@ from apps.core.models import BaseModel
 
 
 def user_avatar_path(instance, filename):
-    """Upload path for user avatars: users/user_<id>/<filename>"""
-    return f"users/user_{instance.id}/{filename}"
+    """Upload path for user avatars: users/user_<id>/<random>.<ext>
+
+    Random name: S3 overwrites same-named keys, and imagekit names the
+    thumbnail after the source, so a reused filename would keep the old thumb.
+    """
+    return f"users/user_{instance.id}/{uuid4().hex}{Path(filename).suffix.lower()}"
 
 
 class User(AbstractUser, BaseModel):
