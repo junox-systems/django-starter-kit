@@ -1,5 +1,22 @@
 # Changelog
 
+## [0.4.0](https://github.com/junox-systems/django-starter-kit/compare/v0.3.0...v0.4.0) (2026-10-21)
+
+
+### ⚠ BREAKING CHANGES
+
+* **orgs:** Membership.role is replaced by Membership.roles. Migration orgs 0002 converts owner/member values and gives users without an org a personal one; reversing it maps admin to member.
+
+### Features
+
+* **orgs:** add INCITS 359 RBAC, personal orgs, org switcher ([d5ee9ca](https://github.com/junox-systems/django-starter-kit/commit/d5ee9cae2321aad589f214be8d6da7d0530c3c00))
+* **templates:** build server markup from cotton components ([ed43e6f](https://github.com/junox-systems/django-starter-kit/commit/ed43e6f248f707bc338541ee37dc6d5b67517f74))
+
+
+### Bug Fixes
+
+* **orgs:** close RBAC review gaps ([726ad73](https://github.com/junox-systems/django-starter-kit/commit/726ad738cf0307ba68091eaf2941673685dc0ea6))
+
 ## [0.3.0](https://github.com/junox-systems/django-starter-kit/compare/v0.2.0...v0.3.0) (2026-10-20)
 
 
