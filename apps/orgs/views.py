@@ -227,4 +227,5 @@ def org_switch(request):
         user=request.user,
     )
     rbac.create_session(request, membership)
+    messages.success(request, f"Switched to {membership.organization.name}.")
     return redirect("dashboard")

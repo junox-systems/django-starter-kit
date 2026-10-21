@@ -100,9 +100,13 @@ class OrgSwitchTests(OrgTestCase):
         self.client.force_login(self.member)
         self.client.get(self.detail)  # session now on Acme
         response = self.client.post(reverse("org_switch"), {"organization": other.pk})
-        self.assertRedirects(response, reverse("dashboard"))
+        # Don't fetch: that would consume the flash message asserted below.
+        self.assertRedirects(
+            response, reverse("dashboard"), fetch_redirect_response=False
+        )
         page = self.client.get(reverse("dashboard"))
         self.assertEqual(page.context["payload"]["org"]["org"]["name"], "Globex")
+        self.assertContains(page, "Switched to Globex.")
         # Dashboard switcher lists both orgs with the current one selected.
         self.assertContains(page, 'id="org-switcher"')
         self.assertContains(page, f'data-value="{other.pk}" aria-selected="true"')
