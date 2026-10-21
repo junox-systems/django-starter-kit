@@ -2,12 +2,13 @@ from io import BytesIO
 from unittest import mock
 
 from django.core.files.uploadedfile import SimpleUploadedFile
+from django.db import IntegrityError, transaction
 from django.test import TestCase
 from django.urls import reverse
 from PIL import Image
 
 from apps.orgs.models import Organization
-from apps.users.models import User
+from apps.users.models import User, user_avatar_path
 
 
 def image_upload(name="avatar.png", size=None, dimensions=(10, 10)):
@@ -154,7 +155,16 @@ class ProfileEditTests(TestCase):
             reverse("profile"),
             {"first_name": "", "last_name": "", "username": "BOB"},
         )
-        self.assertIn("username", response.context["form"].errors)
+        self.assertIn(
+            "A user with that username already exists.",
+            response.context["form"].non_field_errors(),
+        )
+
+    def test_db_rejects_case_insensitive_duplicate_username(self):
+        with self.assertRaises(IntegrityError), transaction.atomic():
+            User.objects.create_user(
+                email="other@example.com", username="ALICE", password="s3cret-pw"
+            )
 
     def test_username_case_change_of_own_name_allowed(self):
         response = self.client.post(
@@ -209,12 +219,13 @@ class AvatarFilesTests(TestCase):
         self.assertFalse(storage.exists(old_name))
         self.assertTrue(storage.exists(self.user.avatar.name))
 
-    def test_reused_filename_gets_new_name(self):
-        self.user.avatar.save("image.jpg", image_upload("image.jpg"), save=True)
-        first = self.user.avatar.name
-        self.user.avatar.save("image.jpg", image_upload("image.jpg"), save=True)
-        self.assertNotEqual(first, self.user.avatar.name)
-        self.assertTrue(self.user.avatar.name.endswith(".jpg"))
+    def test_avatar_path_unique_per_upload(self):
+        # Storage-independent: S3 overwrites same-named keys instead of renaming.
+        first = user_avatar_path(self.user, "image.JPG")
+        second = user_avatar_path(self.user, "image.JPG")
+        self.assertNotEqual(first, second)
+        self.assertTrue(first.startswith(f"users/user_{self.user.id}/"))
+        self.assertTrue(first.endswith(".jpg"))
 
     def test_deleting_user_deletes_avatar_and_thumbnail(self):
         self.user.avatar.save("avatar.png", image_upload(), save=True)

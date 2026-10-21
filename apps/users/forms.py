@@ -1,5 +1,4 @@
 from allauth.account.adapter import get_adapter
-from allauth.account.utils import filter_users_by_username
 from django import forms
 from django.core.exceptions import ValidationError
 
@@ -16,14 +15,10 @@ class ProfileForm(forms.ModelForm):
         fields = ["first_name", "last_name", "username", "avatar"]
 
     def clean_username(self):
-        """Same rules as allauth signup (blacklist, case-insensitive uniqueness)."""
+        """Allauth's signup rules; case-insensitive uniqueness is a DB constraint."""
         username = self.cleaned_data["username"]
-        if "username" not in self.changed_data:
-            return username
-        adapter = get_adapter()
-        adapter.clean_username(username, shallow=True)
-        if filter_users_by_username(username).exclude(pk=self.instance.pk).exists():
-            raise adapter.validation_error("username_taken")
+        if "username" in self.changed_data:
+            get_adapter().clean_username(username, shallow=True)
         return username
 
     def clean_avatar(self):

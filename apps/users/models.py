@@ -7,6 +7,7 @@ from django.contrib.auth.models import AbstractUser
 from django.contrib.auth.validators import UnicodeUsernameValidator
 from django.core.validators import MaxLengthValidator
 from django.db import models
+from django.db.models.functions import Lower
 from django.utils.translation import gettext_lazy as _
 from imagekit.models import ImageSpecField
 from imagekit.processors import ResizeToFill
@@ -68,6 +69,14 @@ class User(AbstractUser, BaseModel):
     class Meta:
         verbose_name = _("User")
         verbose_name_plural = _("Users")
+        constraints = [
+            # Matches allauth's case-insensitive check; the DB closes the race.
+            models.UniqueConstraint(
+                Lower("username"),
+                name="users_username_ci_unique",
+                violation_error_message=_("A user with that username already exists."),
+            ),
+        ]
 
     def save(self, *args, **kwargs):
         self.email = (
