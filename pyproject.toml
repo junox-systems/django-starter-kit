@@ -42,6 +42,7 @@ dependencies = [
     "opentelemetry-instrumentation-asgi>=0.62b1",
     "dj-control-room[cache,urls,signals]>=1.8.1",
     "django-paradedb>=0.15.0",
+    "django-cotton>=2.8.0",
 ]
 
 # Dev-only: the production image runs `uv sync --no-dev`.

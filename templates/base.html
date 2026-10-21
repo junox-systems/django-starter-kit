@@ -53,14 +53,14 @@
     {% block extra_head %}{% endblock %}
 </head>
 <body>
-    {% block header %}{% include "_header.html" %}{% endblock %}
+    {% block header %}<c-header />{% endblock %}
     {% block body %}
         <main>
-            {% include "_messages.html" %}
+            <c-messages />
             {% block content %}{% endblock %}
         </main>
     {% endblock %}
-    {% block footer %}{% include "_footer.html" %}{% endblock %}
+    {% block footer %}<c-footer />{% endblock %}
     {% block extra_body %}{% endblock %}
 </body>
 </html>

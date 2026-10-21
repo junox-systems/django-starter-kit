@@ -42,14 +42,14 @@ EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
 # entry in place; production.py inherits base.py untouched, so prod keeps the
 # fast cached loader.
 #
-# Why APP_DIRS = False? "app_dirs" and "loaders" are mutually exclusive —
-# Django raises ImproperlyConfigured if both are set. We flip APP_DIRS off and
-# list the app_directories loader explicitly, keeping identical lookup order:
-# project templates first, then each app's templates/.
+# base.py lists the loaders inside cached.Loader; here we list the same ones
+# bare, keeping identical lookup order: Cotton compiler first, then project
+# templates, then each app's templates/. Cotton's own compile cache is keyed on
+# file mtime, so edits still show up.
 #
 # Reference: https://docs.djangoproject.com/en/5.2/ref/templates/api/#loader-types
-TEMPLATES[0]["APP_DIRS"] = False  # noqa: F405  (was True in base.py)
 TEMPLATES[0]["OPTIONS"]["loaders"] = [  # noqa: F405
+    "django_cotton.cotton_loader.Loader",
     "django.template.loaders.filesystem.Loader",
     "django.template.loaders.app_directories.Loader",
 ]

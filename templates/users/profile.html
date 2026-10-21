@@ -4,9 +4,9 @@
 {% block page_title %}Profile{% endblock %}
 
 {% block content %}
-<div>
-  <div class="w-full max-w-2xl space-y-6">
-    <div class="card">
+<div class="w-full max-w-2xl space-y-6">
+  <c-card body_class="border-t">
+    <c-slot name="header">
       <header class="flex items-center gap-4 p-5">
         <div class="avatar" data-size="lg">
           {% if user.avatar %}
@@ -20,50 +20,35 @@
           <p class="text-muted-foreground mt-1 text-sm">@{{ user.username }}</p>
         </div>
       </header>
-      <section class="border-t p-5">
-        <dl class="grid gap-3 text-sm sm:grid-cols-2">
-          <div>
-            <dt class="text-muted-foreground text-xs font-medium uppercase tracking-wide">Email</dt>
-            <dd class="mt-0.5">{{ user.email }}</dd>
-          </div>
-          <div>
-            <dt class="text-muted-foreground text-xs font-medium uppercase tracking-wide">Member since</dt>
-            <dd class="mt-0.5">{{ user.date_joined|date:"F j, Y" }}</dd>
-          </div>
-          <div>
-            <dt class="text-muted-foreground text-xs font-medium uppercase tracking-wide">Last login</dt>
-            <dd class="mt-0.5">{{ user.last_login|date:"F j, Y, g:i a" }}</dd>
-          </div>
-        </dl>
-      </section>
-    </div>
+    </c-slot>
+    <dl class="grid gap-3 text-sm sm:grid-cols-2">
+      <div>
+        <dt class="text-muted-foreground text-xs font-medium uppercase tracking-wide">Email</dt>
+        <dd class="mt-0.5">{{ user.email }}</dd>
+      </div>
+      <div>
+        <dt class="text-muted-foreground text-xs font-medium uppercase tracking-wide">Member since</dt>
+        <dd class="mt-0.5">{{ user.date_joined|date:"F j, Y" }}</dd>
+      </div>
+      <div>
+        <dt class="text-muted-foreground text-xs font-medium uppercase tracking-wide">Last login</dt>
+        <dd class="mt-0.5">{{ user.last_login|date:"F j, Y, g:i a" }}</dd>
+      </div>
+    </dl>
+  </c-card>
 
-    <div class="card">
-      <header class="p-5">
-        <h3 class="text-lg font-bold">Account settings</h3>
-        <p class="text-muted-foreground mt-1 text-sm">Manage your password, email addresses and two-factor authentication.</p>
-      </header>
-      <section class="flex flex-wrap gap-2 p-5">
-        <a href="{% url 'account_change_password' %}" class="btn">Change Password</a>
-        <a href="{% url 'account_email' %}" class="btn" data-variant="secondary">Email Addresses</a>
-        <a href="{% url 'mfa_index' %}" class="btn" data-variant="secondary">Two-factor</a>
-        <form method="post" action="{% url 'account_logout' %}">
-          {% csrf_token %}
-          <button type="submit" class="btn" data-variant="ghost">Logout</button>
-        </form>
-      </section>
-    </div>
+  <c-card title="Account settings" description="Manage your password, email addresses and two-factor authentication." body_class="flex flex-wrap gap-2">
+    <c-btn href="{% url 'account_change_password' %}">Change Password</c-btn>
+    <c-btn href="{% url 'account_email' %}" variant="secondary">Email Addresses</c-btn>
+    <c-btn href="{% url 'mfa_index' %}" variant="secondary">Two-factor</c-btn>
+    <c-form action="{% url 'account_logout' %}">
+      <c-btn type="submit" variant="ghost">Logout</c-btn>
+    </c-form>
+  </c-card>
 
-    <div class="card">
-      <header class="p-5">
-        <h3 class="text-lg font-bold">Your data</h3>
-        <p class="text-muted-foreground mt-1 text-sm">Download a copy of your data, or delete your account.</p>
-      </header>
-      <section class="flex flex-wrap gap-2 p-5">
-        <a href="{% url 'export_data' %}" class="btn" data-variant="secondary" hx-boost="false">Download my data</a>
-        <a href="{% url 'delete_account' %}" class="btn" data-variant="destructive">Delete account</a>
-      </section>
-    </div>
-  </div>
+  <c-card title="Your data" description="Download a copy of your data, or delete your account." body_class="flex flex-wrap gap-2">
+    <c-btn href="{% url 'export_data' %}" variant="secondary" hx-boost="false">Download my data</c-btn>
+    <c-btn href="{% url 'delete_account' %}" variant="destructive">Delete account</c-btn>
+  </c-card>
 </div>
 {% endblock %}

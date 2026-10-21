@@ -1,7 +1,9 @@
 {% extends "base.html" %}
 {% block body %}
-<main class="bg-muted/50 flex min-h-dvh items-center justify-center px-4 py-12">
-  {% include "_messages.html" %}
-  <div class="card w-full max-w-sm space-y-4 p-5">{% block content %}{% endblock %}</div>
+<main>
+  <c-messages />
+  <c-center>
+    <c-card body_class="space-y-4">{% block content %}{% endblock %}</c-card>
+  </c-center>
 </main>
 {% endblock %}

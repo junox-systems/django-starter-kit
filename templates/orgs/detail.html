@@ -5,81 +5,58 @@
 
 {% block content %}
 <div class="w-full max-w-2xl space-y-6">
-  <div class="card">
-    <header class="p-5">
-      <h2 class="text-3xl font-bold">{{ org.name }}</h2>
-      <p class="text-muted-foreground mt-2 text-sm">Members</p>
-    </header>
-    <section class="p-5">
-      <ul class="divide-y">
-        {% for m in memberships %}
-          <li class="flex flex-wrap items-center justify-between gap-3 py-3">
-            <span class="text-sm">{{ m.user.email }}{% if m == membership %} (you){% endif %}</span>
-            <span class="flex items-center gap-2">
-              <span class="badge" data-variant="{% if m.is_owner %}primary{% else %}secondary{% endif %}">{{ m.get_role_display }}</span>
-              {% if membership.is_owner %}
-                <form method="post" action="{% url 'membership_role' org.pk m.pk %}">
-                  {% csrf_token %}
-                  {% if m.is_owner %}
-                    <button type="submit" name="role" value="member" class="btn" data-variant="ghost" data-size="sm">Make member</button>
-                  {% else %}
-                    <button type="submit" name="role" value="owner" class="btn" data-variant="ghost" data-size="sm">Make owner</button>
-                  {% endif %}
-                </form>
-              {% endif %}
-              {% if m == membership or membership.is_owner %}
-                <form method="post" action="{% url 'membership_remove' org.pk m.pk %}">
-                  {% csrf_token %}
-                  <button type="submit" class="btn" data-variant="ghost" data-size="sm">{% if m == membership %}Leave{% else %}Remove{% endif %}</button>
-                </form>
-              {% endif %}
-            </span>
-          </li>
-        {% endfor %}
-      </ul>
-    </section>
-  </div>
+  <c-card title="{{ org.name }}" description="Members" lead>
+    <ul class="divide-y">
+      {% for m in memberships %}
+        <li class="flex flex-wrap items-center justify-between gap-3 py-3">
+          <span class="text-sm">{{ m.user.email }}{% if m == membership %} (you){% endif %}</span>
+          <span class="flex items-center gap-2">
+            <c-badge variant="{% if m.is_owner %}primary{% else %}secondary{% endif %}">{{ m.get_role_display }}</c-badge>
+            {% if membership.is_owner %}
+              <c-form action="{% url 'membership_role' org.pk m.pk %}">
+                {% if m.is_owner %}
+                  <c-btn type="submit" name="role" value="member" variant="ghost" size="sm">Make member</c-btn>
+                {% else %}
+                  <c-btn type="submit" name="role" value="owner" variant="ghost" size="sm">Make owner</c-btn>
+                {% endif %}
+              </c-form>
+            {% endif %}
+            {% if m == membership or membership.is_owner %}
+              <c-form action="{% url 'membership_remove' org.pk m.pk %}">
+                <c-btn type="submit" variant="ghost" size="sm">{% if m == membership %}Leave{% else %}Remove{% endif %}</c-btn>
+              </c-form>
+            {% endif %}
+          </span>
+        </li>
+      {% endfor %}
+    </ul>
+  </c-card>
 
   {% if membership.is_owner %}
-    <div class="card">
-      <header class="p-5">
-        <h3 class="text-lg font-bold">Invite someone</h3>
-        <p class="text-muted-foreground mt-1 text-sm">They get an email link and join after signing in with that address.</p>
-      </header>
-      <section class="space-y-4 p-5">
-        <form method="post" class="space-y-4">
-          {% csrf_token %}
-          {% include "account/_form_fields.html" %}
-          <button type="submit" class="btn">Send invitation</button>
-        </form>
-        {% if invitations %}
-          <ul class="divide-y border-t">
-            {% for invitation in invitations %}
-              <li class="flex items-center justify-between gap-3 py-3">
-                <span class="text-sm">{{ invitation.email }} {% if invitation.is_expired %}<span class="badge" data-variant="destructive">Expired</span>{% else %}<span class="badge" data-variant="outline">Pending</span>{% endif %}</span>
-                <form method="post" action="{% url 'invitation_revoke' org.pk invitation.pk %}">
-                  {% csrf_token %}
-                  <button type="submit" class="btn" data-variant="ghost" data-size="sm">Revoke</button>
-                </form>
-              </li>
-            {% endfor %}
-          </ul>
-        {% endif %}
-      </section>
-    </div>
+    <c-card title="Invite someone" description="They get an email link and join after signing in with that address." body_class="space-y-4">
+      <c-form>
+        <c-fields :form="form" />
+        <c-btn type="submit">Send invitation</c-btn>
+      </c-form>
+      {% if invitations %}
+        <ul class="divide-y border-t">
+          {% for invitation in invitations %}
+            <li class="flex items-center justify-between gap-3 py-3">
+              <span class="text-sm">{{ invitation.email }} {% if invitation.is_expired %}<c-badge variant="destructive">Expired</c-badge>{% else %}<c-badge variant="outline">Pending</c-badge>{% endif %}</span>
+              <c-form action="{% url 'invitation_revoke' org.pk invitation.pk %}">
+                <c-btn type="submit" variant="ghost" size="sm">Revoke</c-btn>
+              </c-form>
+            </li>
+          {% endfor %}
+        </ul>
+      {% endif %}
+    </c-card>
 
-    <div class="card">
-      <header class="p-5">
-        <h3 class="text-lg font-bold">Delete organization</h3>
-        <p class="text-muted-foreground mt-1 text-sm">Removes the organization, its memberships and pending invitations.</p>
-      </header>
-      <section class="p-5">
-        <form method="post" action="{% url 'org_delete' org.pk %}">
-          {% csrf_token %}
-          <button type="submit" class="btn" data-variant="destructive">Delete {{ org.name }}</button>
-        </form>
-      </section>
-    </div>
+    <c-card title="Delete organization" description="Removes the organization, its memberships and pending invitations.">
+      <c-form action="{% url 'org_delete' org.pk %}">
+        <c-btn type="submit" variant="destructive">Delete {{ org.name }}</c-btn>
+      </c-form>
+    </c-card>
   {% endif %}
 
   <p class="text-muted-foreground text-sm">

@@ -1,0 +1,7 @@
+{% if messages %}
+    <div class="mx-auto w-full max-w-5xl space-y-2 px-4 pt-4">
+        {% for message in messages %}
+            <c-alert variant="{% if message.tags == 'error' or message.tags == 'debug' %}destructive{% endif %}">{{ message }}</c-alert>
+        {% endfor %}
+    </div>
+{% endif %}

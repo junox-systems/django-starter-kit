@@ -25,6 +25,8 @@ A modern, production-ready Django starter kit — opinionated, lean, and ready t
 
 | Package | Purpose |
 |---------|---------|
+| **django-cotton** | Server-rendered template components (`<c-card>`, `<c-btn>`, `<c-form>`) |
+| **htmx 4** | Boosted navigation inside the app shell |
 | **Stimulus 3** | Controller glue — mounts Svelte components, handles DOM behaviour |
 | **Svelte 5** | Interactive islands (for high-interactivity UI) |
 | **GSAP 3** | Animations and transitions |
@@ -99,20 +101,34 @@ production stack.
 
 ## Frontend Architecture
 
-**Primary rendering: Django templates + HTML forms.** Standard full-page loads for most interactions.
-
-**Interactive islands: Stimulus mounts Svelte 5 components.** Use the generic bridge controller:
+**Primary rendering: Django templates composed from [django-cotton](https://django-cotton.com) components + HTML forms.** Standard full-page loads for most interactions. Components live in `templates/cotton/` (`cotton/card.html` → `<c-card>`):
 
 ```html
+<c-card title="New organization">
+  <c-form>
+    <c-fields :form="form" />
+    <c-btn type="submit">Create</c-btn>
+  </c-form>
+</c-card>
+```
+
+**Navigation: htmx 4 boosts links inside the app shell.** Forms stay full page loads.
+
+**Interactive islands: Stimulus mounts Svelte 5 components.** Pass server data with `json_script` and the generic bridge controller:
+
+```html
+{{ payload|json_script:"your-payload" }}
 <div data-controller="svelte-bridge"
-     data-svelte-bridge-component-value="YourComponent"
-     data-svelte-bridge-props-value='{"key": "value"}'>
+     data-svelte-bridge-component-value="area/YourComponent"
+     data-svelte-bridge-props-id-value="your-payload">
 </div>
 ```
 
 Svelte components live in `frontend/src/js/svelte/` and are lazy-loaded via dynamic import. Only components on the page are downloaded.
 
 **Animations: GSAP 3** for transitions and micro-interactions in both Stimulus controllers and Svelte components.
+
+The rules for each layer (what goes where, Cotton conventions, hard rules) are in [AGENTS.md](AGENTS.md#frontend-formula).
 
 ---
 
@@ -156,6 +172,7 @@ django-starter-kit/
 │           ├── main.js                # Stimulus + GSAP bootstrap
 │           └── controllers/           # Stimulus controllers (auto-registered)
 ├── templates/             # Django templates
+│   └── cotton/            # Cotton components (<c-*>)
 ├── dev/                   # Docker dev environment
 │   ├── Dockerfile
 │   ├── docker-compose.dev.yml
@@ -256,8 +273,7 @@ Required env vars:
 
 | Doc | Contents |
 |-----|---------|
-| [BRIEF.md](BRIEF.md) | Full architecture specification |
-| [DEVELOPMENT.md](DEVELOPMENT.md) | Developer guide — models, frontend patterns, conventions |
+| [AGENTS.md](AGENTS.md) | Architecture, conventions, frontend formula, dev workflow (humans + agents) |
 | [CHANGELOG.md](CHANGELOG.md) | Release changelog |
 
 ---

@@ -74,6 +74,9 @@ INSTALLED_APPS = [
     "dmr",
     "corsheaders",
     "django_vite",
+    # Cotton: <c-*> template components. SimpleAppConfig = loaders wired below by hand,
+    # because the auto config would overwrite dev.py's uncached loaders.
+    "django_cotton.apps.SimpleAppConfig",
     "imagekit",
     "anymail",
     # paradedb_* diagnostic management commands
@@ -115,8 +118,19 @@ TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
         "DIRS": [BASE_DIR / "templates"],
-        "APP_DIRS": True,
         "OPTIONS": {
+            # Cotton compiles <c-*> tags first; cached in prod/test, uncached in dev.py.
+            "loaders": [
+                (
+                    "django.template.loaders.cached.Loader",
+                    [
+                        "django_cotton.cotton_loader.Loader",
+                        "django.template.loaders.filesystem.Loader",
+                        "django.template.loaders.app_directories.Loader",
+                    ],
+                )
+            ],
+            "builtins": ["django_cotton.templatetags.cotton"],
             "context_processors": [
                 "django.template.context_processors.debug",
                 "django.template.context_processors.request",

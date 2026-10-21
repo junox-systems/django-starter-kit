@@ -7,10 +7,7 @@
                 {% if user.is_authenticated %}
                     <li><a class="text-muted-foreground hover:text-foreground rounded-md px-3 py-2 transition-colors" href="{% url 'dashboard' %}">Dashboard</a></li>
                     <li>
-                        <form method="post" action="{% url 'account_logout' %}">
-                            {% csrf_token %}
-                            <button type="submit" class="text-muted-foreground hover:text-foreground cursor-pointer rounded-md px-3 py-2 transition-colors">Logout</button>
-                        </form>
+                        <c-form action="{% url 'account_logout' %}"><button type="submit" class="text-muted-foreground hover:text-foreground cursor-pointer rounded-md px-3 py-2 transition-colors">Logout</button></c-form>
                     </li>
                 {% else %}
                     <li><a class="text-muted-foreground hover:text-foreground rounded-md px-3 py-2 transition-colors" href="{% url 'account_login' %}">Login</a></li>
@@ -18,16 +15,12 @@
             </ul>
         </div>
         <div class="flex items-center gap-2">
-            {% include "_theme_toggle.html" %}
+            <c-theme-toggle />
             {% if not user.is_authenticated %}
-                <a class="btn hidden md:inline-flex" href="{% url 'account_signup' %}">Sign up</a>
+                <c-btn href="{% url 'account_signup' %}" class="hidden md:inline-flex">Sign up</c-btn>
             {% endif %}
-            <button type="button" class="btn size-9 md:hidden" data-variant="ghost" data-size="icon" data-navbar-target="hamburgerIcon" data-action="click->navbar#toggleMenu" aria-expanded="false" aria-controls="mobile-menu" aria-label="Open menu">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-menu"><line x1="4" x2="20" y1="12" y2="12" /><line x1="4" x2="20" y1="6" y2="6" /><line x1="4" x2="20" y1="18" y2="18" /></svg>
-            </button>
-            <button type="button" class="btn size-9 md:hidden" data-variant="ghost" data-size="icon" data-navbar-target="closeIcon" data-action="click->navbar#closeMenu" aria-label="Close menu" hidden>
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-x"><path d="M18 6 6 18" /><path d="m6 6 12 12" /></svg>
-            </button>
+            <c-btn variant="ghost" size="icon" class="size-9 md:hidden" type="button" data-navbar-target="hamburgerIcon" data-action="click->navbar#toggleMenu" aria-expanded="false" aria-controls="mobile-menu" aria-label="Open menu"><c-icon.menu /></c-btn>
+            <c-btn variant="ghost" size="icon" class="size-9 md:hidden" type="button" data-navbar-target="closeIcon" data-action="click->navbar#closeMenu" aria-label="Close menu" hidden><c-icon.x /></c-btn>
         </div>
     </nav>
     <div class="border-border bg-background absolute inset-x-0 top-full border-b shadow-lg md:hidden" id="mobile-menu" data-navbar-target="mobileMenu" hidden>
@@ -36,10 +29,7 @@
             {% if user.is_authenticated %}
                 <li><a class="hover:bg-muted block rounded-md px-3 py-2" href="{% url 'dashboard' %}" data-action="click->navbar#closeMenu">Dashboard</a></li>
                 <li>
-                    <form method="post" action="{% url 'account_logout' %}">
-                        {% csrf_token %}
-                        <button type="submit" class="hover:bg-muted w-full cursor-pointer rounded-md px-3 py-2 text-left" data-action="click->navbar#closeMenu">Logout</button>
-                    </form>
+                    <c-form action="{% url 'account_logout' %}"><button type="submit" class="hover:bg-muted w-full cursor-pointer rounded-md px-3 py-2 text-left" data-action="click->navbar#closeMenu">Logout</button></c-form>
                 </li>
             {% else %}
                 <li><a class="hover:bg-muted block rounded-md px-3 py-2" href="{% url 'account_login' %}" data-action="click->navbar#closeMenu">Login</a></li>

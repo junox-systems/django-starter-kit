@@ -1,113 +1,202 @@
 # AGENTS.md — Django Starter Kit
 
-## Identity
+Django 5.2 LTS starter kit. Modular monolith. Lean, opinionated, prod-ready. Single source of truth for architecture + conventions.
 
-Modern Django 5.2 LTS starter kit. Opinionated, lean, production-ready.
+## Principles
 
-## Tech Stack
+- Let packages do their job: thin integration over custom abstraction (allauth, auditlog, DMR, django-q2).
+- Fat models, thin views. Logic in models/managers/service functions.
+- YAGNI: no tuning for hypothetical scale. Add soft-delete (`django-safedelete`), search managers, view caching only when needed.
+- Modern, maintained packages only.
 
-- **Backend:** Django 5.2, Granian (ASGI), PostgreSQL 18 via ParadeDB (`pg_search` BM25 + pgvector, `django-paradedb`; also cache + task queue — no Redis), django-q2 (ORM broker)
-- **Auth:** django-allauth (OIDC/SSO, social, email-based login)
-- **API:** django-modern-rest (DMR) 0.x — NOT DRF
-- **Frontend:** Django templates + forms (primary) → htmx 4 boosted navigation inside the app shell → Stimulus 3 mounts Svelte 5 islands → GSAP animations. See **Frontend Formula** below before touching `templates/` or `frontend/src/js/`.
-- **Styling:** Tailwind CSS v4 + Basecoat (shadcn-compatible tokens, per-site `site.css` style pack)
-- **Build:** Vite, uv (Python), pnpm (JS), just (tasks), Docker on Debian trixie-slim
-- **Admin:** stock Django admin (with dj-control-room dashboard: cache, urls, signals panels; guardian, constance, import_export)
-- **Observability:** Sentry (opt-in), OpenTelemetry (opt-in)
-- **Tooling:** ruff (lint/format), pytest, django-debug-toolbar
+## Stack
 
-## Project Structure
+| Area | Choice |
+|---|---|
+| Backend | Django 5.2, Python 3.14+, Granian ASGI (`granian[uvloop]`), Whitenoise static |
+| DB | ParadeDB = Postgres 18 + `pg_search` BM25 + pgvector, via `django-paradedb`. Also cache (`DatabaseCache`), sessions, task queue. **No Redis** |
+| Tasks | django-q2, ORM broker (`Q_CLUSTER["orm"]`) |
+| Auth | django-allauth: local, email verify, OIDC/SSO, social (Google, Apple, Microsoft), MFA |
+| API | django-modern-rest (DMR) 0.x + msgspec. **Not DRF** |
+| Frontend | Django templates from **django-cotton** components + Django forms → htmx 4 (boosted nav, app shell only) → Stimulus 3 mounts Svelte 5 islands → GSAP 3 |
+| Styling | Tailwind v4 + Basecoat (shadcn tokens, per-site `site.css` pack, fork of `basecoat-css/styles/vega`). Fonts: Manrope body, Space Grotesk headings (Fontsource) |
+| Build | Vite (`django-vite`), uv, pnpm (Node 24), just (+ mirror `Makefile`), Docker Debian trixie-slim |
+| Config | `django-environ` (`env.db()`, `env.bool()`); all vars in `.env.example` |
+| Storage | `django-storages` S3-compatible; falls back to local FS without `AWS_*`. `django-imagekit` avatar thumbs |
+| Email | `django-anymail` (Postmark / SES) |
+| Admin | stock admin + dj-control-room (cache, urls, signals panels), guardian, constance, import_export, auditlog |
+| Observability | Sentry (if `SENTRY_DSN`; 10% traces, no PII). OTEL opt-in `OTEL_ENABLED=true`: Django + psycopg only, any OTLP backend |
+| Tooling | ruff, pytest, django-debug-toolbar (`/__debug__/`) |
+
+## Layout
 
 ```
-apps/           # Django apps
-  core/         # BaseModel (UUID v7 PK + timestamps) — keep lean
-  users/        # Custom User model (email login, UUID PK, avatar)
-  api/          # API endpoints (DMR)
-  pages/        # Static/marketing pages
-  dashboard/    # Authenticated home at /dashboard/ — panel payloads, no models
-  orgs/         # Organizations, memberships (owner/member), email invitations
-config/         # Django project config
-  settings/     # base.py + dev.py + production.py + test.py
-  asgi.py       # ASGI app + OTEL init
-  otel.py       # OpenTelemetry (opt-in)
-frontend/       # JS/CSS assets
-  src/css/
-    styles.css    # entry: Tailwind + Basecoat base + @source globs
-    site.css      # per-site Basecoat style pack — all component visuals
-  src/js/
-    main.js       # entry: htmx config, Stimulus boot, controller auto-register
-    controllers/  # Stimulus controllers (auto-registered via import.meta.glob)
-    svelte/
-      app/        # shell islands (Sidebar)
-      dashboard/  # dashboard root + panels
+apps/           # ALL backend code. Never at project root
+  core/         # BaseModel, cache-table migration, tasks.retry — keep lean
+  users/        # User (email login, UUID PK, avatar)
+  api/          # DMR controllers + schemas/
+  pages/        # static/marketing pages
+  dashboard/    # /dashboard/ — panel payloads, no models
+  orgs/         # orgs, memberships (owner/member), email invitations
+config/
+  settings/     # base / dev / production / test
+  asgi.py       # ASGI + OTEL init
+  otel.py
+frontend/src/
+  css/styles.css  # Tailwind + Basecoat base + @source globs
+  css/site.css    # Basecoat style pack — all component visuals
+  js/main.js      # htmx config, Stimulus boot, controller auto-register
+  js/controllers/ # Stimulus (auto-registered)
+  js/svelte/      # islands: app/ (Sidebar), dashboard/
 templates/
   base.html       # public pages
-  base_app.html   # authenticated app shell (htmx-boosted)
-  _*.html         # shared partials (header, footer, messages)
-  <app>/          # per-app pages
+  base_app.html   # authed app shell (htmx-boosted)
+  cotton/         # Cotton components; icon/ = one SVG per file
+  <app>/          # pages
+dev/            # Docker dev env (Dockerfile, compose, supervisord)
 ```
 
-## Conventions & Rules
+## Backend
 
-### Django Apps
-- Every app gets `__init__.py`, `apps.py`, `models.py`, `admin.py`, `views.py`, `tests/`
-- Apps live under `apps/` — never at project root
-- `apps/core` stays lean — only truly universal abstractions. Extract domains to own apps.
+### Apps
+- Each app: `__init__.py`, `apps.py`, `models.py`, `admin.py`, `views.py`, `tests/`.
+- `core` = only truly universal code. Domain grows → own app.
 
 ### Models
-- All models inherit from `apps.core.models.BaseModel` (UUID v7 PK, created_at, updated_at)
-- `User` model is email-based (`USERNAME_FIELD = "email"`), UUID PK
-- Register models with `auditlog.register(Model)` for change tracking
-- Never add OIDC/social auth fields to User model — allauth stores in SocialAccount
+- All inherit `apps.core.models.BaseModel`: UUID v7 `id`, `created_at`, `updated_at`.
+- Register change tracking: `auditlog.register(MyModel)` → `/admin/auditlog/`, `MyModel.history`.
+- `User`: `USERNAME_FIELD = "email"`, UUID PK, `avatar` + `avatar_thumbnail` (imagekit 100×100 JPEG), `AbstractUser` fields. No `UserProfile` — fields live on `User`.
+- **Never add OIDC/social fields to `User`** — allauth `SocialAccount` holds them.
+- Querysets: `select_related` (FK/1:1), `prefetch_related` (M2M/reverse). No N+1.
+- Search: `django-paradedb` (`ParadeDBIndex`, lookups) or raw SQL at service/view layer.
+- Cache: `django.core.cache.cache` / `@cache_page` only where measured slow. Table from `core` migration `0001_create_cache_table`.
 
 ### Settings
-- Selected via `DJANGO_SETTINGS_MODULE` env var — no routing in `__init__.py`
-- `base.py` → shared, `dev.py` → local, `production.py` → prod, `test.py` → CI
-- `production.py` inherits from base via `from .base import *`
-- SSL/HSTS left commented — enable manually per deployment topology
+- Pick via `DJANGO_SETTINGS_MODULE`. `settings/__init__.py` empty — no routing.
+- `dev` (default in `manage.py`/`asgi.py`; warns if `ENVIRONMENT=production`), `production`, `test` (set in `pyproject.toml`).
+- `production.py` / `dev.py` / `test.py` = `from .base import *` + overrides. **Never change this pattern.**
+- SSL/HSTS commented out. **Never auto-enable** — manual per deploy topology.
+- Templates: loaders listed by hand (Cotton). `base.py` cached, `dev.py` uncached for hot reload.
+
+### API (DMR)
+- Controllers `apps/api/views.py`, schemas `apps/api/schemas/<name>.py`.
+- `dmr.Controller` + `MsgspecSerializer`. Session auth.
+- Response validation ON dev, OFF prod (`production.py`).
+
+### Tasks (django-q2)
+```python
+# apps/myapp/tasks.py — plain function
+def send_welcome_email(user_id: str): ...
+
+from django_q.tasks import async_task
+async_task("apps.myapp.tasks.send_welcome_email", str(user.id))
+```
+- Failed task not re-queued → wrap with `apps.core.tasks.retry` for backoff.
+- Results/failures/schedules: admin → *Django Q*. Tests run inline (`"sync": True`).
 
 ## Frontend Formula
 
-Django renders pages. Svelte renders the interactive parts of a page. Stimulus is
-the only thing allowed to connect them. Read this section before touching
-anything under `templates/` or `frontend/src/js/`.
+Django renders pages from Cotton components. Svelte renders interactive parts. Stimulus = only bridge between them. Read before touching `templates/` or `frontend/src/js/`.
 
 ### Who owns what
 
-Each layer has exactly one job. If you find yourself doing another layer's job,
-you are in the wrong file.
-
-| Layer | Owns | Never does |
+| Layer | Owns | Never |
 |---|---|---|
-| **Django view** | Fetching + authorizing data, shaping it into JSON-safe primitives | Render HTML meant for an island; leak model objects into payloads |
-| **Django template** | Page structure, chrome, layout, **every URL**, mount points, `json_script` payloads | Contain client state or business logic |
-| **Stimulus controller** | DOM lifecycle, browser APIs (`matchMedia`, `localStorage`, document listeners), mounting islands | Render UI, hold app state |
-| **Svelte component** | Interactive UI + client state | Resolve URLs, render nav/chrome, fetch on mount |
-| **Basecoat CSS** | All visual styling, via `site.css` | — you write no component CSS |
-| **DMR (`apps/api`)** | Refresh + mutation endpoints | Duplicate the view's data shaping |
+| Django view | fetch + authorize data, shape to JSON-safe primitives | HTML for an island; model objects in payloads |
+| Django template | page structure, layout, **every URL**, mount points, `json_script` | client state, business logic, markup a component owns |
+| Cotton component (`templates/cotton/`) | reusable server markup: Basecoat primitives, chrome, icons | query data, resolve URLs, hold state |
+| Stimulus controller | DOM lifecycle, browser APIs (`matchMedia`, `localStorage`, doc listeners), mounting islands | render UI, hold app state |
+| Svelte component | interactive UI + client state | resolve URLs, render nav/chrome, fetch on mount |
+| Basecoat CSS (`site.css`) | all visuals | — no component CSS |
+| DMR (`apps/api`) | refresh + mutation endpoints | duplicate view's data shaping |
 
-**URLs are a Django responsibility, always.** Resolve with `reverse()` or
-`{% url %}` and pass them down as data. A hardcoded path in a `.svelte` file is a
-bug.
+**URLs = Django, always.** `reverse()` / `{% url %}`, passed down as data. Hardcoded path in `.svelte` = bug.
 
-### Choose the lightest layer that works
+### Lightest layer wins
 
-Stop at the first rung that holds:
+Stop at first rung that holds:
+1. Static content → template of Cotton components. No JS.
+2. Form → Django form in `<c-form>` + `<c-fields>`, full page load. Default for all input.
+3. DOM behavior, no state (toggle, drawer, keys, browser API) → Stimulus (`controllers/sidebar.js`, `theme-toggle.js`).
+4. Reactive UI w/ client state → Svelte island via `svelte-bridge`.
+5. Must survive navigation → island + `hx-preserve` + unique `id` (`svelte/app/Sidebar.svelte`).
 
-1. **Static content** → Django template only. No JS.
-2. **A form** → Django form + full page load. This is the default for all input.
-3. **DOM behavior, no state** (toggle, drawer, keyboard handler, browser API)
-   → Stimulus controller. See `controllers/sidebar.js`, `controllers/theme-toggle.js`.
-4. **Reactive UI with client state** → Svelte island via `svelte-bridge`.
-5. **Must survive navigation** (persistent chrome) → Svelte island +
-   `hx-preserve` + a unique `id`. See `svelte/app/Sidebar.svelte`.
+Rung 4 costs a chunk, a mount, a data contract. Rungs 1–3 free.
 
-Rung 4 is not a reward for complexity — an island costs a chunk, a mount, and a
-data contract. Rungs 1–3 are free.
+### Where things go
 
-### Data flow
+| What | Where |
+|---|---|
+| Data shaping (one fn per unit) | `apps/<app>/panels.py` |
+| Cross-page shell data | `apps/<app>/context_processors.py` (register in `TEMPLATES`) |
+| Routes | `apps/<app>/urls.py`, no `app_name` (root namespace) |
+| Page | `templates/<app>/<page>.html` |
+| Reusable markup / chrome | `templates/cotton/<name>.html` → `<c-name>` |
+| Icon | `templates/cotton/icon/<name>.html` → `<c-icon.name />` |
+| Layouts | `templates/base.html`, `templates/base_app.html` |
+| Stimulus | `frontend/src/js/controllers/<name>.js` |
+| Svelte | `frontend/src/js/svelte/<area>/<Name>.svelte` |
+| API | `apps/api/views.py` + `apps/api/schemas/<name>.py` |
 
-One direction, one shape. The server owns the shape; the client never invents it.
+Naming: `foo-bar.js` → `data-controller="foo-bar"`; `admin/table.js` → `admin--table`. Svelte value = path under `svelte/` sans ext: `app/Sidebar`. Cotton file snake_case, tag kebab-case: `cotton/theme_toggle.html` → `<c-theme-toggle>`; subdir → dot: `icon/panel_left.html` → `<c-icon.panel-left />`.
+
+### Layouts
+
+- `base.html` — public. Blocks: `title`, `extra_head`, `header`, `body`, `content`, `footer`, `extra_body`. Holds pre-paint inline script (theme + transition suppression) — **keep plain blocking `<script>`**; `main.js` is deferred module, runs after paint. Loads assets: `{% vite_hmr_client %}` + `{% vite_asset 'src/js/main.js' %}`.
+- `base_app.html` — **every authed page.** App bar + sidebar mount; blanks `header`/`footer`. Pages set `{% block page_title %}`.
+- New authed route = extend `base_app.html`. Nothing else.
+- Dark mode = `.dark` on `<html>`, toggled by `theme-toggle` controller.
+
+### Cotton components
+
+All server markup built from `templates/cotton/`. Pages compose; never repeat Basecoat markup by hand.
+
+| Component | Use |
+|---|---|
+| `<c-card title description lead body_class>` | every card. `lead` = page heading (h2). Slots: default = body, `header` = replaces header, `actions` = footer |
+| `<c-btn href variant size>` | every button / button-link. `href` → `<a>` |
+| `<c-badge variant>` | badges |
+| `<c-alert variant>` | alerts. `destructive` → `role="alert"`, else `role="status"` |
+| `<c-form>` | every POST form. CSRF built in; `action`/`id`/`data-*` pass through |
+| `<c-fields :form="form" />` | whole Django form (non-field errors + each field) |
+| `<c-field for label help errors>` | one hand-built control; control in slot |
+| `<c-center class="max-w-md">` | centered logged-out page (auth) |
+| `<c-header>` `<c-footer>` `<c-messages>` `<c-theme-toggle>` `<c-icon.*>` | chrome |
+
+```html
+<c-card title="New organization">
+  <c-form>
+    <c-fields :form="form" />
+    <c-btn type="submit">Create</c-btn>
+  </c-form>
+</c-card>
+```
+
+New component skeleton:
+```html
+<c-vars label value class />
+<div class="card{% if class %} {{ class }}{% endif %}" {{ attrs }}>
+  <section class="p-5">{{ label }}: {{ value }}</section>
+</div>
+```
+
+Rules:
+1. One component, one job. New one only if markup repeats (2+) or is chrome. One div of utilities ≠ component.
+2. Reuse first: `<c-btn>` not `<button class="btn">`, `<c-card>` not `<div class="card">`. `{% include %}` only for third-party (allauth) snippets, never our markup.
+3. Props in `<c-vars>`; rest flows via `{{ attrs }}` (`type`, `name`, `hx-*`, `data-*`, `aria-*`). Append to `class`, never replace base class.
+4. `title="Hi {{ x }}"` = string, escaped once. `:form="form"` = Python object. Raw `&` in attrs — `&amp;` double-escapes.
+5. Full class names only. Never `max-w-{{ size }}` — Tailwind purges it. Pass `class="max-w-md"`.
+6. Pass data explicitly. Exception: chrome (`header`, `messages`, `form`) reads request context `user`, `messages`, `csrf_token`.
+7. Never write `<c-` in a comment — Cotton compiles inside comments.
+8. `{% block %}` inside a component tag is overridable — layouts may wrap blocks in components.
+9. htmx passes through unchanged: `hx-*` via `{{ attrs }}`; `<c-form>` renders plain `<form>`, so `main.js` keeps it native.
+10. Loaders by hand (`django_cotton.apps.SimpleAppConfig`): keep `django_cotton.cotton_loader.Loader` first in `base.py` + `dev.py`. Auto config would clobber dev's uncached loaders.
+11. `templates/allauth/elements/*` adapt allauth → our components. `button.html`, `field.html` stay raw: allauth optional attrs would render empty (`form=""` detaches button from form).
+12. Cotton = static server markup. Needs client state → Svelte island. Never build same job in both.
+
+### Data flow (islands)
+
+One direction, one shape. Server owns shape.
 
 ```
 view.get_context_data()          →  dict of primitives (no model objects, no datetimes-as-objects)
@@ -119,8 +208,7 @@ svelte-bridge (Stimulus)         →  JSON.parse, mount()
 Component                        →  let { ... } = $props()
 ```
 
-For live refresh, the island fetches a DMR endpoint that calls **the same payload
-function** as the view, so the two shapes cannot drift:
+Live refresh: island fetches DMR endpoint calling **same payload fn** → shapes can't drift.
 
 ```
 Component  →  fetch(urls.thing, {credentials: "same-origin"})  →  DMR controller  →  thing_payload(user)
@@ -128,151 +216,87 @@ Component  →  fetch(urls.thing, {credentials: "same-origin"})  →  DMR contro
 view.get_context_data() ───────────────────────────────────────────────┘
 ```
 
-Pass endpoint URLs into the payload (`"urls": {"thing": reverse("thing")}`) rather
-than hardcoding them client-side.
+- Endpoint URLs ride in payload: `"urls": {"thing": reverse("thing")}`.
+- Props read once at mount, not reactive (no `propsValueChanged`). Change after mount = `$state` or fetch.
+- `data-svelte-bridge-props-value='{...}'` only for hand-written constants. Server data → `json_script`.
+- Bridge lazy-imports component (own chunk), mounts, unmounts on disconnect. Dedicated controller with static `import` + `mount()`/`unmount()` only when extra lifecycle needed — ships in main bundle. Ref: `controllers/svelte-bridge.js`.
 
-**Props are read once at mount and are not reactive.** `svelte-bridge` has no
-`propsValueChanged` hook. Anything that must change after mount is either client
-state (`$state`) or a fetch.
+### Recipe: interactive unit
 
-### Where things go
+1. `<name>_payload(user) -> dict` in `apps/<app>/panels.py`. JSON-safe primitives.
+2. Add key to view's `payload` in `get_context_data`.
+3. Template: `{{ payload|json_script:"<id>" }}` + mount el: `data-controller="svelte-bridge"`, component value, `data-svelte-bridge-props-id-value="<id>"`.
+4. `svelte/<area>/<Name>.svelte`, runes only (`$props`, `$state`, `$derived`). Card chrome: reuse `dashboard/Panel.svelte`.
+5. Live refresh only: DMR controller calling same `*_payload`; URL via payload.
+6. Verify: `just test` → `cd frontend && pnpm run build` → load page, check console. `svelte-bridge: no component found` = wrong component path.
 
-| What | Where |
-|---|---|
-| Data shaping (one function per unit) | `apps/<app>/panels.py` |
-| Cross-page shell data | `apps/<app>/context_processors.py` (register in `TEMPLATES`) |
-| Routes | `apps/<app>/urls.py`, no `app_name` — this project uses the root namespace |
-| Page structure | `templates/<app>/<page>.html` |
-| Shared chrome | `templates/base.html`, `templates/base_app.html`, `templates/_*.html` |
-| Stimulus controller | `frontend/src/js/controllers/<name>.js` → `data-controller="<name>"` |
-| Svelte component | `frontend/src/js/svelte/<area>/<Name>.svelte` |
-| API endpoint + schema | `apps/api/views.py`, `apps/api/schemas/<name>.py` |
+Dashboard: `svelte/dashboard/Dashboard.svelte` = one root composing panels. Root owns layout + cross-panel state; children get props + callbacks, **never own stores/context**. New panel = render in root grid with its slice.
 
-Controllers auto-register from the `controllers/` glob: `foo-bar.js` →
-`data-controller="foo-bar"`; `admin/table.js` → `data-controller="admin--table"`.
-Component values are paths relative to `svelte/` without the extension, so
-`svelte/app/Sidebar.svelte` is `data-svelte-bridge-component-value="app/Sidebar"`.
+### htmx (boosted nav)
 
-### Layouts
+- htmx 4, app shell only: `base_app.html` sets `hx-boost:inherited="true"` (v4 inheritance explicit). Public pages plain loads. Opt out one link: `hx-boost="false"`.
+- Boosted response swaps `<body>`, keeps only new `<title>` → every boosted page shares `base.html` head assets.
+- Forms native: `main.js` cancels `htmx:before:init` for forms that only inherited boost. Form with own `hx-post` left alone.
+- Island-rendered links miss htmx's scan → `svelte-bridge` calls `htmx.process()` after mount.
+- Persistent island: unique `id` + `hx-preserve`. Bridge **adopts** existing instance, defers teardown one tick ("moving" vs "gone"). Remove → blink every visit or leaked listeners.
+- Preserved island can't re-render from server HTML → page-dependent state (active nav) from `location.pathname` on `htmx:after:history:push` + `popstate`.
 
-- `templates/base.html` — public pages. Blocks: `title`, `extra_head`, `header`,
-  `body`, `content`, `footer`, `extra_body`. Holds the pre-paint inline script
-  (theme + transition suppression) — **keep it a plain blocking `<script>`**;
-  `main.js` is a deferred module and runs after first paint.
-- `templates/base_app.html` — **every authenticated page.** App bar + sidebar
-  mount; overrides `header`/`footer` to drop marketing chrome. Pages set
-  `{% block page_title %}`.
-- Public pages extend `base.html`; logged-in pages extend `base_app.html`. Adding
-  an authenticated route means extending `base_app.html`, nothing else.
+### Hard rules (each already caused a real bug)
 
-### htmx (boosted navigation)
-
-- **htmx 4, scoped to the app shell, not global.** `base_app.html` opts in with
-  `hx-boost:inherited="true"` (htmx 4 inheritance is explicit). Public pages keep
-  plain loads. Opt one link out with `hx-boost="false"`. A boosted response
-  replaces `<body>` and keeps only the new `<title>` from `<head>`, so every
-  boosted page must share `base.html`'s head assets.
-- **Forms are browser-native:** `main.js` cancels `htmx:before:init` for forms
-  that only inherited boost. A form with its own `hx-post` etc. is left alone.
-- **Links rendered by an island** are not in the DOM when htmx scans the page;
-  `svelte-bridge` calls `htmx.process()` after mounting so they get boosted.
-- A persistent island needs a unique `id` + `hx-preserve`. `svelte-bridge`
-  then **adopts** the existing instance instead of remounting, and defers teardown
-  one tick to tell "htmx is moving this" from "this is gone". Remove that and
-  the island blinks on every visit, or leaks its listeners.
-- A preserved island cannot re-render from server HTML, so anything page-dependent
-  (active nav state) must derive from `location.pathname` on
-  `htmx:after:history:push` and `popstate`.
-
-### Adding an interactive unit — the recipe
-
-1. **Shape the data.** Add `<name>_payload(user) -> dict` to `apps/<app>/panels.py`.
-   JSON-safe primitives only.
-2. **Expose it.** Add the key to the view's `payload` dict in `get_context_data`.
-3. **Render the mount.** In the template: `{{ payload|json_script:"<id>" }}` plus a
-   mount element with `data-controller="svelte-bridge"`, the component value, and
-   `data-svelte-bridge-props-id-value="<id>"`.
-4. **Build the component.** `frontend/src/js/svelte/<area>/<Name>.svelte`, runes
-   only (`$props`, `$state`, `$derived`). Reuse `dashboard/Panel.svelte` for card
-   chrome.
-5. **Only if it needs live refresh:** add a DMR controller that calls the same
-   `*_payload` function, and pass its URL through the payload.
-6. **Verify.** `just test`, then `cd frontend && pnpm run build`, then load the page
-   and check the console. A `svelte-bridge: no component found` error means the
-   component value path is wrong.
-
-Dashboard specifics: `svelte/dashboard/Dashboard.svelte` is one root composing
-child panels. The root owns layout and cross-panel state; children get props and
-callbacks, **never their own stores or context**. Add a panel by rendering it in
-the root's grid with its slice.
-
-### Hard rules
-
-Each of these has already caused a real bug in this repo.
-
-1. The `.svelte` line in `@source` globs, in `frontend/src/css/styles.css`, **must
-   stay.** Without it, classes used only inside a component are purged from production
-   CSS — dev looks perfect, prod is unstyled, with no warning. Verify after a
-   build by grepping `dist/assets/main-*.css` for a Svelte-only class.
-2. **Django's `{# #}` is single-line only.** A multi-line one leaks as text, which
-   closes `<head>` early and pushes the CSS into `<body>`. Use `{% comment %}`
-   for multi-line — and `{% extends %}` must be the file's first tag.
-3. **Never hand-build JSON into an HTML attribute.** Autoescaping produces
-   `&quot;`, an apostrophe in the data breaks the quoting, and it is an injection
-   vector. Use `json_script`.
-4. **Never put secrets or raw audit values in a payload.** `LogEntry.changes`
-   carries password hashes; `activity_payload` reports field *names* only.
-5. **Islands fetch GET only.** Nothing exposes a CSRF token to JS yet, so a POST
-   from an island requires solving that first.
-6. **Pass icon names, not markup, through JSON.** Components map names to markup
-   from a closed constant table.
-7. **Anything that must apply before first paint is a blocking inline script** in
-   `base.html`, never a Stimulus controller.
-8. **Write no component CSS.** Basecoat's `site.css` already styles `.card`,
-   `.sidebar`, `.alert`, `.empty`, `.btn`, `.field`, and the rest via
-   class + `data-*` variants (`class="btn" data-variant="outline" data-size="sm"`).
-   Respect its structural contracts — e.g. `.sidebar + *` applies the content
-   margin, so the content wrapper must stay the sidebar's immediate next sibling.
-9. **htmx is for navigation only.** It boosts links inside the app shell. Turbo
-   was removed; do not add it back. Interactive UI is still a Svelte island.
-10. **Empty states are the default view** on a fresh install, not an edge case.
-    Build them as real states.
+1. `.svelte` line in `@source` (`frontend/src/css/styles.css`) **stays**. Gone → Svelte-only classes purged in prod, no warning. Verify: grep `dist/assets/main-*.css` for Svelte-only class.
+2. `{# #}` single-line only. Multi-line leaks as text → closes `<head>` early. Use `{% comment %}`. `{% extends %}` must be first tag.
+3. Never hand-build JSON into HTML attr (`&quot;`, apostrophes break quoting, injection). Use `json_script`.
+4. No secrets / raw audit values in payloads. `LogEntry.changes` holds password hashes; `activity_payload` sends field *names* only.
+5. Islands fetch GET only. No CSRF token exposed to JS yet → POST needs that solved first.
+6. Icon *names* through JSON, not markup. Components map names from closed constant table.
+7. Pre-first-paint behavior = blocking inline script in `base.html`, never Stimulus.
+8. No component CSS. Basecoat styles `.card`, `.sidebar`, `.alert`, `.empty`, `.btn`, `.field`… via class + `data-*` (`class="btn" data-variant="outline" data-size="sm"`), used through Cotton components. Respect structure: `.sidebar + *` applies content margin → content wrapper stays sidebar's immediate next sibling.
+9. htmx = navigation only. Interactive UI = Svelte island. **Turbo removed — never add back.**
+10. Empty states = default view on fresh install. Build as real states.
 
 ### Smells
 
-- A `fetch` in a component that could have been a prop → move it to the view.
-- A hardcoded `/path/` in a `.svelte` file → resolve it in Django.
-- A new `.css` file, or a `<style>` block reimplementing Basecoat → delete it.
-- A Svelte component rendering navigation or page chrome → that is Django's job.
-- Two payload shapes for the same data (view + API) → share one function.
-- A store or `setContext` to talk between islands → give one root the state, or
-  ask whether they should be one island.
+- `fetch` that could be a prop → move to view.
+- Hardcoded `/path/` in `.svelte` → resolve in Django.
+- New `.css` file / `<style>` reimplementing Basecoat → delete.
+- Svelte rendering nav/chrome → Django's job.
+- `class="btn|card|alert|badge"` or `{% csrf_token %}` in a page → Cotton component.
+- `{% include "_partial.html" %}` of our markup → Cotton component.
+- Two payload shapes for same data → share one fn.
+- Store / `setContext` between islands → one root owns state, or merge islands.
 
-## API (DMR)
-- Controllers in `apps/api/views.py`, schemas in `apps/api/schemas/`
-- Use `dmr.Controller` with `MsgspecSerializer`
-- Response validation ON in dev, OFF in production (set in production.py)
+## Critical rules
 
-## Critical Rules
+1. Never change settings inheritance (`from .base import *` split).
+2. Never add OIDC fields to `User`.
+3. Never add Turbo back.
+4. Never put backend code outside `apps/`.
+5. Never tune caching/auditlog for hypothetical scale.
+6. Never auto-enable SSL/HSTS.
+7. Never let Svelte own URLs, navigation, page chrome.
+8. Never let htmx boost forms by inheritance (`main.js` enforces).
+9. Never hand-write Basecoat markup in page templates — compose `templates/cotton/`.
 
-1. **Never change settings inheritance pattern** — base/dev/production/test split with `from .base import *`
-2. **Never add OIDC fields to User model** — allauth SocialAccount handles it
-3. **Never add Turbo back** — replaced by htmx 4 boosted navigation
-4. **Never create new files outside apps/ for backend code** — everything goes in apps/
-5. **Never tune caching/auditlog for hypothetical scale** — starter kit, YAGNI
-6. **Never auto-enable SSL/HSTS** — must be manual per deployment
-7. **Never let Svelte own URLs, navigation, or page chrome** — Django resolves
-   URLs and renders structure; islands receive data. See **Frontend Formula**.
-8. **Never let htmx boost forms by inheritance** — forms stay full page loads;
-   `main.js` enforces it.
+## Dev
 
-## Dependency Management
+Docker (`dev/docker-compose.dev.yml`): `db` = `paradedb/paradedb:0.26.2-pg18`; `app` = Django + Vite + qcluster under supervisord (waits db health → deps → migrate); `clickstack` = OTEL UI `:8080` (`just dev` only). Media local in dev, S3 in prod.
 
-- Python: `uv add <pkg>` / `uv sync`
-- JS: `cd frontend && pnpm add <pkg>`
-- Python min: 3.14
+```bash
+just dev            # all services (alias dev-up); just dev-slim = no analytics
+just stop | logs | restart | bash | shell
+just dev-clean      # drop volumes — deletes dev DB
+just django-dev     # host mode: runserver (DB in Docker, DATABASE_URL → localhost)
+just vite-dev       # Vite HMR :5173
+just qcluster-dev   # workers + scheduler
+just vite-build     # prod assets → frontend/dist/ (Whitenoise serves)
+just make / migrate # makemigrations / migrate
+```
 
-## Testing
+Deps: `uv add|remove <pkg>`, `uv sync`; JS `cd frontend && pnpm add|remove <pkg>`.
 
-- `just test` — runs pytest with `DJANGO_SETTINGS_MODULE=config.settings.test`
-- Write tests per app in `apps/<name>/tests/`
+## Testing & CI
+
+- `just test` → pytest, `config.settings.test`. Tests per app in `apps/<name>/tests/`.
+- `just e2e` → browser tests vs built assets (`-m e2e`).
+- `apps/core/tests/test_cotton.py` fails if a `<c-` tag reaches the browser.
+- CI (`.github/workflows/ci.yml`, push/PR to `main`): `just install` → `lint` → `test` → `vite-build` → `docker-build`.
