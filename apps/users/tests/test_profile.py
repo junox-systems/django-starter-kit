@@ -201,6 +201,48 @@ class ProfileEditTests(TestCase):
         self.assertFalse(storage.exists(avatar_name))
 
 
+class AvatarWidgetTests(TestCase):
+    """The avatar field renders a preview + upload/remove, not Django's default text."""
+
+    def setUp(self):
+        self.user = User.objects.create_user(
+            email="finn@example.com", username="finn", password="s3cret-pw"
+        )
+        self.client.force_login(self.user)
+
+    def test_without_avatar_offers_upload_only(self):
+        response = self.client.get(reverse("profile"))
+        self.assertContains(response, 'data-controller="avatar-preview"')
+        self.assertContains(response, "Upload photo")
+        self.assertNotContains(response, "Currently:")
+        self.assertNotContains(response, 'name="avatar-clear"')
+
+    def test_with_avatar_offers_change_and_remove(self):
+        self.user.avatar.save("avatar.png", image_upload(), save=True)
+        response = self.client.get(reverse("profile"))
+        self.assertContains(response, "Change photo")
+        self.assertContains(response, 'name="avatar-clear"')
+
+    def test_remove_clears_avatar(self):
+        self.user.avatar.save("avatar.png", image_upload(), save=True)
+        response = self.client.post(
+            reverse("profile"), {"username": "finn", "avatar-clear": "on"}
+        )
+        self.assertRedirects(response, reverse("profile"))
+        self.user.refresh_from_db()
+        self.assertFalse(self.user.avatar)
+
+    def test_rejected_upload_still_previews_current_avatar(self):
+        self.user.avatar.save("avatar.png", image_upload(), save=True)
+        response = self.client.post(
+            reverse("profile"),
+            {"username": "finn", "avatar": SimpleUploadedFile("x.txt", b"nope")},
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Change photo")
+        self.assertContains(response, 'name="avatar-clear"')
+
+
 class AvatarFilesTests(TestCase):
     def setUp(self):
         self.user = User.objects.create_user(

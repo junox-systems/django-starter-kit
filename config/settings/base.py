@@ -51,6 +51,8 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "django.contrib.sitemaps",
+    # Default widget templates for FORM_RENDERER below.
+    "django.forms",
     # Third Party
     # DJ Control Room — shared core lib first, then panels, then control room
     # (so all panels appear under one "DJ Control Room" section in admin)
@@ -141,6 +143,10 @@ TEMPLATES = [
         },
     },
 ]
+
+# Widgets render through TEMPLATES above (Cotton included), so a widget template
+# can compose Cotton components, e.g. users/widgets/avatar_input.html.
+FORM_RENDERER = "django.forms.renderers.TemplatesSetting"
 
 # Database
 DATABASES = {

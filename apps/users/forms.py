@@ -9,10 +9,28 @@ MAX_AVATAR_BYTES = 5 * 1024 * 1024
 MAX_AVATAR_PIXELS = 4096 * 4096
 
 
+class AvatarInput(forms.ClearableFileInput):
+    """Current avatar preview, upload button and remove toggle (avatar-preview controller)."""
+
+    template_name = "users/widgets/avatar_input.html"
+    user = None  # set by ProfileForm: the value is None without a file, so no .instance
+
+    def get_context(self, name, value, attrs):
+        context = super().get_context(name, value, attrs)
+        context["widget"]["user"] = self.user
+        return context
+
+
 class ProfileForm(forms.ModelForm):
     class Meta:
         model = User
         fields = ["first_name", "last_name", "username", "avatar"]
+        widgets = {"avatar": AvatarInput}
+        help_texts = {"avatar": "Max 5 MB, up to 4096×4096 pixels."}
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["avatar"].widget.user = self.instance
 
     def clean_username(self):
         """Allauth's signup rules; case-insensitive uniqueness is a DB constraint."""
