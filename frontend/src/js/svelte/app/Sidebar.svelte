@@ -99,7 +99,8 @@
   <footer>
     <ul>
       <li>
-        <button type="submit" form={LOGOUT_FORM_ID} class="cursor-pointer">
+        <!-- Basecoat lays out item rows only under nav > section, not footer. -->
+        <button type="submit" form={LOGOUT_FORM_ID} class="flex w-full cursor-pointer items-center">
           <svg
             xmlns="http://www.w3.org/2000/svg"
             viewBox="0 0 24 24"
