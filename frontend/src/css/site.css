@@ -1412,8 +1412,15 @@
     @apply text-destructive;
   }
 
+  /* Top-right, just below the app bar (h-14) / public header; newest last. */
+  .toaster {
+    @apply top-14 bottom-auto flex-col;
+  }
+
   .toaster .toast {
-    @apply motion-reduce:animate-none motion-reduce:transition-none;
+    /* Reduced motion keeps a plain fade: Basecoat removes a closed toast on
+       transitionend, which never fires with no transition at all. */
+    @apply animate-[toast-in_200ms_cubic-bezier(0.16,1,0.3,1)] motion-reduce:animate-none motion-reduce:transition-opacity;
   }
 
   /* Slider */
@@ -1460,5 +1467,12 @@
 @media (width >= 48rem) {
   html[data-sidebar-collapsed] {
     --sidebar-width: 3rem;
+  }
+}
+
+@keyframes toast-in {
+  from {
+    opacity: 0;
+    transform: translateY(-0.5rem) scale(0.98);
   }
 }
