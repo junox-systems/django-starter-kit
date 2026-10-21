@@ -53,8 +53,8 @@
     link: '<path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>',
     shield:
       '<path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/>',
-    logout:
-      '<path d="m16 17 5-5-5-5"/><path d="M21 12H9"/><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>',
+    // lucide "power": the "log-out" door read like the sidebar collapse toggle.
+    logout: '<path d="M12 2v10"/><path d="M18.4 6.6a9 9 0 1 1-12.77.04"/>',
   };
 </script>
 
@@ -105,7 +105,7 @@
         <button
           type="submit"
           form={LOGOUT_FORM_ID}
-          class="flex w-full cursor-pointer items-center"
+          class="text-destructive hover:bg-destructive/10 hover:text-destructive active:bg-destructive/10 active:text-destructive flex w-full cursor-pointer items-center"
           data-tooltip="Log out"
           data-side="right"
         >
