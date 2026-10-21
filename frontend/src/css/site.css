@@ -1311,6 +1311,37 @@
   .sidebar nav ul ul > li > details > summary {
     @apply text-sidebar-foreground ring-sidebar-ring hover:bg-sidebar-accent hover:text-sidebar-accent-foreground active:bg-sidebar-accent active:text-sidebar-accent-foreground h-7 gap-2 rounded-md px-2 text-sm focus-visible:ring-2 [&>svg]:size-4;
   }
+
+  /* Sidebar icon rail (desktop only). Not a Basecoat mode: `data-sidebar-collapsed`
+     on <html> is set pre-paint in base.html and toggled by controllers/sidebar.js. */
+  .sidebar nav {
+    @apply transition-[transform,width] motion-reduce:transition-none;
+  }
+
+  .sidebar [data-tooltip]::before {
+    @apply hidden;
+  }
+
+  @media (width >= 48rem) {
+    html[data-sidebar-collapsed] .sidebar nav > header {
+      @apply h-16;
+    }
+
+    html[data-sidebar-collapsed] .sidebar nav :is(header span, h3, li > :is(a, button) > span) {
+      @apply sr-only;
+    }
+
+    /* Tooltips hang outside the rail; the scroll container and Basecoat's
+       overflow-hidden items would clip them. */
+    html[data-sidebar-collapsed] .sidebar nav > section,
+    html[data-sidebar-collapsed] .sidebar nav li > :is(a, button) {
+      @apply overflow-visible;
+    }
+
+    html[data-sidebar-collapsed] .sidebar [data-tooltip]::before {
+      @apply inline-flex;
+    }
+  }
   /* Progress */
   .progress {
     @apply bg-muted h-1.5 rounded-full;
@@ -1414,4 +1445,12 @@
     @apply border-primary ring-ring/50 size-4 rounded-full border bg-white shadow-sm transition-[color,box-shadow] hover:ring-4 focus-visible:ring-4 focus-visible:outline-hidden;
   }
 
+}
+
+/* Outside any layer: Basecoat's `:root { --sidebar-width }` is unlayered, and
+   unlayered rules beat layered ones. Icon rail, see the Sidebar section above. */
+@media (width >= 48rem) {
+  html[data-sidebar-collapsed] {
+    --sidebar-width: 3rem;
+  }
 }

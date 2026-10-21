@@ -76,6 +76,8 @@
                 href={item.href}
                 aria-current={item.href === activeHref ? "page" : undefined}
                 hx-boost={item.boost === false ? "false" : undefined}
+                data-tooltip={item.label}
+                data-side="right"
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -100,7 +102,13 @@
     <ul>
       <li>
         <!-- Basecoat lays out item rows only under nav > section, not footer. -->
-        <button type="submit" form={LOGOUT_FORM_ID} class="flex w-full cursor-pointer items-center">
+        <button
+          type="submit"
+          form={LOGOUT_FORM_ID}
+          class="flex w-full cursor-pointer items-center"
+          data-tooltip="Log out"
+          data-side="right"
+        >
           <svg
             xmlns="http://www.w3.org/2000/svg"
             viewBox="0 0 24 24"

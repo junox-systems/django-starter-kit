@@ -43,6 +43,10 @@
                 var dark = stored === "dark" || (stored === null &&
                     window.matchMedia("(prefers-color-scheme: dark)").matches);
                 root.classList.toggle("dark", dark);
+                // Desktop icon rail; keep in sync with controllers/sidebar.js.
+                if (localStorage.getItem("sidebar") === "collapsed") {
+                    root.dataset.sidebarCollapsed = "";
+                }
             } catch (e) {
                 /* Storage blocked — CSS `color-scheme` still gives a sane default. */
             }

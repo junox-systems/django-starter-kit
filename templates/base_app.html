@@ -41,8 +41,8 @@
         <header class="border-border bg-background/80 sticky top-0 z-30 border-b backdrop-blur">
             <div class="flex h-14 items-center justify-between gap-2 px-4 md:px-6">
                 <div class="flex items-center gap-2">
-                    <c-btn variant="ghost" size="icon" class="size-9 md:hidden" type="button"
-                           data-action="click->sidebar#toggle" aria-label="Toggle navigation"><c-icon.panel-left /></c-btn>
+                    <c-btn variant="ghost" size="icon" class="size-9" type="button" data-sidebar-target="toggle"
+                           data-action="click->sidebar#toggle" aria-label="Toggle navigation" aria-controls="app-sidebar"><c-icon.panel-left /></c-btn>
                     <h1 class="font-heading text-base font-semibold tracking-tight">{% block page_title %}{% endblock %}</h1>
                 </div>
                 <div class="flex items-center gap-2">
