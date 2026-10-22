@@ -322,5 +322,6 @@ Deps: `uv add|remove <pkg>`, `uv sync`; JS `cd frontend && pnpm add|remove <pkg>
 
 - `just test` → pytest, `config.settings.test`. Tests per app in `apps/<name>/tests/`.
 - `just e2e` → browser tests vs built assets (`-m e2e`).
+- `just smoke-prod` → boot built prod image (db + web + qcluster via `prod/smoke.sh`), probe health, pages, static, OpenAPI.
 - `apps/core/tests/test_cotton.py` fails if a `<c-` tag reaches the browser.
-- CI (`.github/workflows/ci.yml`, push/PR to `main`): `just install` → `lint` → `test` → `vite-build` → `docker-build`.
+- CI (`.github/workflows/ci.yml`, push/PR to `main`): `just install` → `lint` → `test` → `vite-build` → `docker-build` → `smoke-prod`.

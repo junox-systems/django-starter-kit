@@ -39,7 +39,7 @@ services:
   qcluster:
     image: ${IMAGE_NAME:?IMAGE_NAME required}
     entrypoint: ["/init.sh"]
-    command: ["uv", "run", "python", "manage.py", "qcluster"]
+    command: ["python", "manage.py", "qcluster"]
     deploy:
       replicas: 1
       restart_policy:

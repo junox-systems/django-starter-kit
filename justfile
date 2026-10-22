@@ -125,6 +125,10 @@ vite-build:
 docker-build:
     docker build -t django-starter-kit .
 
+# Boot the built image (db + web + qcluster) and probe it
+smoke-prod image="django-starter-kit":
+    prod/smoke.sh {{image}}
+
 #### PROD ####
 
 collectstatic:

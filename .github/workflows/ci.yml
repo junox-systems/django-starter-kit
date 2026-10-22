@@ -23,5 +23,7 @@ jobs:
       run: just vite-build
     - name: Build Docker image
       run: just docker-build
+    - name: Smoke-test production image
+      run: just smoke-prod
     # - name: Deploy
     #   run: just deploy

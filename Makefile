@@ -119,6 +119,10 @@ vite-build:
 .PHONY: docker-build
 docker-build:
 	docker build -t django-starter-kit .
+
+.PHONY: smoke-prod
+smoke-prod:
+	prod/smoke.sh django-starter-kit
 ## - END BUILD - ## -------------------------------------------------------------------------------
 
 ### - PROD - ### ---------------------------------------------------------------------------------

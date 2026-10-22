@@ -4,7 +4,7 @@ set -e
 MAX_ATTEMPTS=60
 attempt=0
 echo "Waiting for database..."
-until uv run python -c "
+until python -c "
 import os
 import psycopg
 url = os.environ.get('DATABASE_URL', '')
@@ -28,7 +28,7 @@ done
 echo "Database ready."
 
 echo "Running migrations..."
-uv run python manage.py migrate_locked
+python manage.py migrate_locked
 
 echo "Starting: $@"
 exec "$@"
