@@ -17,7 +17,7 @@ A modern, production-ready Django starter kit — opinionated, lean, and ready t
 | **Organizations + RBAC** (`apps/orgs`) | Teams, email invitations, role-based access control after ANSI INCITS 359-2004 |
 | **django-imagekit** | On-demand image processing (avatar thumbnails) |
 | **django-storages** | S3-compatible media file backend |
-| **django-anymail** | Transactional email (Postmark / AWS SES) |
+| **django-anymail** | Transactional email via Resend (or any SMTP server) |
 | **django-q2** | Background tasks + schedules, Postgres as broker |
 | **Sentry SDK** | Error tracking + performance monitoring (opt-in) |
 | **OpenTelemetry** | Distributed tracing — Django, psycopg (opt-in) |
@@ -261,7 +261,7 @@ Before deploying:
 4. **Database:** migrations run on container start (`prod/init.sh`) under a Postgres advisory lock, so replicas never migrate concurrently
 5. **Hosts:** set `ALLOWED_HOSTS`, keeping `localhost`: the container healthcheck calls `/healthz/` with `Host: localhost`
 6. **Sentry:** Set `SENTRY_DSN` for error tracking
-7. **Email:** Set `POSTMARK_SERVER_TOKEN` (or swap `EMAIL_BACKEND`)
+7. **Email:** Set `RESEND_API_KEY`, or `EMAIL_URL` for any SMTP server
 8. **Legal:** replace the placeholder text in `templates/pages/terms.html` and `privacy.html`
 
 ### Production (Docker Swarm)
@@ -280,7 +280,8 @@ Required env vars:
 - `SECRET_KEY` — Django secret
 - `IMAGE_NAME` — Docker image for stack
 - `POSTGRES_PASSWORD` — DB password
-- `DEFAULT_FROM_EMAIL` — sender verified in Postmark
+- `DEFAULT_FROM_EMAIL` — sender verified with your email provider
+- `RESEND_API_KEY` or `EMAIL_URL` (`smtp+tls://user:pass@host:587`) — email delivery
 - `CSRF_TRUSTED_ORIGINS` — public https origin(s), e.g. `https://example.com`
 - `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `AWS_STORAGE_BUCKET_NAME` — external S3 bucket for media (optional `AWS_S3_ENDPOINT_URL` for non-AWS)
 

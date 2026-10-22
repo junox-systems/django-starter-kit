@@ -6,14 +6,10 @@ from django.conf import settings
 from django.test import SimpleTestCase
 
 
-def load_settings(module, **env):
+def load_settings(module, expr="s.AWS_S3_CUSTOM_DOMAIN", **env):
     """Import a settings module in a fresh interpreter; settings are module-level."""
     return subprocess.run(
-        [
-            sys.executable,
-            "-c",
-            f"import {module} as s; print(s.AWS_S3_CUSTOM_DOMAIN)",
-        ],
+        [sys.executable, "-c", f"import {module} as s; print({expr})"],
         cwd=settings.BASE_DIR,
         env={**os.environ, **env},
         capture_output=True,
@@ -66,3 +62,38 @@ class S3CustomDomainTests(SimpleTestCase):
             AWS_STORAGE_BUCKET_NAME="media",
         )
         self.assertEqual(result.stdout.strip(), "media.s3.amazonaws.com", result.stderr)
+
+
+class EmailBackendTests(SimpleTestCase):
+    expr = "s.EMAIL_BACKEND, getattr(s, 'EMAIL_HOST', None)"
+
+    def test_resend_key_selects_resend(self):
+        result = load_settings(
+            "config.settings.base", self.expr, RESEND_API_KEY="re_x", EMAIL_URL=""
+        )
+        self.assertIn(
+            "anymail.backends.resend.EmailBackend", result.stdout, result.stderr
+        )
+
+    def test_email_url_configures_smtp(self):
+        result = load_settings(
+            "config.settings.base",
+            self.expr,
+            RESEND_API_KEY="",
+            EMAIL_URL="smtp+tls://u:p@smtp.example.com:587",
+        )
+        self.assertEqual(
+            result.stdout.strip(),
+            "django.core.mail.backends.smtp.EmailBackend smtp.example.com",
+            result.stderr,
+        )
+
+    def test_empty_email_url_falls_back_to_localhost(self):
+        result = load_settings(
+            "config.settings.base", self.expr, RESEND_API_KEY="", EMAIL_URL=""
+        )
+        self.assertEqual(
+            result.stdout.strip(),
+            "django.core.mail.backends.smtp.EmailBackend localhost",
+            result.stderr,
+        )

@@ -26,7 +26,7 @@ ALLOWED_HOSTS = env.list("ALLOWED_HOSTS", default=["localhost", "127.0.0.1"])
 # the browser's https Origin must be trusted explicitly or every POST gets 403.
 CSRF_TRUSTED_ORIGINS = env.list("CSRF_TRUSTED_ORIGINS", default=[])
 
-# Postmark rejects unverified senders; the webmaster@localhost fallback would
+# Resend/SMTP providers reject unverified senders; the webmaster@localhost fallback would
 # silently break signup (email verification is mandatory). No default on purpose.
 DEFAULT_FROM_EMAIL = env("DEFAULT_FROM_EMAIL")
 SERVER_EMAIL = env("SERVER_EMAIL", default=DEFAULT_FROM_EMAIL)

@@ -19,7 +19,7 @@ env = environ.Env(
     AWS_ACCESS_KEY_ID=(str, ""),
     AWS_SECRET_ACCESS_KEY=(str, ""),
     AWS_STORAGE_BUCKET_NAME=(str, ""),
-    POSTMARK_SERVER_TOKEN=(str, ""),
+    RESEND_API_KEY=(str, ""),
     SENTRY_DSN=(str, ""),
 )
 
@@ -286,7 +286,14 @@ else:
 
 # Email
 # ------------------------------------------------------------------------------
-EMAIL_BACKEND = "anymail.backends.postmark.EmailBackend"
+# Resend API when RESEND_API_KEY is set, else any SMTP server via EMAIL_URL
+# (smtp+tls://user:pass@host:587, smtp+ssl://…:465).
+if env("RESEND_API_KEY"):
+    EMAIL_BACKEND = "anymail.backends.resend.EmailBackend"
+else:
+    # `or`: the stack passes EMAIL_URL="" when unset, which environ can't parse.
+    _email_url = env("EMAIL_URL", default="") or "smtp://localhost:25"
+    vars().update(env.email_url_config(_email_url))
 
 # Cache
 # ------------------------------------------------------------------------------
@@ -318,7 +325,7 @@ Q_CLUSTER = {
 # Anymail
 # ------------------------------------------------------------------------------
 ANYMAIL = {
-    "POSTMARK_SERVER_TOKEN": env("POSTMARK_SERVER_TOKEN"),
+    "RESEND_API_KEY": env("RESEND_API_KEY"),
 }
 
 # Sentry

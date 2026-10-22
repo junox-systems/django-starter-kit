@@ -23,7 +23,7 @@ Django 5.2 LTS starter kit. Modular monolith. Lean, opinionated, prod-ready. Sin
 | Build | Vite (`django-vite`), uv, pnpm (Node 24), just (+ mirror `Makefile`), Docker Debian trixie-slim |
 | Config | `django-environ` (`env.db()`, `env.bool()`); all vars in `.env.example` |
 | Storage | `django-storages` S3-compatible; falls back to local FS without `AWS_*`. `django-imagekit` avatar thumbs |
-| Email | `django-anymail` (Postmark / SES) |
+| Email | Resend (`django-anymail`) if `RESEND_API_KEY`, else any SMTP via `EMAIL_URL` |
 | Admin | stock admin + dj-control-room (cache, urls, signals panels), constance, import_export, auditlog |
 | Observability | Sentry (if `SENTRY_DSN`; 10% traces, no PII). OTEL opt-in `OTEL_ENABLED=true`: Django + psycopg only, any OTLP backend |
 | Tooling | ruff, pytest, django-debug-toolbar (`/__debug__/`) |
