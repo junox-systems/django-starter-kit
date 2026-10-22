@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.6.0](https://github.com/junox-systems/django-starter-kit/compare/v0.5.0...v0.6.0) (2026-10-22)
+
+
+### ⚠ BREAKING CHANGES
+
+* **email:** POSTMARK_SERVER_TOKEN is ignored. Set RESEND_API_KEY or EMAIL_URL before deploying.
+
+### Features
+
+* **email:** Resend or any SMTP server, drop Postmark ([a55e975](https://github.com/junox-systems/django-starter-kit/commit/a55e97588eaa2089c2d83050b5f2069ac9b297ce))
+
 ## [0.5.0](https://github.com/junox-systems/django-starter-kit/compare/v0.4.0...v0.5.0) (2026-10-22)
 
 
