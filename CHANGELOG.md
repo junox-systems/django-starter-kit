@@ -1,5 +1,30 @@
 # Changelog
 
+## [0.5.0](https://github.com/junox-systems/django-starter-kit/compare/v0.4.0...v0.5.0) (2026-10-22)
+
+
+### Features
+
+* **messages:** show Django messages as Basecoat toasts ([864037a](https://github.com/junox-systems/django-starter-kit/commit/864037a4167c4fc32edc6cfed8e299719aaf42fc))
+* **orgs:** toast on org switch ([ee29936](https://github.com/junox-systems/django-starter-kit/commit/ee299365b251e6b0ba66f8f406f889c6db2ebe17))
+* **sidebar:** collapse to icon rail on desktop ([3c0a7c5](https://github.com/junox-systems/django-starter-kit/commit/3c0a7c5180b32ee1b7add8119be4740dc60fd994))
+* **users:** add editable profile and avatar ([7cb2c31](https://github.com/junox-systems/django-starter-kit/commit/7cb2c317cc2e5e1f2934006c3e1229afa436017b))
+* **users:** avatar field with live preview ([3c6d8cf](https://github.com/junox-systems/django-starter-kit/commit/3c6d8cfcab9312b7540af0a7236adb4104312be2))
+
+
+### Bug Fixes
+
+* **build:** pin python 3.14.8 in mise configs ([4d602f5](https://github.com/junox-systems/django-starter-kit/commit/4d602f58b91921f9235fe89a1f2473a1cfa87c04))
+* **header:** drop admin link, single auth CTA ([4ce173b](https://github.com/junox-systems/django-starter-kit/commit/4ce173ba7347bc97d62bf72210917dac3adb0da2))
+* **orgs:** move org switcher to dashboard as auto-submit select ([b195592](https://github.com/junox-systems/django-starter-kit/commit/b195592b63ca501c087d59835ee1a715e0f156d4))
+* **sidebar:** align logout icon with label ([0956fb9](https://github.com/junox-systems/django-starter-kit/commit/0956fb9769802e57eef584a3030cc95c2def865e))
+* **sidebar:** distinct, destructive logout ([7bfde3f](https://github.com/junox-systems/django-starter-kit/commit/7bfde3f60b189973f2d13d8283258cbf8d4a7708))
+* **toast:** top-right below nav, calmer entrance ([82b6ef5](https://github.com/junox-systems/django-starter-kit/commit/82b6ef577abf7c580c9eb0a688208e4bee587802))
+* **users:** apply allauth username rules on profile edit ([00d71e2](https://github.com/junox-systems/django-starter-kit/commit/00d71e2bb7963954a57ee592d9020e94485f738d))
+* **users:** enforce case-insensitive unique username in DB ([141ed2a](https://github.com/junox-systems/django-starter-kit/commit/141ed2af12469560d80029941dc6b70a94b633b5))
+* **users:** harden avatar upload and profile save ([72e6b40](https://github.com/junox-systems/django-starter-kit/commit/72e6b4056e5561af536c75fc68d933e9d0df02a3))
+* **users:** profile logout + long name wrap ([ed8f1c8](https://github.com/junox-systems/django-starter-kit/commit/ed8f1c89b3f679527a7a9838ebc0a14605ad8bb5))
+
 ## [0.4.0](https://github.com/junox-systems/django-starter-kit/compare/v0.3.0...v0.4.0) (2026-10-21)
 
 
