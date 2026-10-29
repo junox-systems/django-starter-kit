@@ -16,7 +16,7 @@ A modern, production-ready Django starter kit — opinionated, lean, and ready t
 | **django-auditlog** | Automatic model change tracking |
 | **Organizations + RBAC** (`apps/orgs`) | Teams, email invitations, role-based access control after ANSI INCITS 359-2004 |
 | **django-imagekit** | On-demand image processing (avatar thumbnails) |
-| **django-storages** | S3-compatible media file backend |
+| **django-storages** | Media backend chosen by `STORAGE_BACKEND`: local disk, S3, Azure or GCS |
 | **django-anymail** | Transactional email via Resend (or any SMTP server) |
 | **django-q2** | Background tasks + schedules, Postgres as broker |
 | **Sentry SDK** | Error tracking + performance monitoring (opt-in) |

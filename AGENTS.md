@@ -22,7 +22,7 @@ Django 5.2 LTS starter kit. Modular monolith. Lean, opinionated, prod-ready. Sin
 | Styling | Tailwind v4 + Basecoat (shadcn tokens, per-site `site.css` pack, fork of `basecoat-css/styles/vega`). Fonts: Manrope body, Space Grotesk headings (Fontsource) |
 | Build | Vite (`django-vite`), uv, pnpm (Node 24), just (+ mirror `Makefile`), Docker Debian trixie-slim |
 | Config | `django-environ` (`env.db()`, `env.bool()`); all vars in `.env.example` |
-| Storage | `django-storages` S3-compatible; falls back to local FS without `AWS_*`. `django-imagekit` avatar thumbs |
+| Storage | `django-storages` behind one Storage API: local FS by default, `s3`/`azure`/`gcs` via `STORAGE_BACKEND` (complete `AWS_*` selects s3). `django-imagekit` avatar thumbs |
 | Email | Resend (`django-anymail`) if `RESEND_API_KEY`, else any SMTP via `EMAIL_URL` |
 | Admin | stock admin + dj-control-room (cache, urls, signals panels), constance, import_export, auditlog |
 | Observability | Sentry (if `SENTRY_DSN`; 10% traces, no PII). OTEL opt-in `OTEL_ENABLED=true`: Django + psycopg only, any OTLP backend |

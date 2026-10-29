@@ -85,6 +85,48 @@ class ProductionHostTests(SimpleTestCase):
         self.assertIn("http://example.com", result.stderr)
 
 
+class StorageBackendTests(SimpleTestCase):
+    expr = 's.STORAGES["default"]["BACKEND"]'
+    FULL_S3 = {
+        "AWS_ACCESS_KEY_ID": "key",
+        "AWS_SECRET_ACCESS_KEY": "secret",
+        "AWS_STORAGE_BUCKET_NAME": "media",
+    }
+
+    def backend(self, **env):
+        result = load_settings("config.settings.base", self.expr, **env)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        return result.stdout.strip()
+
+    def test_local_disk_by_default(self):
+        self.assertEqual(
+            self.backend(AWS_ACCESS_KEY_ID="", AWS_STORAGE_BUCKET_NAME=""),
+            "django.core.files.storage.FileSystemStorage",
+        )
+
+    def test_complete_s3_config_selects_s3(self):
+        self.assertEqual(
+            self.backend(**self.FULL_S3), "apps.core.storage.PublicEndpointS3Storage"
+        )
+
+    def test_storage_backend_overrides_auto_detection(self):
+        for name, backend in {
+            "local": "django.core.files.storage.FileSystemStorage",
+            "azure": "storages.backends.azure_storage.AzureStorage",
+            "gcs": "storages.backends.gcloud.GoogleCloudStorage",
+        }.items():
+            with self.subTest(backend=name):
+                self.assertEqual(
+                    self.backend(STORAGE_BACKEND=name, **self.FULL_S3), backend
+                )
+
+    def test_unknown_storage_backend_refuses_to_start(self):
+        result = load_settings("config.settings.base", STORAGE_BACKEND="dropbox")
+
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("STORAGE_BACKEND='dropbox'", result.stderr)
+
+
 class S3CustomDomainTests(SimpleTestCase):
     def test_custom_endpoint_drops_amazonaws_domain(self):
         result = load_settings(

@@ -6,6 +6,7 @@ import re
 from pathlib import Path
 
 import environ
+from django.core.exceptions import ImproperlyConfigured
 
 logger = logging.getLogger(__name__)
 
@@ -19,6 +20,7 @@ env = environ.Env(
     AWS_ACCESS_KEY_ID=(str, ""),
     AWS_SECRET_ACCESS_KEY=(str, ""),
     AWS_STORAGE_BUCKET_NAME=(str, ""),
+    STORAGE_BACKEND=(str, ""),
     RESEND_API_KEY=(str, ""),
     SENTRY_DSN=(str, ""),
 )
@@ -264,13 +266,34 @@ STORAGES = {
     },
 }
 
-# Override default storage for media files if AWS credentials are provided
-if AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY and AWS_STORAGE_BUCKET_NAME:
-    STORAGES["default"] = {
-        "BACKEND": "apps.core.storage.PublicEndpointS3Storage",
-        "OPTIONS": {"public_endpoint_url": AWS_S3_PUBLIC_ENDPOINT_URL or None},
+# Media storage: one Storage API for every backend, so fields, imagekit and
+# templates never learn where bytes live. Local disk unless told otherwise;
+# with no STORAGE_BACKEND, complete AWS_* config means s3.
+# azure/gcs need their extra: `uv add "django-storages[azure]"` (or [google]).
+STORAGE_BACKENDS = {
+    "local": "django.core.files.storage.FileSystemStorage",
+    "s3": "apps.core.storage.PublicEndpointS3Storage",
+    "azure": "storages.backends.azure_storage.AzureStorage",
+    "gcs": "storages.backends.gcloud.GoogleCloudStorage",
+}
+_S3_CONFIGURED = bool(
+    AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY and AWS_STORAGE_BUCKET_NAME
+)
+STORAGE_BACKEND = env("STORAGE_BACKEND") or ("s3" if _S3_CONFIGURED else "local")
+
+if STORAGE_BACKEND not in STORAGE_BACKENDS:
+    raise ImproperlyConfigured(
+        f"STORAGE_BACKEND={STORAGE_BACKEND!r} is not one of "
+        f"{', '.join(STORAGE_BACKENDS)}."
+    )
+
+STORAGES["default"] = {"BACKEND": STORAGE_BACKENDS[STORAGE_BACKEND]}
+
+if STORAGE_BACKEND == "s3":
+    STORAGES["default"]["OPTIONS"] = {
+        "public_endpoint_url": AWS_S3_PUBLIC_ENDPOINT_URL or None
     }
-else:
+elif not _S3_CONFIGURED:
     _aws_vars_set = sum(
         [
             1
@@ -280,7 +303,7 @@ else:
     )
     if _aws_vars_set not in (0, 3):
         logger.warning(
-            "Partial S3 config (%d of 3 vars set). Falling back to local filesystem.",
+            "Ignoring partial S3 config (%d of 3 vars set); media stay local.",
             _aws_vars_set,
         )
 
