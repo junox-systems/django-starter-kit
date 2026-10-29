@@ -248,6 +248,7 @@ Before deploying:
 Build image and deploy stack:
 
 ```bash
+export APP_SLUG=django-starter-kit   # swarm does not read .env
 export IMAGE_NAME=your-registry/django-starter-kit:latest
 just stack-build
 docker tag django-starter-kit $IMAGE_NAME
@@ -257,6 +258,7 @@ just stack-deploy
 
 Required env vars:
 - `SECRET_KEY` — Django secret
+- `APP_SLUG` — names the swarm DB user, database and containers; export it, swarm ignores `.env`
 - `IMAGE_NAME` — Docker image for stack
 - `POSTGRES_PASSWORD` — DB password
 - `DEFAULT_FROM_EMAIL` — sender verified with your email provider

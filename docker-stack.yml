@@ -1,3 +1,6 @@
+# Swarm's template engine expands one level only: ${VAR:-${OTHER}} stays a
+# literal string. Keep every default flat (${VAR:-default}), and export
+# APP_SLUG yourself, because `docker stack deploy` does not read .env.
 services:
   web:
     image: ${IMAGE_NAME:?IMAGE_NAME required}
@@ -10,7 +13,7 @@ services:
     # No published port: traffic enters through the nginx service.
     environment:
       DJANGO_SETTINGS_MODULE: config.settings.production
-      DATABASE_URL: postgres://${POSTGRES_USER:-django}:${POSTGRES_PASSWORD:-django}@db:5432/${POSTGRES_DB:-django}
+      DATABASE_URL: postgres://${APP_SLUG:-django-starter-kit}:${POSTGRES_PASSWORD:-django}@db:5432/${APP_SLUG:-django-starter-kit}
       AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID:-}
       AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY:-}
       AWS_STORAGE_BUCKET_NAME: ${AWS_STORAGE_BUCKET_NAME:-}
@@ -49,7 +52,7 @@ services:
         max_attempts: 3
     environment:
       DJANGO_SETTINGS_MODULE: config.settings.production
-      DATABASE_URL: postgres://${POSTGRES_USER:-django}:${POSTGRES_PASSWORD:-django}@db:5432/${POSTGRES_DB:-django}
+      DATABASE_URL: postgres://${APP_SLUG:-django-starter-kit}:${POSTGRES_PASSWORD:-django}@db:5432/${APP_SLUG:-django-starter-kit}
       AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID:-}
       AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY:-}
       AWS_STORAGE_BUCKET_NAME: ${AWS_STORAGE_BUCKET_NAME:-}
@@ -76,13 +79,13 @@ services:
       restart_policy:
         condition: any
     environment:
-      POSTGRES_USER: ${POSTGRES_USER:-django}
+      POSTGRES_USER: ${APP_SLUG:-django-starter-kit}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD required}
-      POSTGRES_DB: ${POSTGRES_DB:-django}
+      POSTGRES_DB: ${APP_SLUG:-django-starter-kit}
     volumes:
       - postgres_data:/var/lib/postgresql
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-django} -d ${POSTGRES_DB:-django}"]
+      test: ["CMD-SHELL", "pg_isready -U ${APP_SLUG:-django-starter-kit} -d ${APP_SLUG:-django-starter-kit}"]
       interval: 5s
       timeout: 5s
       retries: 5
