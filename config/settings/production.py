@@ -58,10 +58,17 @@ SECURE_CONTENT_TYPE_NOSNIFF = True
 SESSION_COOKIE_SECURE = True
 CSRF_COOKIE_SECURE = True
 
-# The two TLS settings below stay off until a deployment decides otherwise, so
-# `check --deploy` reports them on purpose. Silencing exactly those keeps
-# `just check-deploy` a real gate: every other deployment warning fails it.
-SILENCED_SYSTEM_CHECKS = ["security.W004", "security.W008"]
+# Two kinds of warning are expected, not misconfigurations: the TLS settings
+# below stay off until a deployment decides otherwise, and the Vite/staticfiles
+# warnings only report missing build output, which a clean checkout has by
+# definition. Silencing exactly those keeps `just check-deploy` a real gate:
+# every other deployment warning still fails it.
+SILENCED_SYSTEM_CHECKS = [
+    "security.W004",
+    "security.W008",
+    "django_vite.W001",
+    "staticfiles.W004",
+]
 
 # SSL/TLS: Enable these AFTER configuring your reverse proxy to set
 # X-Forwarded-Proto. Do NOT enable without the proxy header — it
