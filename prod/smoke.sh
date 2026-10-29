@@ -1,9 +1,9 @@
 #!/bin/bash
 # Boot the prod image like docker-stack.yml (db + web + qcluster) and probe it.
-# Usage: prod/smoke.sh [image]   (default: django-starter-kit)
+# Usage: prod/smoke.sh [image]   (default: $APP_SLUG, else django-starter-kit)
 set -euo pipefail
 
-IMAGE="${1:-django-starter-kit}"
+IMAGE="${1:-${APP_SLUG:-django-starter-kit}}"
 P="smoke-$$"
 ENV=(
   -e DATABASE_URL="postgres://django:smoke@$P-db:5432/django"

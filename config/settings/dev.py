@@ -2,6 +2,8 @@
 
 import socket
 
+from config.app import APP_SLUG
+
 from .base import *  # noqa: F403
 from .base import env
 
@@ -10,7 +12,7 @@ from .base import env
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = env.bool("DEBUG", default=True)
 
-ALLOWED_HOSTS = ["localhost", "127.0.0.1", "0.0.0.0", "django-app"]
+ALLOWED_HOSTS = ["localhost", "127.0.0.1", "0.0.0.0", f"{APP_SLUG}-app"]
 
 # CORS settings for development
 CORS_ALLOW_ALL_ORIGINS = True

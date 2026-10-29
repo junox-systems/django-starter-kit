@@ -1,28 +1,34 @@
-# For development environment
+# For development environment.
+#
+# The compose project name is the app slug, so containers, networks and
+# volumes are namespaced per app instead of per directory. Without it,
+# compose names the project after the compose file's folder ("dev") and two
+# apps built from the same kit share a database.
+name: ${APP_SLUG:-django-starter-kit}
 
 services:
   db:
     image: paradedb/paradedb:0.26.2-pg18
-    container_name: django-db
+    container_name: ${APP_SLUG:-django-starter-kit}-db
     restart: unless-stopped
     environment:
       POSTGRES_USER: "postgres"
       POSTGRES_PASSWORD: "postgres"
-      POSTGRES_DB: "db"
+      POSTGRES_DB: ${POSTGRES_DB:-django-starter-kit}
     volumes:
       - postgres_data:/var/lib/postgresql
     # No host port: everything, including manage.py from the app container,
     # reaches the database as db:5432 on the compose network, so a local
     # Postgres on 5432 cannot clash.
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres -d db"]
+      test: ["CMD-SHELL", "pg_isready -U postgres -d ${POSTGRES_DB:-django-starter-kit}"]
       interval: 5s
       timeout: 5s
       retries: 5
 
   clickstack:
     image: clickhouse/clickstack-local:2.33.0
-    container_name: django-clickstack
+    container_name: ${APP_SLUG:-django-starter-kit}-clickstack
     ports:
       - "8080:8080"
       - "4317:4317"
@@ -36,18 +42,18 @@ services:
     build:
       context: ..
       dockerfile: dev/Dockerfile
-    container_name: django-app
+    container_name: ${APP_SLUG:-django-starter-kit}-app
     restart: unless-stopped
     depends_on:
       db:
         condition: service_healthy
     environment:
       - ENVIRONMENT=development
-      - DATABASE_URL=postgresql://postgres:postgres@db:5432/db
+      - DATABASE_URL=postgresql://postgres:postgres@db:5432/${POSTGRES_DB:-django-starter-kit}
       - OTEL_EXPORTER_OTLP_ENDPOINT=http://clickstack:4317
       - OTEL_ENABLED=${OTEL_ENABLED:-true}
       - VITE_HYPERDX_URL=http://localhost:4318
-      - VITE_HYPERDX_SERVICE=django-starter-kit-frontend
+      - VITE_HYPERDX_SERVICE=${APP_SLUG:-django-starter-kit}-frontend
     volumes:
       - ..:/app
       - django_venv:/app/.venv
