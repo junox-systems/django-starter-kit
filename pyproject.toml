@@ -76,3 +76,5 @@ testpaths = ["."]
 # Browser tests need a Vite build + Chromium; run them with `just e2e`.
 addopts = "-m 'not e2e'"
 markers = ["e2e: browser tests (pytest-playwright), run via `just e2e`"]
+# A new warning fails the suite instead of piling up unseen.
+filterwarnings = ["error"]

@@ -6,6 +6,14 @@ from django.conf import settings
 from django.test import SimpleTestCase
 
 
+PROD_ENV = {
+    "SECRET_KEY": "a-real-key",
+    "DEFAULT_FROM_EMAIL": "hello@example.com",
+    "ALLOWED_HOSTS": "example.com",
+    "CSRF_TRUSTED_ORIGINS": "https://example.com",
+}
+
+
 def load_settings(module, expr="s.AWS_S3_CUSTOM_DOMAIN", **env):
     """Import a settings module in a fresh interpreter; settings are module-level."""
     return subprocess.run(
@@ -17,33 +25,64 @@ def load_settings(module, expr="s.AWS_S3_CUSTOM_DOMAIN", **env):
     )
 
 
+def load_production(**overrides):
+    """Import production settings; a None value leaves that variable unset."""
+    env = {**os.environ, **PROD_ENV}
+    for name, value in overrides.items():
+        if value is None:
+            env.pop(name, None)
+        else:
+            env[name] = value
+
+    return subprocess.run(
+        [sys.executable, "-c", "import config.settings.production"],
+        cwd=settings.BASE_DIR,
+        env=env,
+        capture_output=True,
+        text=True,
+    )
+
+
 class ProductionSecretKeyTests(SimpleTestCase):
     def test_refuses_dev_default_key(self):
-        result = load_settings(
-            "config.settings.production", SECRET_KEY="django-insecure-whatever"
-        )
+        result = load_production(SECRET_KEY="django-insecure-whatever")
         self.assertNotEqual(result.returncode, 0)
         self.assertIn("SECRET_KEY must be set in production", result.stderr)
 
-    def test_accepts_real_key(self):
-        result = load_settings(
-            "config.settings.production",
-            SECRET_KEY="a-real-key",
-            DEFAULT_FROM_EMAIL="hello@example.com",
-        )
+    def test_accepts_complete_config(self):
+        result = load_production()
         self.assertEqual(result.returncode, 0, result.stderr)
 
     def test_requires_from_email(self):
-        env = {k: v for k, v in os.environ.items() if k != "DEFAULT_FROM_EMAIL"}
-        result = subprocess.run(
-            [sys.executable, "-c", "import config.settings.production"],
-            cwd=settings.BASE_DIR,
-            env={**env, "SECRET_KEY": "a-real-key"},
-            capture_output=True,
-            text=True,
-        )
+        result = load_production(DEFAULT_FROM_EMAIL=None)
         self.assertNotEqual(result.returncode, 0)
         self.assertIn("DEFAULT_FROM_EMAIL", result.stderr)
+
+
+class ProductionHostTests(SimpleTestCase):
+    def test_requires_allowed_hosts(self):
+        for hosts in (None, ""):
+            with self.subTest(hosts=hosts):
+                result = load_production(ALLOWED_HOSTS=hosts)
+                self.assertNotEqual(result.returncode, 0)
+                self.assertIn("ALLOWED_HOSTS must be set", result.stderr)
+
+    def test_refuses_wildcard_host(self):
+        for hosts in ("*", "example.com,*"):
+            with self.subTest(hosts=hosts):
+                result = load_production(ALLOWED_HOSTS=hosts)
+                self.assertNotEqual(result.returncode, 0)
+                self.assertIn("never '*'", result.stderr)
+
+    def test_requires_csrf_origins(self):
+        result = load_production(CSRF_TRUSTED_ORIGINS=None)
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("CSRF_TRUSTED_ORIGINS must be set", result.stderr)
+
+    def test_refuses_insecure_csrf_origin(self):
+        result = load_production(CSRF_TRUSTED_ORIGINS="http://example.com")
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("http://example.com", result.stderr)
 
 
 class S3CustomDomainTests(SimpleTestCase):

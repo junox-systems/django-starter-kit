@@ -320,8 +320,10 @@ Deps: `uv add|remove <pkg>`, `uv sync`; JS `cd frontend && pnpm add|remove <pkg>
 
 ## Testing & CI
 
-- `just test` → pytest, `config.settings.test`. Tests per app in `apps/<name>/tests/`.
+- `just test` → pytest, `config.settings.test`. Tests per app in `apps/<name>/tests/`. Warnings are errors (`filterwarnings` in `pyproject.toml`).
+- `just test-assets` → the build assertions in `apps/core/tests/test_frontend.py`; needs `frontend/dist`, so run after `just vite-build`.
 - `just e2e` → browser tests vs built assets (`-m e2e`).
+- `just check-deploy` → `check --deploy --fail-level WARNING` on production settings. TLS warnings W004/W008 are silenced in `production.py` because SSL/HSTS stay opt-in; any other warning fails.
 - `just smoke-prod` → boot built prod image (db + web + qcluster via `prod/smoke.sh`), probe health, pages, static, OpenAPI.
-- `apps/core/tests/test_cotton.py` fails if a `<c-` tag reaches the browser.
-- CI (`.github/workflows/ci.yml`, push/PR to `main`): `just install` → `lint` → `test` → `vite-build` → `docker-build` → `smoke-prod`.
+- `apps/core/tests/test_cotton.py` fails if a `<c-` tag reaches the browser. `test_templates.py` compiles every template and rejects multi-line `{# #}`.
+- CI (`.github/workflows/ci.yml`, push/PR to `main`): `just install` → `lint` → `check-deploy` → `test` → `vite-build` → `test-assets` → `docker-build` → `smoke-prod`.

@@ -17,10 +17,14 @@ jobs:
       run: just install
     - name: Run lint
       run: just lint
+    - name: Deployment checks
+      run: just check-deploy
     - name: Run tests
       run: just test
     - name: Build frontend
       run: just vite-build
+    - name: Check built assets
+      run: just test-assets
     - name: Build Docker image
       run: just docker-build
     - name: Smoke-test production image

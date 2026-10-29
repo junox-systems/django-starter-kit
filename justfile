@@ -33,6 +33,11 @@ precommit:
 test:
     DJANGO_SETTINGS_MODULE=config.settings.test uv run pytest
 
+# Part of `test` too, but the build assertions need frontend/dist: run after
+# `just vite-build`. Guards Tailwind's @source .svelte line (hard rule 1).
+test-assets:
+    DJANGO_SETTINGS_MODULE=config.settings.test uv run pytest apps/core/tests/test_frontend.py
+
 # Browser tests against the built assets, not a dev server: ENVIRONMENT=test
 # turns off django-vite dev_mode (default "development" points at :5173), which
 # then reads the manifest from STATIC_ROOT — hence collectstatic.
@@ -128,6 +133,17 @@ docker-build:
 # Boot the built image (db + web + qcluster) and probe it
 smoke-prod image="django-starter-kit":
     prod/smoke.sh {{image}}
+
+# Secrets and hosts below are throwaways so the settings module imports; the
+# TLS warnings stay silenced in config/settings/production.py (opt-in policy).
+# Django deployment checks against production settings.
+check-deploy:
+    env DJANGO_SETTINGS_MODULE=config.settings.production ENVIRONMENT=production \
+        SECRET_KEY=deploy-check-only-key-0123456789abcdefghijklmnopqrstuvwxyz \
+        DEFAULT_FROM_EMAIL=noreply@example.com \
+        ALLOWED_HOSTS=example.com \
+        CSRF_TRUSTED_ORIGINS=https://example.com \
+        uv run python manage.py check --deploy --fail-level WARNING
 
 #### PROD ####
 
