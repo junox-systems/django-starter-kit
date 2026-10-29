@@ -62,7 +62,7 @@ dev-urls analytics="":
     @echo "App         http://localhost:8000          first start installs deps + migrates: just logs"
     @echo "Admin       http://localhost:8000/admin/   create a login: just dev-createsuperuser"
     @echo "Vite HMR    http://localhost:5173          assets only, open the app on :8000"
-    @echo "Postgres    postgresql://postgres:postgres@localhost:5432/db"
+    @echo "Postgres    internal to the compose network: just dev-psql"
     @if [ -n "{{analytics}}" ]; then echo "ClickStack  http://localhost:8080          OTLP gRPC :4317, HTTP :4318"; else echo "ClickStack  off (dev-slim)"; fi
 
 dev-down:
@@ -88,6 +88,9 @@ dev-ps:
 
 alias ps := dev-ps
 
+dev-psql:
+    {{compose}} exec db psql -U postgres -d db
+
 dev-bash:
     {{compose}} exec app bash
 
@@ -101,8 +104,10 @@ alias shell := dev-shell
 dev-createsuperuser:
     {{compose}} exec app env DJANGO_SUPERUSER_PASSWORD=admin uv run python manage.py createsuperuser --noinput --username admin --email admin@example.com
 
-#### DEV ####
+#### DJANGO MANAGEMENT ####
 
+# These three run inside the dev container (dev/supervisord.conf), where the
+# database is reachable as "db". On the host they have no database to talk to.
 django-dev:
     DJANGO_SETTINGS_MODULE=config.settings.dev uv run python manage.py runserver 0.0.0.0:8000
 
@@ -119,8 +124,9 @@ makemigrations:
 alias make := makemigrations
 alias migrations := makemigrations
 
+# In the running app container: the database has no host port.
 migrate:
-    uv run python manage.py migrate
+    {{compose}} exec app uv run python manage.py migrate
 
 #### BUILD ####
 

@@ -51,7 +51,7 @@ dev-urls:
 	@echo "App         http://localhost:8000          first start installs deps + migrates: make dev-logs"
 	@echo "Admin       http://localhost:8000/admin/   create a login: make dev-createsuperuser"
 	@echo "Vite HMR    http://localhost:5173          assets only, open the app on :8000"
-	@echo "Postgres    postgresql://postgres:postgres@localhost:5432/db"
+	@echo "Postgres    internal to the compose network: make dev-psql"
 	@if [ -n "$(ANALYTICS)" ]; then echo "ClickStack  http://localhost:8080          OTLP gRPC :4317, HTTP :4318"; else echo "ClickStack  off (dev-slim)"; fi
 
 .PHONY: dev-down dev-stop
@@ -75,6 +75,10 @@ dev-logs logs:
 dev-ps ps:
 	docker compose -f dev/docker-compose.dev.yml ps
 
+.PHONY: dev-psql
+dev-psql:
+	docker compose -f dev/docker-compose.dev.yml exec db psql -U postgres -d db
+
 .PHONY: dev-bash bash
 dev-bash bash:
 	docker compose -f dev/docker-compose.dev.yml exec app bash
@@ -88,7 +92,9 @@ dev-createsuperuser:
 
 ## - END DOCKER DEV - ## -------------------------------------------------------------------------
 
-#### - DEV commands - #### ---------------------------------------------------------------------------
+#### - DJANGO MANAGEMENT - #### ---------------------------------------------------------------------
+# These three run inside the dev container (dev/supervisord.conf), where the
+# database is reachable as "db". On the host they have no database to talk to.
 .PHONY: django-dev
 django-dev:
 	DJANGO_SETTINGS_MODULE=config.settings.dev uv run python manage.py runserver 0.0.0.0:8000
@@ -106,9 +112,10 @@ qcluster-dev:
 makemigrations make migrations:
 	uv run python manage.py makemigrations
 
+# In the running app container: the database has no host port.
 .PHONY: migrate
 migrate:
-	uv run python manage.py migrate
+	docker compose -f dev/docker-compose.dev.yml exec app uv run python manage.py migrate
 ## - END DEV - ## ---------------------------------------------------------------------------
 
 #### - BUILD - #### ------------------------------------------------------------------------------

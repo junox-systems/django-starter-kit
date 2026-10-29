@@ -79,22 +79,6 @@ just dev-slim          # db + app only
 ClickStack UI: http://localhost:8080 (no login, local mode).
 OTLP endpoint: http://localhost:4318 (HTTP) / http://localhost:4317 (gRPC).
 
-### Local (database in Docker, app on host)
-
-Needs mise (`mise install` provides python, uv, node, pnpm, just).
-
-```bash
-docker compose -f dev/docker-compose.dev.yml up -d db
-echo 'DATABASE_URL=postgresql://postgres:postgres@localhost:5432/db' >> .env
-just install
-just migrate
-
-# One terminal each:
-just django-dev        # runserver on :8000
-just vite-dev          # Vite HMR on :5173
-just qcluster-dev      # django-q2 workers + scheduler
-```
-
 Dev keeps media on local disk (`media/`). S3 is configured only in the
 production stack.
 
@@ -165,11 +149,11 @@ The rules for each layer (what goes where, Cotton conventions, hard rules) are i
 |---------|------|-------|
 | Django | `8000` | Main app |
 | Vite HMR | `5173` | Dev only — proxied by django-vite |
-| PostgreSQL | `5432` | |
 | ClickStack | `8080` / `4317` / `4318` | `just dev` only: UI / OTLP gRPC / OTLP HTTP |
 
-These ports are published on your host. Stop anything already bound to them
-(a local Postgres, say) before `just dev`.
+Only these are published. PostgreSQL stays internal to the compose network
+(the app reaches it as `db:5432`), so a local Postgres on `5432` does not
+clash and `just dev-psql` opens a shell (also as `make dev-psql`).
 
 ---
 
@@ -223,14 +207,9 @@ just bash            # Shell in the app container
 just shell           # Django shell in the app container
 just dev-clean       # Destroy containers + volumes (deletes the dev DB)
 
-# App on host
-just django-dev      # runserver
-just vite-dev        # Vite HMR dev server
-just qcluster-dev    # django-q2 workers + scheduler
-
 # Database
-just makemigrations  # Generate migrations
-just migrate         # Apply migrations
+just makemigrations  # Generate migrations (host; files stay yours)
+just migrate         # Apply migrations (in the app container)
 
 # Quality
 just lint            # ruff check

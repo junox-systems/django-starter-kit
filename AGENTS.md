@@ -309,9 +309,8 @@ Docker (`dev/docker-compose.dev.yml`): `db` = `paradedb/paradedb:0.26.2-pg18`; `
 just dev            # all services (alias dev-up); just dev-slim = no analytics
 just stop | logs | restart | bash | shell
 just dev-clean      # drop volumes — deletes dev DB
-just django-dev     # host mode: runserver (DB in Docker, DATABASE_URL → localhost)
-just vite-dev       # Vite HMR :5173
-just qcluster-dev   # workers + scheduler
+just dev-psql       # psql in the db container (no host port is published)
+just django-dev | vite-dev | qcluster-dev  # what supervisord runs inside `app`
 just vite-build     # prod assets → frontend/dist/ (Whitenoise serves)
 just make / migrate # makemigrations / migrate
 ```
