@@ -8,6 +8,8 @@ from pathlib import Path
 import environ
 from django.core.exceptions import ImproperlyConfigured
 
+from config.app import APP_NAME, APP_SLUG
+
 logger = logging.getLogger(__name__)
 
 # Initialize django-environ with default values
@@ -108,7 +110,7 @@ from dmr.openapi import OpenAPIConfig  # noqa: E402
 
 DMR_SETTINGS: dict = {
     Settings.openapi_config: OpenAPIConfig(
-        title="Django Starter Kit API",
+        title=f"{APP_NAME} API",
         version="0.1.0",
     ),
 }
@@ -141,6 +143,7 @@ TEMPLATES = [
                 "django.contrib.messages.context_processors.messages",
                 "apps.dashboard.context_processors.app_nav",
                 "apps.orgs.context_processors.current_org",
+                "apps.core.context_processors.app",
             ],
         },
     },
@@ -336,7 +339,8 @@ CONSTANCE_BACKEND = "constance.backends.database.DatabaseBackend"
 # The ORM is the broker: tasks queue in Postgres, no Redis. Run workers with
 # `python manage.py qcluster`; schedules live in the admin (django_q.Schedule).
 Q_CLUSTER = {
-    "name": "django-starter-kit",
+    # One app name, one role: the same code starts the default or heavy worker.
+    "name": f"{APP_SLUG}-{env('Q_CLUSTER_ROLE', default='default')}",
     "orm": "default",
     "workers": 2,
     "timeout": 25 * 60,  # seconds, hard limit per task

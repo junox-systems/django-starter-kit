@@ -39,6 +39,7 @@ apps/           # ALL backend code. Never at project root
   dashboard/    # /dashboard/ — panel payloads, no models
   orgs/         # orgs, memberships, RBAC roles (rbac.py), email invitations
 config/
+  app.py        # APP_NAME / APP_SLUG — the single brand declaration
   settings/     # base / dev / production / test
   asgi.py       # ASGI + OTEL init
   otel.py
@@ -77,6 +78,7 @@ dev/            # Docker dev env (Dockerfile, compose, supervisord)
 - `production.py` / `dev.py` / `test.py` = `from .base import *` + overrides. **Never change this pattern.**
 - SSL/HSTS commented out. **Never auto-enable** — manual per deploy topology.
 - Templates: loaders listed by hand (Cotton). `base.py` cached, `dev.py` uncached for hot reload.
+- App name lives once in `config/app.py` (`APP_NAME`, `APP_SLUG`, from env). Templates read `{{ app_name }}` (`apps.core.context_processors.app`), the sidebar island gets it in `app_nav`, the API title and OTel service name read the same value. **Never hardcode the brand in a template.** Queue name = `APP_SLUG` + `Q_CLUSTER_ROLE`.
 
 ### API (DMR)
 - Controllers `apps/api/views.py`, schemas `apps/api/schemas/<name>.py`.
