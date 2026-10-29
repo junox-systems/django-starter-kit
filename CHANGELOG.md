@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.6.1](https://github.com/junox-systems/django-starter-kit/compare/v0.6.0...v0.6.1) (2026-10-29)
+
+
+### Bug Fixes
+
+* **deploy:** flatten swarm interpolation in the stack file ([69b36dc](https://github.com/junox-systems/django-starter-kit/commit/69b36dcfe4803382d3f6761141c3f249a55248c5))
+* **dev:** namespace the dev stack by app slug ([a89e373](https://github.com/junox-systems/django-starter-kit/commit/a89e3739d432493cdcfc5d9c810d805c2ab9dbf6))
+
 ## [0.6.0](https://github.com/junox-systems/django-starter-kit/compare/v0.5.0...v0.6.0) (2026-10-29)
 
 
