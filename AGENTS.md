@@ -307,7 +307,7 @@ Dashboard: `svelte/dashboard/Dashboard.svelte` = one root composing panels. Root
 
 Docker (`dev/docker-compose.dev.yml`): `db` = `paradedb/paradedb:0.26.2-pg18`; `app` = Django + Vite + qcluster under supervisord (waits db health → deps → migrate); `clickstack` = OTEL UI `:8080` (`just dev` only). Media local in dev, S3 in prod.
 
-The compose project name is `APP_SLUG`, so containers, networks and volumes are `<slug>-*` and two apps from this kit do not share a dev database. Renaming the slug needs a fresh volume: `just dev-clean`.
+The compose project name is `APP_SLUG`, so containers, networks and volumes are `<slug>-*` and two apps from this kit do not share a dev database. Renaming the slug needs a fresh volume: `just dev-clean`. `just` passes the repo `.env` to compose, so compose and Django read one file. The database name and the frontend telemetry label follow the slug; recipes and `prod/smoke.sh` default to `${APP_SLUG:-django-starter-kit}`.
 
 ```bash
 just dev            # all services (alias dev-up); just dev-slim = no analytics

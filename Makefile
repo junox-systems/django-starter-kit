@@ -77,7 +77,7 @@ dev-ps ps:
 
 .PHONY: dev-psql
 dev-psql:
-	docker compose -f dev/docker-compose.dev.yml exec db psql -U postgres -d $${POSTGRES_DB:-django-starter-kit}
+	docker compose -f dev/docker-compose.dev.yml exec db psql -U postgres -d $${POSTGRES_DB:-$${APP_SLUG:-django-starter-kit}}
 
 .PHONY: dev-bash bash
 dev-bash bash:
@@ -125,11 +125,11 @@ vite-build:
 
 .PHONY: docker-build
 docker-build:
-	docker build -t django-starter-kit .
+	docker build -t $${APP_SLUG:-django-starter-kit} .
 
 .PHONY: smoke-prod
 smoke-prod:
-	prod/smoke.sh django-starter-kit
+	prod/smoke.sh $${APP_SLUG:-django-starter-kit}
 ## - END BUILD - ## -------------------------------------------------------------------------------
 
 ### - PROD - ### ---------------------------------------------------------------------------------
@@ -153,23 +153,23 @@ prod-start:
 #### - STACK - #### ------------------------------------------------------------------------------
 .PHONY: stack-build
 stack-build:
-	docker build -t django-starter-kit .
+	docker build -t $${APP_SLUG:-django-starter-kit} .
 
 .PHONY: stack-deploy
 stack-deploy:
-	docker stack deploy -c docker-stack.yml django-starter-kit
+	docker stack deploy -c docker-stack.yml $${APP_SLUG:-django-starter-kit}
 
 .PHONY: stack-rm
 stack-rm:
-	docker stack rm django-starter-kit
+	docker stack rm $${APP_SLUG:-django-starter-kit}
 
 .PHONY: stack-logs
 stack-logs:
-	docker service logs -f django-starter-kit_web
+	docker service logs -f $${APP_SLUG:-django-starter-kit}_web
 
 .PHONY: stack-ps
 stack-ps:
-	docker stack services django-starter-kit
+	docker stack services $${APP_SLUG:-django-starter-kit}
 ## - END STACK - ##
 
 # deploy:

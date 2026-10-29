@@ -2,10 +2,8 @@
 
 import socket
 
-from config.app import APP_SLUG
-
 from .base import *  # noqa: F403
-from .base import env
+from .base import APP_SLUG, env
 
 # Development-specific settings
 

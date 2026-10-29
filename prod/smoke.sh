@@ -6,7 +6,7 @@ set -euo pipefail
 IMAGE="${1:-${APP_SLUG:-django-starter-kit}}"
 P="smoke-$$"
 ENV=(
-  -e DATABASE_URL="postgres://django:smoke@$P-db:5432/django"
+  -e DATABASE_URL="postgres://${APP_SLUG:-django-starter-kit}:smoke@$P-db:5432/${APP_SLUG:-django-starter-kit}"
   -e SECRET_KEY="smoke-$(od -An -N16 -tx1 /dev/urandom | tr -d ' \n')"
   -e DEFAULT_FROM_EMAIL=smoke@example.com
   -e CSRF_TRUSTED_ORIGINS=https://example.com
@@ -22,7 +22,7 @@ fail() {
 trap cleanup EXIT
 
 docker network create "$P" >/dev/null
-docker run -d --name "$P-db" --network "$P" -e POSTGRES_USER=django -e POSTGRES_PASSWORD=smoke -e POSTGRES_DB=django paradedb/paradedb:0.26.2-pg18 >/dev/null
+docker run -d --name "$P-db" --network "$P" -e POSTGRES_USER=${APP_SLUG:-django-starter-kit} -e POSTGRES_PASSWORD=smoke -e POSTGRES_DB=${APP_SLUG:-django-starter-kit} paradedb/paradedb:0.26.2-pg18 >/dev/null
 docker run -d --name "$P-web" --network "$P" "${ENV[@]}" "$IMAGE" >/dev/null
 docker run -d --name "$P-q" --network "$P" "${ENV[@]}" "$IMAGE" python manage.py qcluster >/dev/null
 
